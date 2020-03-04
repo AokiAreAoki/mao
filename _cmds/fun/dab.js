@@ -1,0 +1,1 @@
+msg => msg.channel.send( client.emojis.get( "499184967377616896" ).toString() )

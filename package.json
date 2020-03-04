@@ -1,0 +1,25 @@
+{
+  "name": "maobot",
+  "version": "2.0.0",
+  "description": "yes",
+  "main": "mao.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mao",
+    "bot",
+    "aoki"
+  ],
+  "author": "Aoki",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^11.5.1",
+    "express": "^4.17.1",
+    "jimp": "^0.9.3",
+    "node-opus": "^0.3.3",
+    "request": "^2.88.0",
+    "vm": "^0.1.0",
+    "ytdl-core": "^1.0.9"
+  }
+}

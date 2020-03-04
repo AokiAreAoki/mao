@@ -1,4 +1,3 @@
-
 const fs = require( 'fs' )
 const join = require( 'path' ).join
 const events = require( 'events' )
@@ -62,16 +61,11 @@ class BakaDB extends events {
 			fs.mkdirSync( path )
 		}
 
+		this.db = data.db ? this._decode( data.db ) : {}
 		this.coders = this.default_coders
 
 		if( data.coders )
 			this._foreach( data.coders, ( coder, type ) => this.coders[type] = this._decode( coder ) )
-
-		this.db = data.db ? this._decode( data.db ) : {}
-
-		if( !this.db.coders ) this.db.coders = {}
-		for( let k in this.default_coders )
-			this.db.coders[k] = this.default_coders[k]
 
 		process.on( 'exit', () => this.save() )
 		
@@ -167,6 +161,22 @@ class BakaDB extends events {
 		} catch( error ){
 			this.emit( 'error-saving', error )
 		}
+
+		let saves = fs.readdirSync( this.path )
+
+		saves.forEach( ( file, k ) => {
+			if( file.match( /\D/ ) )
+				delete saves[k]
+			else
+				saves[k] = Number( file )
+		})
+
+		saves.sort( ( a, b ) => b - a )
+		let counter = 0
+
+		for( let k in saves )
+			if( ++counter > this.backups_limit )
+				fs.unlinkSync( join( this.path, String( saves[k] ) ) )
 	}
 
 	createCoder( constructor, encoder, decoder ){

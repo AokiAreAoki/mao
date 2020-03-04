@@ -62,10 +62,12 @@ bakadb.init()
 bakadb.autoSave( 3600 / 2 )
 db = bakadb.db
 
+bakadb.on( 'missing-encoder', encoder => log( `[WARNING] Missing "${encoder}" encoder` ) ) 
+bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" decoder` ) ) 
+
 // Creating client
 const client = new discord.Client()
 client.login( read( './token' ) )
-process.on( 'beforeExit', () => db.save() )
 
 var isOnlineOrInitialized = false
 client.once( 'ready', () => {

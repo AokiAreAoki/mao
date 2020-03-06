@@ -138,9 +138,24 @@ class Vector {
 		for( let i = 0; i < this.axes; i++ ){
 			if( axes && axes.search( 'xyzw'[i] ) == -1 ) continue;
 			if( cb( this[ 'xyzw'[i] ], 'xyzw'[i], i ) ) break;
+			// callback( value of axis, name of axis, number of axis )
 		}
 
 		return this
+	}
+
+	equals( vector ){
+		if( this.axes != vector.axes ) return false
+
+		let result = true
+		this.forEach( ( v, axis ) => {
+			if( v != vector[axis] ){
+				result = false
+				return true
+			}
+		})
+
+		return result
 	}
 
 	/// Changes This Vector ///

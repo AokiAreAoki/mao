@@ -23,9 +23,8 @@ module.exports = {
 
         addCmd( 'totaluptime', 'Total Mao\'s uptime', msg => {
             let totaluptime = db.totaluptime || 1
-            msg.channel.send( embed()
-                .addField( 'Total uptime', `${ numsplit( Math.floor( totaluptime ) ) }m = ${ numsplit( Math.floor( totaluptime / 6 ) / 10 ) }h` )
-                .setColor( maoclr ) )
+            let string_time = `${numsplit( Math.floor( totaluptime ) )}m = ${numsplit( Math.floor( totaluptime / 6 ) / 10 )}h`
+            msg.channel.send( embed().addField( 'Total uptime', string_time ) )
         })
     }
 }

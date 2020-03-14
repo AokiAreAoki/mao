@@ -17,7 +17,8 @@ module.exports = {
                 return
             }
 
-            let emb = embed().setDescription( `Prefix: \`${cmddata.prefix}\`\nFor more information use \`help <command>\`` )
+            let emb = embed()
+                .setDescription( `Prefix: \`${cmddata.prefix}\`\nFor more information use \`help <command>\`` )
             
             for( let k in cmddata.modules ){
                 let module = cmddata.modules[k],
@@ -37,7 +38,6 @@ module.exports = {
                 emb.addField( module.printname + ':', commands )
             }
 
-            emb.setColor( maoclr )
             msg.channel.send( emb )
         })
     }

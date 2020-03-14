@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'discord bakadb db List maoclr findMem',
 	execute: ( requirements, mao ) => {
 		requirements.define( global )
-
+		
 		bakadb.createCoder( List, perms => 'List:' + perms.toString(), list => new List( list ) )
 
 		if( db.perms ){
@@ -14,7 +14,7 @@ module.exports = {
 				else {
 					let empty = true
 					
-					for( let k in db.perms[k] ){
+					for( let k in perms ){
 						empty = false
 						break
 					}
@@ -96,7 +96,7 @@ module.exports = {
 
 					if( id ){
 						let list = '',
-							user = client.users.get( id )
+							user = client.users.cache.get( id )
 						
 						if( db.perms[id] )
 							for( let k in db.perms[id] )
@@ -126,7 +126,7 @@ module.exports = {
 						if( db.perms[id] ) db.perms[id].add( args )
 						else db.perms[id] = new List( args )
 						
-						msg.channel.send( `Setted next permissions for user \`${client.users.get( id ).tag}\`: \`${args.join( '`, `' )}\`` )
+						msg.channel.send( `Setted next permissions for user \`${client.users.cache.get( id ).tag}\`: \`${args.join( '`, `' )}\`` )
 					} else msg.channel.send( 'User not found' )
 				} else
 					msg.channel.send( 'You did not provide permissions' )
@@ -141,7 +141,7 @@ module.exports = {
 						if( db.perms[id] ) db.perms[id].remove( args )
 						else db.perms[id] = new List( args )
 						
-						msg.channel.send( `Removed next permissions for user \`${client.users.get( id ).tag}\`: \`${args.join( '`, `' )}\`` )
+						msg.channel.send( `Removed next permissions for user \`${client.users.cache.get( id ).tag}\`: \`${args.join( '`, `' )}\`` )
 					} else msg.channel.send( 'User not found' )
 				} else
 					msg.channel.send( 'You did not provide permissions' )
@@ -163,10 +163,7 @@ module.exports = {
 					list += `\`${k}\``
 				}
 
-				msg.channel.send( new discord.RichEmbed()
-					.addField( 'Actions:', list )
-					.setColor( maoclr )
-				)
+				msg.channel.send( embed().addField( 'Actions:', list ) )
 			}
 		})
 	}

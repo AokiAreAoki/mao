@@ -8,7 +8,6 @@ var exists = fs.existsSync
 class BakaDB extends events {
 	constructor(){
 		super()
-		
 		this.backups_limit = 10
 		this.default_coders = {
 			Function: {
@@ -30,7 +29,15 @@ class BakaDB extends events {
 		}
 	}
 
-	init( path='./bdb' ){
+	init( path, shit ){
+		if( typeof path != 'string' ){
+			if( typeof path == 'object' )
+				for( let k in path ) global[k] = path[k]
+				//shit = path
+			path = './bdb'
+		} else
+			for( let k in shit ) global[k] = shit[k]
+		
 		this.path = path.replace( /^(\.\/)?/, './' )
 		let data = {}
 
@@ -57,18 +64,18 @@ class BakaDB extends events {
 					this.emit( 'error-parsing-save', path, file, error )
 				}
 			}
-		} else {
+		} else
 			fs.mkdirSync( path )
-		}
 
-		this.db = data.db ? this._decode( data.db ) : {}
 		this.coders = this.default_coders
-
 		if( data.coders )
 			this._foreach( data.coders, ( coder, type ) => this.coders[type] = this._decode( coder ) )
 
+		this.db = data.db ? this._decode( data.db ) : {}
+
 		process.on( 'exit', () => this.save() )
-		
+		this.emit( 'initialized' )
+
 		return true
 	}
 

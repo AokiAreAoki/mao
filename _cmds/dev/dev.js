@@ -7,11 +7,12 @@
         cmds += `${k != 0 ? '\n' : ''}• **${cmd}** - ${( cmddata.cmds[cmd].description || 'No description :c' )}`
     }
     
-    if( cmds == '' ) cmds = '• **No commands :c**';
+    /*if( cmds == '' ) cmds = '• **No commands :c**';
     
     let emb = new ds.RichEmbed()
         .addField( cmddata.modules.dev.printname, cmds )
         .setColor( maoclr );
     
-    msg.channel.send( emb )
+    msg.channel.send( emb )*/
+    msg.channel.send( embed().addField( cmddata.modules.dev.printname, cmds || '• **No commands :c**' ) )
 }

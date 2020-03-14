@@ -1,7 +1,9 @@
 // Including modules
 const fs = require( 'fs' )
-const discord = require( 'discord.js' )
+const http = require( 'http' )
+const https = require( 'https' )
 const join = require( 'path' ).join
+const discord = require( 'discord.js' )
 const ytdl = require( 'ytdl-core' )
 const vm = require( 'vm' )
 
@@ -33,7 +35,7 @@ function read( path ){
 }
 
 function embed(){
-	return new discord.RichEmbed()
+	return new discord.MessageEmbed().setColor( maoclr )
 }
 
 String.prototype.matchFirst = function( re ){
@@ -42,7 +44,7 @@ String.prototype.matchFirst = function( re ){
 }
 
 function findMem( guild, name ){
-    let members = ( guild.constructor.name == 'Guild' ? guild : guild.guild ).members.array()
+    let members = ( guild.constructor.name == 'Guild' ? guild : guild.guild ).members.cache.array()
     
     if( typeof name == 'string' )
         name = name.toLowerCase()
@@ -57,8 +59,32 @@ function findMem( guild, name ){
 	return null
 }
 
+function httpGet( url, callback, errfunc ){
+    if( !errfunc ) errfunc = () => {}
+    let protocol
+    
+    if( url.startsWith( 'http' ) ) protocol = http
+    if( url.startsWith( 'https' ) ) protocol = https
+    if( !protocol ) return 'Wrong protocol'
+    
+    protocol.get( url, resp => {
+        let data = ''
+        resp.on( 'data', chunk => data += chunk )
+        resp.on( 'end', () => {
+            if( typeof callback == 'function' )
+				try {
+					callback( data )
+				} catch( err ){
+					errfunc( err )
+				}
+        })
+    }).on( 'error', errfunc )
+}
+
 // Initializing BakaDB
-bakadb.init()
+bakadb.init({
+	List: List,
+})
 bakadb.autoSave( 3600 / 2 )
 db = bakadb.db
 
@@ -77,11 +103,11 @@ client.once( 'ready', () => {
 	} else
 		isOnlineOrInitialized = true
 
-	lch = client.channels.get( '334675361482670080' )
+	lch = client.channels.cache.get( '334675361482670080' )
 	
 	client.on( 'ready', () => {
 		log( "I'm back" )
-		lch = client.channels.get( '334675361482670080' )
+		lch = client.channels.cache.get( '334675361482670080' )
 	})
 })
 
@@ -111,8 +137,9 @@ function include( path, overwrites ){
 		for( let k in inclusion.evaluations )
 			requirements[k] = eval( inclusion.evaluations[k] )
 
-	for( let k in overwrites )
-		requirements[k] = overwrites[k]
+	if( typeof overwrites == 'object' )
+		for( let k in overwrites )
+			requirements[k] = overwrites[k]
 	
 	requirements.define = local_global => {
 		for( let k in requirements )
@@ -131,7 +158,7 @@ readdir( './functions' ).forEach( file => {
 // Command manager
 cmddata = {
 	prefix: /^(-|(mao|мао)\s+)/i,
-	//prefix: /^(--)/i,
+	//prefix: /^(--\s*)/i,
 	modules: {},
 	cmds: {},
 }
@@ -139,7 +166,7 @@ cmddata = {
 // Custom prefix if logged in as MaoDev#2638
 client.once( 'ready2', () => {
 	if( client.user.id == '598593004088983688' )
-		cmddata.prefix = /^(--)/i
+		cmddata.prefix = /^(--\s*)/i
 })
 
 function addCmd( module, command, description, callback ){
@@ -255,9 +282,10 @@ addMessageHandler( msg => {
 			let args = [], args_pos = []
 			parseArgs( string_args, args, args_pos )
 
-			function get_string_args( number ){
-				return string_args.substring( args_pos[number] )
+			function get_string_args( number=0 ){
+				return typeof args_pos[number] == 'number' ? string_args.substring( args_pos[number] ) : ''
 			}
+			get_string_args.args_pos = args_pos
 
 			if( typeof cmd.func == 'function' )
 				cmd.func( msg, args, get_string_args )
@@ -430,7 +458,7 @@ addMessageHandler( async msg => {
 							evaled = 'null'
 						} else {
 							switch( evaled.constructor.name ){
-								case 'RichEmbed':
+								case 'MessageEmbed':
 									__printcb = false;
 									break;
 

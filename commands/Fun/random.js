@@ -11,7 +11,7 @@ module.exports = {
         })
 
         addCmd( 'select choose', 'Selects one of the given variants', ( msg, args ) => {
-            var selected = args[ Math.floor( Math.random() * ( args.length - 1 ) * 0.9999 ) + 1 ];
+            var selected = args[ Math.floor( Math.random() * ( args.length - 1 ) ) ];
             msg.channel.send( 'I choose **' + selected + '**' );
         })
 
@@ -20,11 +20,11 @@ module.exports = {
                 mao = Math.floor( Math.random() * 3 ),
                 user = -1;
             
-            if( args[1] ){
-                args[1] = args[1].toLowerCase()
+            if( args[0] ){
+                args[0] = args[0].toLowerCase()
                 
                 for( let i = 0; i < 3; i++ )
-                    if( rpc[i].startsWith( args[1] ) ){
+                    if( rpc[i].startsWith( args[0] ) ){
                         user = i
                         break
                     }

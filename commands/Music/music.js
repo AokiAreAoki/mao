@@ -108,8 +108,6 @@ module.exports = {
 		}
 
 		function queueSong( guildID, songOrVID, callback ){
-			if( typeof callback == 'boolean' ) silent = callback
-			
 			if( songOrVID.contructor == Song ){
 				mdata[guildID].queue.push( songOrVID )
 				return true
@@ -266,14 +264,16 @@ module.exports = {
 											else {
 												m.delete()
 												queueSong( msg.guild.id, songs[n - 1], ( err, song ) => {
-													if( err ) msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
-													else sendQueuedMessage( msg.channel, song, msg.member )
+													if( err ){
+                                                                                                            msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
+                                                                                                            console.error( err )
+													} else sendQueuedMessage( msg.channel, song, msg.member )
 												})
 											}
 
-											stopWaiting()
 											m.delete( 1337 )
 											msg.delete( 1337 )
+											stopWaiting()
 										}
 									}
 								},

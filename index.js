@@ -93,7 +93,7 @@ bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" de
 
 // Creating client
 const client = new discord.Client()
-client.login( read( './token' ) )
+client.login( read( './token' ).replace( /[\r\n].*/, '' ) )
 
 var isOnlineOrInitialized = false
 client.once( 'ready', () => {

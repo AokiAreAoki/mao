@@ -262,13 +262,10 @@ module.exports = {
 											if( n == 0 )
 												m.edit( 'Canceled' ).then( m => m.delete( 2280 ) )
 											else {
-												m.delete()
-												queueSong( msg.guild.id, songs[n - 1], ( err, song ) => {
-													if( err ){
-                                                                                                            msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
-                                                                                                            console.error( err )
-													} else sendQueuedMessage( msg.channel, song, msg.member )
-												})
+												if( queueSong( msg.guild.id, songs[n - 1] ) )
+													sendQueuedMessage( msg.channel, song, msg.member )
+                                                                                                else
+                                                                                                        msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
 											}
 
 											m.delete( 1337 )

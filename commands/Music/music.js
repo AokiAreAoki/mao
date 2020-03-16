@@ -246,7 +246,7 @@ module.exports = {
 							let results = '```'
 
 							for( let i = 0; i < songs.length; ++i ){
-								let song = `\n[${i + 1}] ${song.author} - ${song.title}`
+								let song = `\n[${i + 1}] ${songs[i].author} - ${songs[i].title}`
 								if( results.length + song.length <= 1997 ) // 2k discord char limit - 3 "```" at the end
 									results += song
 								else break

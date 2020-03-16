@@ -252,6 +252,8 @@ module.exports = {
 								else break
 							}
 
+							m.edit( results + '```' )
+
 							waitFor( msg.member.id, 30, {
 								onMessage: ( msg, stopWaiting ) => {
 									let n = msg.content.matchFirst( /^\d\d?$/ )
@@ -270,6 +272,8 @@ module.exports = {
 											}
 
 											stopWaiting()
+											m.delete( 1337 )
+											msg.delete( 1337 )
 										}
 									}
 								},

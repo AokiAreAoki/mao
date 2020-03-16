@@ -141,8 +141,8 @@ module.exports = {
 		const maxResCnt = 10
 
 		function searchOnYT( q, callback, errcallback, maxResCntOverride ){
-			let maxResCnt = typeof maxResCntOverride == 'number' ? maxResCntOverride : maxResCnt
-			let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${maxResCnt}&q=${encodeURI(q)}&key=${ytapikey}`
+			maxResCntOverride = typeof maxResCntOverride == 'number' ? maxResCntOverride : maxResCnt
+			let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${maxResCntOverride}&q=${encodeURI(q)}&key=${ytapikey}`
 			httpGet( url, body => {
 				body = JSON.parse( body )
 

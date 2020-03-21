@@ -27,7 +27,7 @@ function process_exit( code ){
 
 function numsplit( num ){
 	return String( num ).replace( /(\.|,)?\d+/g, ( match, comma, i, num ) =>
-		match.replace( /\B/g, ( _, i ) => ( match.match( /^\d/ ) ? match.length - i : i - 1 ) % 3 == 0 ? ' ' : '' ) )
+		match.replace( /\B/g, ( _, i ) => ( match.match( /^\d/ ) ? match.length - i : i - 1 ) % 3 === 0 ? ' ' : '' ) )
 }
 
 function read( path ){
@@ -44,41 +44,41 @@ String.prototype.matchFirst = function( re ){
 }
 
 function findMem( guild, name ){
-    let members = ( guild.constructor.name == 'Guild' ? guild : guild.guild ).members.cache.array()
-    
-    if( typeof name == 'string' )
-        name = name.toLowerCase()
-    
-    for( let i = 0; i < members.length; i++ ){
-        let m = members[i]
-        
-        if( m.displayName.toLowerCase().match( name ) )
-            return m
+	let members = ( guild.constructor.name == 'Guild' ? guild : guild.guild ).members.cache.array()
+	
+	if( typeof name == 'string' )
+		name = name.toLowerCase()
+	
+	for( let i = 0; i < members.length; i++ ){
+		let m = members[i]
+		
+		if( m.displayName.toLowerCase().match( name ) )
+			return m
 	}
 	
 	return null
 }
 
 function httpGet( url, callback, errfunc ){
-    if( !errfunc ) errfunc = () => {}
-    let protocol
-    
-    if( url.startsWith( 'http' ) ) protocol = http
-    if( url.startsWith( 'https' ) ) protocol = https
-    if( !protocol ) return 'Wrong protocol'
-    
-    protocol.get( url, resp => {
-        let data = ''
-        resp.on( 'data', chunk => data += chunk )
-        resp.on( 'end', () => {
-            if( typeof callback == 'function' )
+	if( !errfunc ) errfunc = () => {}
+	let protocol
+	
+	if( url.startsWith( 'http' ) ) protocol = http
+	if( url.startsWith( 'https' ) ) protocol = https
+	if( !protocol ) return 'Wrong protocol'
+	
+	protocol.get( url, resp => {
+		let data = ''
+		resp.on( 'data', chunk => data += chunk )
+		resp.on( 'end', () => {
+			if( typeof callback == 'function' )
 				try {
 					callback( data )
 				} catch( err ){
 					errfunc( err )
 				}
-        })
-    }).on( 'error', errfunc )
+		})
+	}).on( 'error', errfunc )
 }
 
 // Initializing BakaDB
@@ -92,8 +92,21 @@ bakadb.on( 'missing-encoder', encoder => log( `[WARNING] Missing "${encoder}" en
 bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" decoder` ) ) 
 
 // Creating client
-const client = new discord.Client()
-client.login( read( './token' ).replace( /[\r\n].*/, '' ) )
+const client = new discord.Client({
+	messageCacheLifetime: 360,
+	messageSweepInterval: 72,
+})
+
+const _tkns = JSON.parse( read( './tokens.json' ) )
+
+if( !db.token || !_tkns.discord[db.token] )
+	for( let k in _tkns.discord ){
+		db.token = k
+		break
+	}
+
+client.login( _tkns.discord[db.token] )
+//client.login( read( './token' ).replace( /[\r\n].*/, '' ) )
 
 var isOnlineOrInitialized = false
 client.once( 'ready', () => {
@@ -156,17 +169,19 @@ readdir( './functions' ).forEach( file => {
 })
 
 // Command manager
+_prefix = /^(-|(mao|мао)\s+)/i
 cmddata = {
-	prefix: /^(-|(mao|мао)\s+)/i,
-	//prefix: /^(--\s*)/i,
+	prefix: _prefix,
 	modules: {},
 	cmds: {},
 }
 
 // Custom prefix if logged in as MaoDev#2638
-client.once( 'ready2', () => {
+client.on( 'ready', () => {
 	if( client.user.id == '598593004088983688' )
 		cmddata.prefix = /^(--\s*)/i
+	else
+		cmddata.prefix = _prefix
 })
 
 function addCmd( module, command, description, callback ){
@@ -298,7 +313,7 @@ addMessageHandler( msg => {
 // Sandbox for eval
 sandboxenabled = false
 sandbox = vm.createContext({
-    vec: vec,
+	vec: vec,
 })
 
 // Eval

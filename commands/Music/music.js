@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'log embed maoclr httpGet read waitFor ytdl',
+	requirements: 'log embed maoclr httpGet waitFor ytdl _tkns',
 	execute: ( requirements, mao ) => {
 		requirements.define( global )
 		var mdata = {},
@@ -32,7 +32,7 @@ module.exports = {
 		}
 		
 		// Some functions
-		const ytapikey = read( './ytapikey' )
+		const ytapikey = _tkns.youtube
 		
 		class Song {
 			constructor( vid, author, title ){

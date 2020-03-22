@@ -3,6 +3,7 @@ const fs = require( 'fs' )
 const http = require( 'http' )
 const https = require( 'https' )
 const join = require( 'path' ).join
+const cp = require( 'child_process' )
 const discord = require( 'discord.js' )
 const ytdl = require( 'ytdl-core' )
 const vm = require( 'vm' )

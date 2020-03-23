@@ -108,7 +108,7 @@ module.exports = {
 		}
 
 		function queueSong( guildID, songOrVID, callback ){
-			if( songOrVID.contructor == Song ){
+			if( songOrVID.constructor === Song ){
 				mdata[guildID].queue.push( songOrVID )
 				return true
 			}
@@ -263,9 +263,9 @@ module.exports = {
 												m.edit( 'Canceled' ).then( m => m.delete( 2280 ) )
 											else {
 												if( queueSong( msg.guild.id, songs[n - 1] ) )
-													sendQueuedMessage( msg.channel, song, msg.member )
-                                                                                                else
-                                                                                                        msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
+													sendQueuedMessage( msg.channel, songs[n - 1], msg.member )
+                                                else
+                                                    msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
 											}
 
 											m.delete( 1337 )

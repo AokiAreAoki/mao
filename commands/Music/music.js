@@ -264,8 +264,8 @@ module.exports = {
 											else {
 												if( queueSong( msg.guild.id, songs[n - 1] ) )
 													sendQueuedMessage( msg.channel, songs[n - 1], msg.member )
-                                                else
-                                                    msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
+                                                						else
+                                                    							msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
 											}
 
 											m.delete( 1337 )

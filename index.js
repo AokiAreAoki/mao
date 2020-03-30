@@ -27,6 +27,14 @@ function process_exit( code ){
 	process.exit( typeof code == 'undefined' || isNaN( code ) ? 0 : code )
 }
 
+function charka( charOrNumber ){ // Converts number to char and vice versa
+	if( typeof charOrNumber === 'number' )
+		return String.fromCharCode( charOrNumber )
+	else if( typeof charOrNumber === 'string' )
+		return charOrNumber.charCodeAt()
+	return null
+}
+
 function numsplit( num ){
 	return String( num ).replace( /(\.|,)?\d+/g, ( match, comma, i, num ) =>
 		match.replace( /\B/g, ( _, i ) => ( match.match( /^\d/ ) ? match.length - i : i - 1 ) % 3 === 0 ? ' ' : '' ) )
@@ -49,15 +57,14 @@ function cb( text ){
     return '```\n' + text + '```'
 }
 
-let maxtab = 4,
-    __duplicates,
+let __duplicates,
     tabstr = amount => ' '.repeat( amount * 4 )
 
-function tts( table, maxtab=maxtab, tab=0 ){
+function tts( table, maxtab=4, tab=0 ){
     let isarray = table && table.constructor == Array
     
     if( tab >= maxtab )
-        return isarray ? '[ ... ]' : '{ ... }'
+        return ( isarray ? '[ ... ]' : '{ ... }' ) + ( tab === 0 ? '\n' : '' )
     
     if( typeof table != 'object' )
 	    return `here's ur ${typeof table} for u:\n    \`${String( table )}\`` 
@@ -424,15 +431,9 @@ addMessageHandler( async msg => {
 		let checktag = true
 
 		while( checktag ){
-			let tag = code.match( /^\s*[A-Za-z]+(?=[\s\n(```)])/ )
-
-			if( !tag ){
-				checktag = false
-				break
-			}
-				
-			let sub = tag[0]
-			tag = sub.match( /[A-Za-z]+/ )[0]
+			let tag = code.match( /^\s*([A-Za-z]+)(?=[\s\n```])/ )
+			if( tag ) tag = tag[1]
+			else break
 
 			switch( tag.toLowerCase() ){
 				case 'cb':

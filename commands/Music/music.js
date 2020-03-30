@@ -10,12 +10,71 @@ module.exports = {
 				queue: [],	// queue :think_about:
 				disp: null,	// dispatcher
 				tc: null,	// text channel
+				idlingStarted: -1,
+				timeout: -1,
 			}
 		}
 
 		client.once( 'ready2', () => client.guilds.cache.array().forEach( g => defineMData( g.id ) ) )
 		client.on( 'guildCreate', guild => defineMData( guild.id ) )
+		
+		timer.create( 'voiceTimeout', 1.337, 0, () => {
+			client.voice.connections.forEach( vc => {
+				if( !vc ) return
+				let gid = vc.channel.guild.id
 
+				if( mdata[gid].idlingStarted !== -1 && mdata[gid].idlingStarted + mdata[gid].timeout < Date.now() ){
+					leave( vc.voice )
+					mdata[gid].timeout = -1
+					mdata[gid].idlingStarted = -1
+				}
+
+				let timeout = 0
+				
+				if( vc.channel.members.size === 1 ){
+					timeout = 60e3
+					if( mdata[gid].idlingStarted === -1 )
+						mdata[gid].idlingStarted = Date.now()
+				} else if( !vc.voice.speaking ){
+					timeout = 720e3
+					if( mdata[gid].idlingStarted === -1 )
+						mdata[gid].idlingStarted = Date.now()
+				} else if( mdata[gid].idlingStarted !== -1 ){
+					mdata[gid].idlingStarted = -1
+					mdata[gid].timeout = -1
+				}
+				
+				if( timeout !== 0 && mdata[gid].timeout !== timeout )
+					mdata[gid].timeout = timeout
+			})
+		})
+
+		/* slojno blyat' nahuy ego kr4
+		client.on( 'voiceStateUpdate', ( oldstate, newstate ) => {
+			let myVoice = newstate.guild.voice
+		    if( !myVoice || !myVoice.speaking ) return
+		    
+		    if( oldstate.channelID !== newstate.channelID ){
+				let gid = newstate.guild.id
+
+		        if( newstate.channelID === myVoice.channelID ){
+					let timerStart = timeout => timer.create( 'timeout' + gid, timeout, 1, () => leave( myVoice ) )
+					
+					if( newstate.id === myVoice.id ){
+						// if mao joins vc then timeout = 666s
+						let timeout = 666e3
+						mdata[gid].timeout = Date.now() + timeout
+						timerStart()
+					} else if( !newstate.voice || !newstate.channel ){
+						// if there's nobody exclude mao then timeout = 60s
+						let timeout = 60e3
+						mdata[gid].timeout = Date.now() + timeout
+						timerStart()
+					}
+				}
+		    }
+		})*/
+		
 		/// Function for adding music commands ///
 		function addMCommand( command, description, callback ){
 			let aliases = command.split( /\s+/ )
@@ -178,6 +237,20 @@ module.exports = {
 				callback( false )
 		}
 
+		async function leave( voiceState, callback ){
+			callback = callback || ( () => {} )
+
+			try {
+				if( voiceState && voiceState.channel )
+					await voiceState.kick()
+						.then( () => callback( true ) )
+						.catch( err => callback( false, err ) )
+				else callback( true )
+			} catch( err ){
+				callback( false, err )
+			}
+		}
+
 		function play( guild, song ){
 			if( song.constructor == Song )
 				song = song.vid
@@ -198,7 +271,7 @@ module.exports = {
 		}
 
 		/// Music commands ///
-		addMCommand( 'join j', 'Joins your voice channel', ( msg, args, string_args ) => {
+		addMCommand( 'join j', 'Joins your voice channel', msg => {
 			let bound = mdata[msg.guild.id].tc != msg.channel ? ' and bounded to #' + msg.channel.name : ''
 
 			if( msg.member.voice )
@@ -210,13 +283,20 @@ module.exports = {
 				msg.channel.send( 'Connect to the voice channel first, baka~!' )
 		})
 
-		let d = [
-			'Shows queue/Adds song the queue',
-			'`music q` - Shows queue',
-			'`music q <song>` - Searching for a song on the youtube',
-			'`music q <yt video url>` - Adds a video to the queue',
-		]
-		addMCommand( 'queue q', d.join( '\n' ), async ( msg, args, get_string_args ) => {
+		/// Music commands ///
+		addMCommand( 'leave l', 'Leaves your voice channel', msg => {
+			if( msg.guild.voice && msg.guild.voice.channel )
+				leave( msg.guild.voice, succes => msg.send( succes ? 'Left voice channel' : 'Something went wrong 😔' ) )
+			else
+				msg.send( "I can't, due to quarantine" ) //msg.send( "I'm not in the voice channel" )
+		})
+
+		addMCommand( 'queue q',
+			'Shows queue/Adds song the queue'
+			+ '`music q` - Shows queue'
+			+ '`music q <song>` - Searching for a song on the youtube'
+			+ '`music q <yt video url>` - Adds a video to the queue',
+		async ( msg, args, get_string_args ) => {
 			if( args[0] ){
 				let vid = ''
 
@@ -264,8 +344,8 @@ module.exports = {
 											else {
 												if( queueSong( msg.guild.id, songs[n - 1] ) )
 													sendQueuedMessage( msg.channel, songs[n - 1], msg.member )
-                                                						else
-                                                    							msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
+                                                else
+                                                    msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
 											}
 
 											m.delete( 1337 )

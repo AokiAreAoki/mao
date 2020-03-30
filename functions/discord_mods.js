@@ -1,11 +1,10 @@
 module.exports = {
-    requirements: 'discord',
+    requirements: 'discord cb',
     execute: ( requirements, mao ) => {
         requirements.define( global )
-        mao.cb = text => '```\n' + text + '```'
 
         discord.TextChannel.prototype.sendcb = function( message, options ){
-            return this.send( mao.cb( message ), options )
+            return this.send( cb( message ), options )
         }
 
         discord.Message.prototype.original_delete = discord.Message.prototype.delete
@@ -14,6 +13,34 @@ module.exports = {
                 this.original_delete( { timeout: timeOrOptions } )
             else
                 this.original_delete( timeOrOptions )
+        }
+
+        discord.Message.prototype.send = async function( content, options ){
+	        let promise = this.channel.send( content, options )
+	        
+            if( typeof this._answers === 'object' && this._answers.constructor === Array )
+	            promise.then( m => this._answers.push(m) )
+	        
+	        return promise
+	    }
+	    
+        discord.Message.prototype.sendcb = async function( content, options ){
+	        let promise = this.channel.sendcb( content, options )
+	        
+            if( typeof this._answers === 'object' && this._answers.constructor === Array )
+	            promise.then( m => this._answers.push(m) )
+	        
+	        return promise
+	    }
+	    
+        discord.Message.prototype.original_reply = discord.Message.prototype.reply
+        discord.Message.prototype.reply = function( content, options ){
+            let promise = this.original_reply( content, options )
+            
+            if( typeof this._answers === 'object' && this._answers.constructor === Array )
+                promise.then( m => this._answers.push(m) )
+            
+            return promise
         }
     }
 }

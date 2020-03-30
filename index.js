@@ -421,53 +421,52 @@ addMessageHandler( async msg => {
 		if( ec )
 			ec = ec[0]
 		else {
-			if( !smarteval ) return;
+			if( !smarteval ) return
 			ec = ''
 		}
 		
 		let code = said.substring( ec.length )
-		//if( code.match( // ) ) return;
+		//if( code.match( // ) ) return
 		
 		let checktag = true
 
 		while( checktag ){
 			let tag = code.match( /^\s*([A-Za-z]+)(?=[\s\n```])/ )
-			if( tag ) tag = tag[1]
-			else break
+			if( !tag ) break
 
-			switch( tag.toLowerCase() ){
+			switch( tag[1].toLowerCase() ){
 				case 'cb':
-					code = code.substring( sub.length )
+					code = code.substring( tag[0].length )
 					var __printcb = true
-					break;
+					break
 
 				case 'tts':
-					code = code.substring( sub.length )
+					code = code.substring( tag[0].length )
 					var __printtts = true
-					break;
+					break
 
 				case 'del':
-				   code = code.substring( sub.length )
+				   code = code.substring( tag[0].length )
 				   var __deletmsg = true
-				   break;
+				   break
 
 				case 'silent':
-				   code = code.substring( sub.length )
+				   code = code.substring( tag[0].length )
 				   var __silent = true
-				   break;
+				   break
 
 				case 'sb':
-				   code = code.substring( sub.length )
+				   code = code.substring( tag[0].length )
 				   var __sbox = true
-				   break;
+				   break
 
 				default:
 					checktag = false
-					break;
+					break
 			}
 		}
 		
-		if( __deletmsg ) await msg.delete();
+		if( __deletmsg ) await msg.delete()
 
 		let cbstart = code.match( /^\s*```[a-zA-Z0-9]*/ )
 		let cbend = code.match( /```.*?$/ )
@@ -485,11 +484,11 @@ addMessageHandler( async msg => {
 			}
 
 			//let fs = "sosni ka"
-			let evaled, __output = '';
+			let evaled, __output = ''
 			
 			if( ismaster && !__sbox ){
 				let print = ( ...args ) => {
-					if( __output ) __output += '\n';
+					if( __output ) __output += '\n'
 
 					args.forEach( ( v, k ) => {
 						if( k > 0 ) __output += '\t'
@@ -506,7 +505,7 @@ addMessageHandler( async msg => {
 
 				sandbox.msg = msg.content
 				sandbox.print = ( ...args ) => {
-					if( __output ) __output += '\n';
+					if( __output ) __output += '\n'
 
 					args.forEach( ( v, k ) => {
 						if( k > 0 ) __output += '\t'
@@ -517,7 +516,7 @@ addMessageHandler( async msg => {
 				evaled = vm.runInContext( code, sandbox, { filename: 'sandbox.js', timeout: 3e3 } )
 			}
 
-			if( __silent ) return;
+			if( __silent ) return
 
 			let printEvaled = ( () => {
 				if( typeof evaled != 'undefined' || __printerr ){
@@ -532,21 +531,21 @@ addMessageHandler( async msg => {
 						switch( typeof evaled ){
 							case 'undefined': 
 								evaled = 'undefined'
-								break;
+								break
 
 							case 'number':
-								if( code === String( evaled ) && !__printerr && !__printcb ) return false;
-								evaled = numsplit( evaled );
-								break;
+								if( code === String( evaled ) && !__printerr && !__printcb ) return false
+								evaled = numsplit( evaled )
+								break
 
 							case 'object':
-								if( !__printerr ) return false;
-								break;
+								if( !__printerr ) return false
+								break
 								
 							case 'function':
 								evaled = '```JS\n' + String( evaled ) + '```'
 								var __printcb = false
-								break;
+								break
 						   }
 					}
 					
@@ -556,8 +555,8 @@ addMessageHandler( async msg => {
 						} else {
 							switch( evaled.constructor.name ){
 								case 'MessageEmbed':
-									__printcb = false;
-									break;
+									__printcb = false
+									break
 
 								case 'Jimp':
 									evaled.getBuffer( jimp.AUTO, ( err, buffer ) => {
@@ -566,11 +565,11 @@ addMessageHandler( async msg => {
 									})
 
 									return false
-									break;
+									break
 
 								default:
 									evaled = String( evaled )
-									break;
+									break
 							}
 						}
 					}

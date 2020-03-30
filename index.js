@@ -6,6 +6,7 @@ const join = require( 'path' ).join
 const cp = require( 'child_process' )
 const discord = require( 'discord.js' )
 const ytdl = require( 'ytdl-core' )
+const jimp = require( 'jimp' )
 const vm = require( 'vm' )
 
 // Including my modules
@@ -42,6 +43,75 @@ function embed(){
 String.prototype.matchFirst = function( re ){
 	let matched = this.match( re )
 	if( matched ) return matched[1] || matched[0]
+}
+
+function cb( text ){
+    return '```\n' + text + '```'
+}
+
+let maxtab = 4,
+    __duplicates,
+    tabstr = amount => ' '.repeat( amount * 4 )
+
+function tts( table, maxtab=maxtab, tab=0 ){
+    let isarray = table && table.constructor == Array
+    
+    if( tab >= maxtab )
+        return isarray ? '[ ... ]' : '{ ... }'
+    
+    if( typeof table != 'object' )
+	    return `here's ur ${typeof table} for u:\n    \`${String( table )}\`` 
+    
+    let str = ''
+    
+    if( tab === 0 )
+        __duplicates = []
+    
+    ++tab
+    
+    for( var k in table ){
+        if( typeof table[k] == 'object' ){
+            if( table[k] !== null ){
+                if( __duplicates.includes( table[k] ) ){
+                    str += 'Duplicate of ' + table[k].constructor.name
+                    continue
+                } else
+                    __duplicates.push( table[k] )
+            }
+            
+            str += `${tabstr(tab) + k}: ${tts( table[k], maxtab, tab )}`
+        } else {
+            if( isarray && !k.match( /^[0-9]*$/ ) )
+                continue
+            
+            switch( typeof table[k] ){
+                case 'string':
+                    var val = `"${table[k]}"`
+                    break
+                
+                case 'function':
+                    //var val = String( table[k] ).split( '{' )[0] + '{ ... }'
+                    var val = String( table[k] ).replace( /^((async\s+)?(.+?=>\s*|function\s*[\w_]*\(.*?\)\s*))\{.*\}$/, '$1{ ... }' )
+                    break
+
+                default:
+                    var val = table[k]
+                    break
+            }
+
+            str = str + tabstr( tab ) + k + `: ${val}\n`
+        }
+    }
+    
+    str = str ? '{\n' + str + tabstr( tab - 1 ) : '{'
+    --tab
+    
+    if( tab === 0 ){
+        __duplicates = []
+        return str + '}'
+    }
+    
+    return str + '}\n'
 }
 
 function findMem( guild, name ){
@@ -133,9 +203,17 @@ function addMessageHandler( callback ){
 	messageHandlers.push( callback )
 }
 
-client.on( 'message', async msg => {
+async function handleMessage( msg, edited ){
+	//msg._answers = []
 	for( let i = 0; i < messageHandlers.length; i++ )
-		if( await messageHandlers[i]( msg ) ) break;
+		if( await messageHandlers[i]( msg, edited || false ) ) break
+}
+
+client.on( 'message', handleMessage )
+client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
+    if( typeof oldMsg._answers === 'object' && oldMsg._answers.constructor === Array )
+        oldMsg._answers.forEach( m => m.delete() )
+    handleMessage( newMsg, true )
 })
 
 // Includer
@@ -290,9 +368,11 @@ addMessageHandler( msg => {
 			 *	}
 			 */
 			if( typeof cmddata.cmds[cmd] == 'string' )
-				cmd = cmddata.cmds[cmd]
-			
+				cmd = cmddata.cmds[cmd] 
 			cmd = cmddata.cmds[cmd]
+			
+			if( cmd.module === 'dev' && !msg.member.isMaster() )
+			    return
 
 			// Parsing arguments
 			let args = [], args_pos = []
@@ -441,12 +521,12 @@ addMessageHandler( async msg => {
 			let printEvaled = ( () => {
 				if( typeof evaled != 'undefined' || __printerr ){
 					if( __printtts ){
-						if( typeof evaled != 'object' ){
-							here.sendcb( `TTSError: object expected, got ${typeof evaled}` )
-							return false
-						}
-
-						evaled = "here's ur table for u: " + tabletostring( evaled )
+						if( typeof evaled !== 'object' ){
+							//here.sendcb( `TTSError: object expected, got ${typeof evaled}` )
+							//return false
+							evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
+						} else
+					    	evaled = "here's ur table for u: " + tts( evaled )
 					} else {
 						switch( typeof evaled ){
 							case 'undefined': 

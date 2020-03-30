@@ -50,12 +50,13 @@ module.exports = {
 			client.on( 'ready', () => {
 				gameid = 0
 				gametext = ''
-				nextgame = Date.now() + 20e3
+				nextgame = Date.now() + 15e3
 				updateActivity()
 			})
 			
-			nextgame = Date.now() + 20e3
+			nextgame = Date.now() + 15e3
 			timer.create( 'activities', 1.337, 0, updateActivity )
+			updateActivity()
 		})
 	}
 }

@@ -1,6 +1,6 @@
 
-var n = value => ( typeof value == 'number' && !isNaN( value ) && Math.abs( value ) != Infinity )
-var v = value => ( typeof value == 'object' && value !== null && value.constructor == Vector )
+var n = value => typeof value == 'number' && !isNaN( value ) && Math.abs( value ) != Infinity
+var v = value => typeof value == 'object' && value !== null && value.constructor == Vector
 
 function clamp( num, min, max ){
 	return Math.max( Math.min( num, max ), min )
@@ -19,7 +19,7 @@ let FunctionsForVM = {
 		let v = vec()
 
 		for( let k in arguments )
-			v.add( arguments[k] );
+			v.add( arguments[k] )
 
 		return v
 	},
@@ -27,7 +27,7 @@ let FunctionsForVM = {
 		let v = vec()
 
 		for( let k in arguments )
-			v.sub( arguments[k] );
+			v.sub( arguments[k] )
 
 		return v
 	},
@@ -35,7 +35,7 @@ let FunctionsForVM = {
 		let v = vec()
 
 		for( let k in arguments )
-			v.mul( arguments[k] );
+			v.mul( arguments[k] )
 
 		return v
 	},
@@ -43,7 +43,7 @@ let FunctionsForVM = {
 		let v = vec()
 
 		for( let k in arguments )
-			v.div( arguments[k] );
+			v.div( arguments[k] )
 
 		return v
 	},
@@ -51,7 +51,7 @@ let FunctionsForVM = {
 		let v = vec()
 
 		for( let k in arguments )
-			v.pow( arguments[k] );
+			v.pow( arguments[k] )
 
 		return v
 	},
@@ -59,7 +59,7 @@ let FunctionsForVM = {
 		let v = arguments[0].copy()
 
 		for( let k = 1; k < arguments.length; k++ )
-			v.minVector( arguments[k] );
+			v.minVector( arguments[k] )
 
 		return v
 	},
@@ -67,26 +67,36 @@ let FunctionsForVM = {
 		let v = arguments[0].copy()
 
 		for( let k = 1; k < arguments.length; k++ )
-			v.maxVector( arguments[k] );
+			v.maxVector( arguments[k] )
 
 		return v
+	},
+	fromHex: hex => {
+	    let array = []
+	    
+	    while( hex > 0 && array.length < 4 ){
+	        array.push( hex % 256 )
+	        hex = Math.floor( hex / 256 )
+	    }
+	    
+	    return vec.fromArray( array.reverse() )
 	},
 	fromArray: array => {
 		let v = vec()
 		
-		for( let i = 0; i < 4; i++ )
+		for( let i = 0; i < 4; ++i )
 			if( typeof array[i] == 'number' )
-				v[ 'xyzw'[i] ] = array[i];
+				v[ 'xyzw'[i] ] = array[i]
 		
 		return v
 	},
 	fromTable: table => {
 		let v = vec()
 		
-		for( let i = 0; i < 4; i++ ){
+		for( let i = 0; i < 4; ++i ){
 			let axis = 'xyzw'[i]
 			if( typeof table[axis] == 'number' )
-				v[axis] = table[axis];
+				v[axis] = table[axis]
 		}
 		
 		return v
@@ -107,14 +117,14 @@ class Vector {
 			set: value => { axes = Math.round( clamp( value, 2, 4 ) ) },
 		})
 
-		for( let i = 0; i < 4; i++ ){
+		for( let i = 0; i < 4; ++i ){
 			let ax = 'xyzw'[i]
 			let axis = arguments[i]
 
 			Object.defineProperty( this, ax, {
 				get: () => axis,
 				set: value => {
-					if( this.axes < i + 1 ) this.axes = i + 1;
+					if( this.axes < i + 1 ) this.axes = i + 1
 					axis = n( value ) ? value : 0
 				},
 			})
@@ -123,10 +133,10 @@ class Vector {
 		}
 
 		if( n(z) )
-			if( n(w) ) this.axes = 4;
-			else this.axes = 3;
+			if( n(w) ) this.axes = 4
+			else this.axes = 3
 		else
-			this.axes = 2;
+			this.axes = 2
 	}
 	
 	forEach( axes, cb ){
@@ -135,9 +145,9 @@ class Vector {
 			axes = false
 		}
 
-		for( let i = 0; i < this.axes; i++ ){
-			if( axes && axes.search( 'xyzw'[i] ) == -1 ) continue;
-			if( cb( this[ 'xyzw'[i] ], 'xyzw'[i], i ) ) break;
+		for( let i = 0; i < this.axes; ++i ){
+			if( axes && axes.search( 'xyzw'[i] ) === -1 ) continue
+			if( cb( this[ 'xyzw'[i] ], 'xyzw'[i], i ) === true ) break
 			// callback( value of axis, name of axis, number of axis )
 		}
 
@@ -145,7 +155,7 @@ class Vector {
 	}
 
 	equals( vector ){
-		if( this.axes != vector.axes ) return false
+		if( this.axes !== vector.axes ) return false
 
 		let result = true
 		this.forEach( ( v, axis ) => {
@@ -164,13 +174,13 @@ class Vector {
 		if( v( vector ) ){
 			let axes = Math.min( this.axes, vector.axes )
 
-			for( let i = 0; i < axes; i++ )
-				this[ 'xyzw'[i] ] += vector[ 'xyzw'[i] ];
+			for( let i = 0; i < axes; ++i )
+				this[ 'xyzw'[i] ] += vector[ 'xyzw'[i] ]
 
 			return this
 		} else if( n( vector ) ){
-			for( let i = 0; i < this.axes; i++ )
-				this[ 'xyzw'[i] ] += vector;
+			for( let i = 0; i < this.axes; ++i )
+				this[ 'xyzw'[i] ] += vector
 
 			return this
 		}
@@ -182,13 +192,13 @@ class Vector {
 		if( v( vector ) ){
 			let axes = Math.min( this.axes, vector.axes )
 
-			for( let i = 0; i < axes; i++ )
-				this[ 'xyzw'[i] ] -= vector[ 'xyzw'[i] ];
+			for( let i = 0; i < axes; ++i )
+				this[ 'xyzw'[i] ] -= vector[ 'xyzw'[i] ]
 
 			return this
 		} else if( n( vector ) ){
-			for( let i = 0; i < this.axes; i++ )
-				this[ 'xyzw'[i] ] -= vector;
+			for( let i = 0; i < this.axes; ++i )
+				this[ 'xyzw'[i] ] -= vector
 
 			return this
 		}
@@ -200,12 +210,12 @@ class Vector {
 		if( v( vector ) ){
 			let axes = Math.min( this.axes, vector.axes )
 
-			for( let i = 0; i < axes; i++ )
-				this[ 'xyzw'[i] ] *= vector[ 'xyzw'[i] ];
+			for( let i = 0; i < axes; ++i )
+				this[ 'xyzw'[i] ] *= vector[ 'xyzw'[i] ]
 
 			return this
 		} else if( n( vector ) ){
-			for( let i = 0; i < this.axes; i++ )
+			for( let i = 0; i < this.axes; ++i )
 				this[ 'xyzw'[i] ] *= vector
 
 			return this
@@ -218,12 +228,12 @@ class Vector {
 		if( v( vector ) ){
 			let axes = Math.min( this.axes, vector.axes )
 
-			for( let i = 0; i < axes; i++ )
-				this[ 'xyzw'[i] ] /= vector[ 'xyzw'[i] ];
+			for( let i = 0; i < axes; ++i )
+				this[ 'xyzw'[i] ] /= vector[ 'xyzw'[i] ]
 
 			return this
 		} else if( n( vector ) ){
-			for( let i = 0; i < this.axes; i++ ){
+			for( let i = 0; i < this.axes; ++i ){
 				this[ 'xyzw'[i] ] /= vector
 			}
 
@@ -237,12 +247,12 @@ class Vector {
 		if( v( vector ) ){
 			let axes = Math.min( this.axes, vector.axes )
 
-			for( let i = 0; i < axes; i++ )
-				this[ 'xyzw'[i] ] **= vector[ 'xyzw'[i] ];
+			for( let i = 0; i < axes; ++i )
+				this[ 'xyzw'[i] ] **= vector[ 'xyzw'[i] ]
 
 			return this
 		} else if( n( vector ) ){
-			for( let i = 0; i < this.axes; i++ ){
+			for( let i = 0; i < this.axes; ++i ){
 				this[ 'xyzw'[i] ] **= vector
 			}
 
@@ -263,8 +273,8 @@ class Vector {
 	minVector( vector ){
 		let axes = Math.min( this.axes, vector.axes )
 
-		for( let i = 0; i < axes; i++ )
-			this[ 'xyzw'[i] ] = Math.min( this[ 'xyzw'[i] ], vector[ 'xyzw'[i] ] );
+		for( let i = 0; i < axes; ++i )
+			this[ 'xyzw'[i] ] = Math.min( this[ 'xyzw'[i] ], vector[ 'xyzw'[i] ] )
 
 		return this
 	}
@@ -272,8 +282,8 @@ class Vector {
 	maxVector( vector ){
 		let axes = Math.min( this.axes, vector.axes )
 
-		for( let i = 0; i < axes; i++ )
-			this[ 'xyzw'[i] ] = Math.max( this[ 'xyzw'[i] ], vector[ 'xyzw'[i] ] );
+		for( let i = 0; i < axes; ++i )
+			this[ 'xyzw'[i] ] = Math.max( this[ 'xyzw'[i] ], vector[ 'xyzw'[i] ] )
 
 		return this
 	}
@@ -297,7 +307,7 @@ class Vector {
 	}
 
 	rotate( ang, useDegrees=false ){
-		//if( Math.abs( ang ) % 360 == 180 ) return this.invert();
+		//if( Math.abs( ang ) % 360 == 180 ) return this.invert()
 
 		ang += this.ang( useDegrees )
 		let len = this.scalar()
@@ -313,8 +323,8 @@ class Vector {
 		axes = axes.toLowerCase().replace( /[^xyzw]/, '' )
 		let copy = this.copy()
 		
-		for( let i = 0; i < Math.min( axes.length, 4 ); i++ )
-			this[ 'xyzw'[i] ] = copy[ axes[i] ];
+		for( let i = 0; i < Math.min( axes.length, 4 ); ++i )
+			this[ 'xyzw'[i] ] = copy[ axes[i] ]
 		
 		return this
 	}
@@ -337,7 +347,7 @@ class Vector {
 		let axis = null
 
 		this.forEach( axes, ax => {
-			if( axis === null || axis > ax ) axis = ax;
+			if( axis === null || axis > ax ) axis = ax
 		})
 
 		return axis
@@ -347,7 +357,7 @@ class Vector {
 		let axis = null
 
 		this.forEach( axes, ax => {
-			if( axis === null || axis < ax ) axis = ax;
+			if( axis === null || axis < ax ) axis = ax
 		})
 
 		return axis
@@ -371,13 +381,19 @@ class Vector {
 		return Math.sqrt( scalar )
 	}
 
-	angNormal( returnDegrees=false ){
-		let a = Math.acos( this.y ) * ( returnDegrees ? 180 / Math.PI : 1 )
-    	return Math.asin( this.x ) < 0 ? ( returnDegrees ? 360 : Math.PI * 2 ) - a : a
+	angFromNormal( doReturnDegrees=false ){
+		let a = Math.acos( this.y ) * ( doReturnDegrees ? 180 / Math.PI : 1 )
+    	return Math.asin( this.x ) < 0 ? ( doReturnDegrees ? 360 : Math.PI * 2 ) - a : a
 	}
 
-	ang( returnDegrees ){
-		return this.copy().normalize().angNormal( returnDegrees )
+	ang( doReturnDegrees ){
+		return this.copy().normalize().angFromNormal( doReturnDegrees )
+	}
+	
+	toHex(){
+	    let hex = 0
+	    this.forEach( v => hex = hex * 256 + v )
+	    return hex
 	}
 
 	/// toString ///

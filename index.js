@@ -211,7 +211,7 @@ function addMessageHandler( callback ){
 }
 
 async function handleMessage( msg, edited ){
-	//msg._answers = []
+	msg._answers = []
 	for( let i = 0; i < messageHandlers.length; i++ )
 		if( await messageHandlers[i]( msg, edited || false ) ) break
 }
@@ -219,7 +219,7 @@ async function handleMessage( msg, edited ){
 client.on( 'message', handleMessage )
 client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
     if( typeof oldMsg._answers === 'object' && oldMsg._answers.constructor === Array )
-        oldMsg._answers.forEach( m => m.delete() )
+        oldMsg.channel.bulkDelete( oldMsg._answers )
     handleMessage( newMsg, true )
 })
 
@@ -479,7 +479,7 @@ addMessageHandler( async msg => {
 
 		try {
 			if( __printerr && !code.match( /\S/ ) ){
-				here.send( 'Gimme code baka~!' )
+				msg.send( 'Gimme code baka~!' )
 				return
 			}
 
@@ -522,7 +522,7 @@ addMessageHandler( async msg => {
 				if( typeof evaled != 'undefined' || __printerr ){
 					if( __printtts ){
 						if( typeof evaled !== 'object' ){
-							//here.sendcb( `TTSError: object expected, got ${typeof evaled}` )
+							//msg.sendcb( `TTSError: object expected, got ${typeof evaled}` )
 							//return false
 							evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
 						} else
@@ -560,8 +560,8 @@ addMessageHandler( async msg => {
 
 								case 'Jimp':
 									evaled.getBuffer( jimp.AUTO, ( err, buffer ) => {
-										if( err ) here.sendcb( err )
-										else here.send( { files: [buffer] } )
+										if( err ) msg.sendcb( err )
+										else msg.send( { files: [buffer] } )
 									})
 
 									return false
@@ -585,25 +585,25 @@ addMessageHandler( async msg => {
 					if( __output && typeof evaled != 'object' ){
 						__output += '\n' + String( evaled )
 					} else {
-						if( __output ) here.sendcb( __output )
+						if( __output ) msg.sendcb( __output )
 						if( typeof evaled == 'string' && !__printcb && !msg.member.hasPermission( discord.Permissions.FLAGS.EMBED_LINKS ) )
 							evaled = evaled.replace( /(https?:\/\/[\w/#%@&$?=+.,:;]+)/, '<$1>' )
 
-						here.send( __printcb ? cb( evaled ) : evaled )
-							.catch( err => here.sendcb( err ) )
+						msg.send( __printcb ? cb( evaled ) : evaled )
+							.catch( err => msg.sendcb( err ) )
 						return
 					} 
 				} 
 
-				if( __output ) here.sendcb( __output )
+				if( __output ) msg.sendcb( __output )
 			} catch( err ){
-				here.sendcb( err )
+				msg.sendcb( err )
 			}
 			
 			return
 		} catch( err ){
 			if( __printerr ){
-				here.sendcb( err )
+				msg.sendcb( err )
 				return
 			}
 		}

@@ -4,7 +4,7 @@ module.exports = {
         requirements.define( global )
 
         addCmd( 'clear clean purge', { short: 'Removes messages', full: 'Usage: `clear <number messages (max 50)>`' }, async ( msg, args ) => {
-            let cnt = Math.floor( Math.min( Number( args[0] ), 50 ) )
+            let cnt = args[0] ? Math.floor( Math.min( Number( args[0] ), 50 ) ) : 1
             
             if( isNaN( cnt ) || cnt <= 0 ){
                 msg.channel.send( 'You entered invalid number or number is ≤ 0' )

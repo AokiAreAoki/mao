@@ -64,7 +64,7 @@ function tts( table, maxtab=4, tab=0 ){
     let isarray = table && table.constructor == Array
     
     if( tab >= maxtab )
-        return ( isarray ? '[ ... ]' : '{ ... }' ) + ( tab === 0 ? '\n' : '' )
+        return ( isarray ? '[ ... ]' : '{ ... }' ) + '\n'
     
     if( typeof table != 'object' )
 	    return `here's ur ${typeof table} for u:\n    \`${String( table )}\`` 
@@ -246,6 +246,8 @@ function include( path, overwrites ){
 	}
 
 	inclusion.execute( requirements, global )
+	delete inclusion
+	delete requirements
 }
 
 // Including functions

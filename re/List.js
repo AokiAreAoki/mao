@@ -1,20 +1,20 @@
 class List {
-    constructor( perms_list ){
-        if( perms_list ) this.add( perms_list )
+    constructor( items ){
+        if( items ) this.add( items )
     }
 
-    add( permissions ){
-        if( typeof permissions == 'object' && permissions !== null && permissions.constructor == Array )
-            permissions.forEach( perm => this[perm] = true )
-        else if( typeof permissions == 'string' )
-            permissions.toLowerCase().split( /\s+/ ).forEach( perm => this[perm] = true )
+    add( items ){
+        if( typeof items == 'object' && items !== null && items.constructor == Array )
+            items.forEach( item => this[item.toLowerCase()] = true )
+        else if( typeof items == 'string' )
+            items.toLowerCase().split( /\s+/ ).forEach( item => this[item] = true )
     }
 
-    remove( permissions ){
-        if( typeof permissions == 'object' && permissions !== null && permissions.constructor == Array )
-            permissions.forEach( perm => delete this[perm] )
-        else if( typeof permissions == 'string' )
-            permissions.toLowerCase().split( /\s+/ ).forEach( perm => delete this[perm] )
+    remove( items ){
+        if( typeof items == 'object' && items !== null && items.constructor == Array )
+            items.forEach( item => delete this[item.toLowerCase()] )
+        else if( typeof items == 'string' )
+            items.toLowerCase().split( /\s+/ ).forEach( item => delete this[item] )
     }
 
     toString(){

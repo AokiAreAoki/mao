@@ -19,8 +19,8 @@ module.exports = {
 		let dailies = {
 			'314411314724208641': {
 				'695758720780599329': { src: 'yandere', tags: 'catgirl -nipples -e' },
-				'695758663406583918': { src: 'yandere', tags: 'feet s' },
-				'695758756469800970': { src: 'yandere', tags: 'pantsu ass s' },
+				'695758663406583918': { src: 'yandere', tags: 'feet -nipples -e' },
+				'695758756469800970': { src: 'yandere', tags: 'pantsu ass -nipples -e' },
 			}
 		}
 		mao.daily_girls = dailies

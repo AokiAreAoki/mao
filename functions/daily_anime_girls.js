@@ -3,7 +3,7 @@ module.exports = {
 	execute: ( requirements, mao ) => {
 		requirements.define( global )
 		
-		// guilds..channels..tags
+		// guilds::channels::tags
 		let sources = {
 			gelbooru: {
 				url: 'https://aoki.000webhostapp.com/glbr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&q=',
@@ -16,14 +16,15 @@ module.exports = {
 				domen: 'yande.re',
 			},
 		}
-		let dailies = {
+		
+		/*{
 			'314411314724208641': {
 				'695758720780599329': { src: 'yandere', tags: 'catgirl -nipples -e' },
 				'695758663406583918': { src: 'yandere', tags: 'feet -nipples -e' },
 				'695758756469800970': { src: 'yandere', tags: 'pantsu ass -nipples -e' },
+				'700580844254920724': { src: 'yandere', tags: 'maid s' },
 			}
-		}
-		mao.daily_girls = dailies
+		}*/
 		
 		// Debugger
 		function post_anime_girls(){
@@ -48,8 +49,8 @@ module.exports = {
 			db.last_daily_girls = today
 			bakadb.save()
 			
-			for( let gid in dailies ){
-				for( let chid in dailies[gid] ){
+			for( let gid in db.daily_girls ){
+				for( let chid in db.daily_girls[gid] ){
 					let guild = client.guilds.cache.get( gid )
 					
 					if( !guild ){
@@ -64,17 +65,17 @@ module.exports = {
 						continue
 					}
 					
-					let tags = dailies[gid][chid].tags
+					let tags = db.daily_girls[gid][chid].tags
 					let message = await channel.send( embed()
 						.addField( 'Parsing daily anime girl...', `Tags: ${tags ? `\`${tags}\`` : 'no tags'}` )
 						.setFooter( 'Today: ' + today )
 					)
 					tags = tags || ''
 					
-					let src = sources[dailies[gid][chid].src]
+					let src = sources[db.daily_girls[gid][chid].src]
 					
 					if( !src ){
-						log( `ERROR: Unknown source "${dailies[gid][chid].src}"` )
+						log( `ERROR: Unknown source "${db.daily_girls[gid][chid].src}"` )
 						return
 					}
 					
@@ -119,7 +120,7 @@ module.exports = {
 		}
 		
 		client.on( 'ready2', () => {
-			timer.create( 'daily_anime_girls', 300, 0, check )
+			timer.create( 'daily_anime_girls', 30, 0, check )
 			check()
 		})
 	}

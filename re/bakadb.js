@@ -45,7 +45,7 @@ class BakaDB extends events {
 			let saves = fs.readdirSync( path )
 
 			saves.forEach( ( file, k ) => {
-				if( file.match( /\D/ ) )
+				if( /\D/.test( file ) )
 					delete saves[k]
 				else
 					saves[k] = Number( file )
@@ -53,8 +53,8 @@ class BakaDB extends events {
 
 			saves.sort( ( a, b ) => b - a )
 
-			for( let k in saves ){
-				let file = saves[k]
+			for( let i = 0; i < saves.length; ++i ){
+				let file = saves[i]
 
 				try {
 					data = JSON.parse( fs.readFileSync( join( path, String( file ) ) ).toString() )

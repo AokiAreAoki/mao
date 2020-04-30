@@ -28,8 +28,14 @@ module.exports = {
 
 		var msgrate = []
 		
-		client.on( 'message', msg => { if( !msg.member.bot ) msgrate.push( Date.now() ) } )
-		setInterval( () => { while( msgrate[0] < Date.now() ) msgrate.shift() }, 1337 )
+		client.on( 'message', msg => {
+			if( msg.member && !msg.member.bot )
+				msgrate.push( Date.now() )
+		})
+		
+		setInterval( () => {
+			while( msgrate[0] < Date.now() ) msgrate.shift()
+		}, 1337 )
 		
 		function updateActivity(){
 			if( nextgame < Date.now() ){

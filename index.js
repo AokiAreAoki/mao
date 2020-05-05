@@ -1,31 +1,58 @@
-// yes
-let original_require = require
 const log = console.log
 
-function require( module ){
-	log( `Requiring "${module}" module...` )
-	return original_require( module )
+// Including modules
+let requireAndLog = module => {
+	let match = module.match( /^([^\/]+)\/([^\/]+)$/ )
+	let mod
+
+	if( match ){
+		log( `    Requiring "${match[2]}" from "${match[1]}" module...` )
+		mod = require( match[1] )
+
+		if( typeof mod === 'undefined' || !mod )
+			log( `        Failed to require "${match[1]}" module.` )
+		else {
+			mod = mod[match[2]]
+			if( typeof mod === 'undefined' || !mod )
+				log( `        Failed to require "${match[2]}" from "${match[1]}" module.` )
+		}
+	} else {
+		log( `    Requiring "${module}" module...` )
+		mod = require( module )
+
+		if( typeof mod === 'undefined' || !mod )
+			log( `        Failed to require "${module}" module.` )
+	}
+
+	return mod
 }
 
-// Including modules
-const fs = require( 'fs' )
-const http = require( 'http' )
-const https = require( 'https' )
-const join = require( 'path' ).join
-const cp = require( 'child_process' )
-const discord = require( 'discord.js' )
-const ytdl = require( 'ytdl-core' )
-const jimp = require( 'jimp' )
-const vm = require( 'vm' )
+log( 'Requiring modules:' )
+const fs = requireAndLog( 'fs' )
+const http = requireAndLog( 'http' )
+const https = requireAndLog( 'https' )
+const join = requireAndLog( 'path/join' )
+const cp = requireAndLog( 'child_process' )
+const discord = requireAndLog( 'discord.js' )
+const ytdl = requireAndLog( 'ytdl-core' )
+const jimp = requireAndLog( 'jimp' )
+const vm = requireAndLog( 'vm' )
+log( '' )
 
 // Including my modules
-var re = module => require( `./re/${module}.js` )
+let re = module => {
+	log( `    Requiring "${module}" module...` )
+	return require( `./re/${module}.js` )
+}
+
+log( 'Requiring custom module:' )
 const tree = re( 'tree-printer' )
 const bakadb = re( 'bakadb' )
 const timer = re( 'timer' )
 const vec = re( 'vector' )
 const List = re( 'List' )
 //const MyPLang = re( 'MyPLang' )
+log( '' )
 
 // Defining some shit
 const maoclr = 0xF2B066
@@ -260,10 +287,14 @@ function include( path, overwrites ){
 }
 
 // Including functions
+log( 'Including functions:' )
 readdir( './functions' ).forEach( file => {
-	if( file.endsWith( '.js' ) )
+	if( file.endsWith( '.js' ) ){
+		log( `    Including "${file}"...` )
 		include( './' + join( './functions', file ) )
+	}	
 })
+log( '' )
 
 // Command manager
 _prefix = /^(-|(mao|мао)\s+)/i
@@ -309,9 +340,9 @@ function addCmd( module, command, description, callback ){
 }
 
 // Including commands
-tree( 'Including commands...', ( print, fork ) => {
+tree( 'Including commands:', ( print, fork ) => {
 	readdir( './commands' ).forEach( module => {
-		fork( `Module "${module}"...`, print => {
+		fork( `Module "${module}":`, print => {
 			readdir( join( './commands', module ) ).forEach( file => {
 				if( file.endsWith( '.js' ) ){
 					print( `File "${file}"...` )
@@ -322,6 +353,7 @@ tree( 'Including commands...', ( print, fork ) => {
 			})
 		})
 	})
+	print( '' )
 })
 
 function parseArgs( string_args, args, args_pos ){

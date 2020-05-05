@@ -1,3 +1,12 @@
+// yes
+let original_require = require
+const log = console.log
+
+function require( module ){
+	log( `Requiring "${module}" module...` )
+	return original_require( module )
+}
+
 // Including modules
 const fs = require( 'fs' )
 const http = require( 'http' )
@@ -16,10 +25,10 @@ const bakadb = re( 'bakadb' )
 const timer = re( 'timer' )
 const vec = re( 'vector' )
 const List = re( 'List' )
+//const MyPLang = re( 'MyPLang' )
 
 // Defining some shit
 const maoclr = 0xF2B066
-const log = console.log
 const write = fs.writeFileSync
 const readdir = fs.readdirSync
 

@@ -1,5 +1,5 @@
-function log( tabulation, text ){
-	console.log( ' '.repeat( tabulation * 4 ), text )
+function log( tabulation=0, text ){
+	console.log( ' '.repeat( tabulation * 4 ) + text )
 }
 
 function tree( text, callback, tabs=0 ){

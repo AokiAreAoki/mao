@@ -4,6 +4,7 @@ const events = require( 'events' )
 
 var log = console.log
 var exists = fs.existsSync
+var request
 
 class BakaDB extends events {
 	constructor(){
@@ -77,6 +78,36 @@ class BakaDB extends events {
 		this.emit( 'initialized' )
 
 		return true
+	}
+
+	googleCloud( api_key, access_token, path_to_request ){ // later // maybe
+		/*this.api_key = api_key
+		this.access_token = access_token
+		
+		if( path_to_request )
+			request = require( join( path_to_request, 'request' ) )
+		else
+			try {
+				request = require( '../node_modules/request' )
+			} catch( err ){
+				console.error( err )
+				return false
+			}
+
+		request.get( 'https://www.googleapis.com/drive/v3/about', {
+			
+		}, ( error, res, body ) => {
+			if( error ){
+				console.error(error)
+				return
+			}
+			
+			console.log( `statusCode: ${res.statusCode}` )
+			console.log( body )
+		})
+
+		return true*/
+		return false
 	}
 
 	_foreach( table, cb ){
@@ -215,6 +246,16 @@ class BakaDB extends events {
 			delete this.timer
 		}
 	}
+}
+
+if( process.argv[2] && process.argv[2].toLowerCase() === 'debug' ){
+	const bakadb = new BakaDB()
+	bakadb.init( './testdb' )
+	bakadb._debugmode = true
+
+	console.log( 'Google Cloud:',
+		bakadb.googleCloud( 'AIzaSyD4WE5cO7l7HxNddKghUt1lXpnhchlR2Rw', '630478585130-gj13t2lll1uaovlub3gqngujdlt3kp91.apps.googleusercontent.com' )
+	)
 }
 
 module.exports = new BakaDB()

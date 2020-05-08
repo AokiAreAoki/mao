@@ -37,7 +37,7 @@ module.exports = {
         	if( args[1] ){
         		let text = get_string_args(1)
         		
-        		if( text.match( /^\d+$/ ) ){
+        		if( text.match( /^\d+$/ ) ){ // Message ID provided
         			let m = await msg.channel.messages.fetch( args[1] )
         
         			if( m ){
@@ -52,18 +52,18 @@ module.exports = {
         					msg.send( 'Failed to transliterate the message.' )
         			} else
         				msg.send( 'Failed to fetch the message! The message doesn\'t exist, or is in another channel.' )
-        		} else {
+        		} else { // Text provided
         			text = translit( args[0] == 'en', text )
         
         			if( text )
         				msg.send( embed()
-        					.setAuthor( msg.member.user.tag, msg.member.user.avatarURL )
+        					.setAuthor( msg.member.user.tag, msg.member.user.avatarURL() )
         					.setDescription( text )
         				)
         			else
         				msg.send( 'Failed to transliterate the message.' )
         		}
-        	} else {
+        	} else { // Nothing provided
         		let mm = await msg.channel.messages.fetch({ limit: 1, before: msg.id })
         
         		if( mm.size == 0 )
@@ -74,7 +74,7 @@ module.exports = {
         
         			if( text )
         				msg.send( embed()
-        					.setAuthor( m.member.user.tag, m.member.user.avatarURL )
+        					.setAuthor( m.member.user.tag, m.member.user.avatarURL() )
         					.setDescription( text )
         				)
         			else

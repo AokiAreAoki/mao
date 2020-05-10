@@ -51,7 +51,7 @@ const bakadb = re( 'bakadb' )
 const timer = re( 'timer' )
 const vec = re( 'vector' )
 const List = re( 'List' )
-//const MyPLang = re( 'MyPLang' )
+//const MyLang = re( 'MyLang' )
 log( '' )
 
 // Defining some shit

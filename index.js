@@ -437,6 +437,8 @@ addMessageHandler( msg => {
 				cmd.func( msg, args, get_string_args )
 			else
 				log( `Error: cmddata.cmds.${cmd}.func is a ${typeof cmd.func}, function expected` )
+			
+			return true
 		}
 	}
 })
@@ -469,7 +471,7 @@ addMessageHandler( async msg => {
 		if( ec )
 			ec = ec[0]
 		else {
-			if( !smarteval ) return
+			if( !smarteval ) return true
 			ec = ''
 		}
 		
@@ -528,7 +530,7 @@ addMessageHandler( async msg => {
 		try {
 			if( __printerr && !code.match( /\S/ ) ){
 				msg.send( 'Gimme code baka~!' )
-				return
+				return true
 			}
 
 			//let fs = "sosni ka"
@@ -639,7 +641,7 @@ addMessageHandler( async msg => {
 
 						msg.send( __printcb ? cb( evaled ) : evaled )
 							.catch( err => msg.sendcb( err ) )
-						return
+						return true
 					} 
 				} 
 
@@ -648,11 +650,11 @@ addMessageHandler( async msg => {
 				msg.sendcb( err )
 			}
 			
-			return
+			return true
 		} catch( err ){
 			if( __printerr ){
 				msg.sendcb( err )
-				return
+				return true
 			}
 		}
 	}

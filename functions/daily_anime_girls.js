@@ -31,7 +31,26 @@ module.exports = {
 			db.last_daily_girls = 0
 			check()
 		}
+		
+		let last_posts = []
+		async function undo_last_posts(){
+			if( last_posts.length === 0 )
+				return false
+			
+			await last_posts.pop().forEach( async post => {
+				let chnl = client.channels.cache.get( post.channel_id )
+				let msg = await chnl.messages.fetch( post.message_id )
+				msg.edit( embed()
+					.setDescription( 'Deleted' )
+					.setColor( 0xFF0000 )
+				).then( () => msg.delete( 3752 ) )
+			})
+			
+			return true
+		}
+		
 		mao._pag = post_anime_girls
+		mao._pag_undo = undo_last_posts
 		
 		function log( text ){
 			if( text ) console.log( '[DAG] ' + text )
@@ -49,6 +68,9 @@ module.exports = {
 			db.last_daily_girls = today
 			bakadb.save()
 			
+			let pagid = last_posts.length
+			last_posts.push([])
+
 			for( let gid in db.daily_girls ){
 				for( let chid in db.daily_girls[gid] ){
 					let guild = client.guilds.cache.get( gid )
@@ -113,7 +135,10 @@ module.exports = {
 							.setDescription( `[${capitalize( channel.name.replace( /[-_]+/g, ' ' ) )}](https://yande.re/post/show/${pics[r].id})` )
 							.setImage( pics[r][src.key] )
 							.setFooter( 'Powered by ' + src.domen )
-						)
+						).then( m => last_posts[pagid].push({
+							channel_id: m.channel.id,
+							message_id: m.id,
+						}))
 					}, err => message.edit( cb( err ) ) )
 				}
 			}

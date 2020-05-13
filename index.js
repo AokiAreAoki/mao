@@ -37,7 +37,7 @@ const discord = requireAndLog( 'discord.js' )
 const ytdl = requireAndLog( 'ytdl-core' )
 const jimp = requireAndLog( 'jimp' )
 const vm = requireAndLog( 'vm' )
-log( '' )
+log()
 
 // Including my modules
 let re = module => {
@@ -103,7 +103,7 @@ function tts( table, maxtab=4, tab=0 ){
 		return ( isarray ? '[ ... ]' : '{ ... }' ) + '\n'
 	
 	if( typeof table != 'object' )
-		return `here's ur ${typeof table} for u:\n	\`${String( table )}\`` 
+		return `here's ur ${typeof table} for u:\n	${String( table )}`
 	
 	let str = ''
 	
@@ -576,7 +576,7 @@ addMessageHandler( async msg => {
 							//return false
 							evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
 						} else
-							evaled = "here's ur table for u: " + tts( evaled )
+							evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled )}`
 					} else {
 						switch( typeof evaled ){
 							case 'undefined': 

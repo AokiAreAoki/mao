@@ -266,8 +266,18 @@ module.exports = {
 			if( disp && disp.broadcast )
 				disp.broadcast.end()
 
-			console.log( song )
 			mdata[guild.id].disp = guild.voice.connection.play( song )
+		}
+
+		function skip( guild ){
+			let skipped_song = mdata[guild.id].queue[ mdata[guild.id].queue.length - 1 ]
+
+			if( mdata[guild.id].disp && mdata[guild.id].disp.broadcast )
+				mdata[guild.id].disp.broadcast.end()
+			else
+				mdata[guild.id].queue.shift()
+
+			return skipped_song
 		}
 
 		/// Music commands ///
@@ -283,7 +293,6 @@ module.exports = {
 				msg.channel.send( 'Connect to the voice channel first, baka~!' )
 		})
 
-		/// Music commands ///
 		addMCommand( 'leave l', 'Leaves your voice channel', msg => {
 			if( msg.guild.voice && msg.guild.voice.channel )
 				leave( msg.guild.voice, succes => msg.send( succes ? 'Left voice channel' : 'Something went wrong 😔' ) )
@@ -293,9 +302,9 @@ module.exports = {
 
 		addMCommand( 'queue q',
 			'Shows queue/Adds song the queue'
-			+ '`music q` - Shows queue'
-			+ '`music q <song>` - Searching for a song on the youtube'
-			+ '`music q <yt video url>` - Adds a video to the queue',
+			+ '\n`music q` - Shows queue'
+			+ '\n`music q <song>` - Searching for a song on the youtube'
+			+ '\n`music q <yt video url>` - Adds a video to the queue',
 		async ( msg, args, get_string_args ) => {
 			if( args[0] ){
 				let vid = ''
@@ -364,7 +373,7 @@ module.exports = {
 				sendQueue( msg.channel )
 		})
 
-		addMCommand( 'play p', 'Plays music', async( msg, args, get_string_args ) => {
+		addMCommand( 'play p', 'Plays music', async ( msg, args, get_string_args ) => {
 			let queue = mdata[msg.guild.id].queue
 			
 			if( queue && queue[0] ){
@@ -373,8 +382,13 @@ module.exports = {
 			} else msg.channel.send( 'Queue is empty' )
 		})
 
+		addMCommand( 'skip s', `Skips song (doesn't work ¯\\_(ツ)_/¯)`, async ( msg, args, get_string_args ) => {
+			let skipped_song = skip( msg.guild )
+			msg.channel.send( embed().addField( 'Skipped:', `\`${skipped_song.author}\` - \`${skipped_song.title}\`` ) )
+		})
+
 		/// Main music command ///
-		let full = 'TODO'
+		let full = '*TODO*'
 		addCmd( 'music m', { short: 'Plays music from youtube', full: full }, ( msg, args, get_string_args ) => {
 			let option = args[0]
 

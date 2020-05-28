@@ -266,7 +266,13 @@ module.exports = {
 			if( disp && disp.broadcast )
 				disp.broadcast.end()
 
-			mdata[guild.id].disp = guild.voice.connection.play( song )
+			if( guild.voice && guild.voice.connection ){
+				mdata[guild.id].disp = guild.voice.connection.play( song )
+				mdata[guild.id].disp.on( 'finish', () => {
+					if( mdata[guild.id].queue.shift() )
+						play( guild, mdata[guild.id].queue[0] )
+				})
+			}
 		}
 
 		function skip( guild ){

@@ -6,12 +6,16 @@ module.exports = {
 		// guilds::channels::tags
 		let sources = {
 			gelbooru: {
-				url: 'https://aoki.000webhostapp.com/glbr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&q=',
+				url: 'https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&tags=',
+				//url: 'https://aoki.000webhostapp.com/glbr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&q=',
+				postURL: id => 'https://gelbooru.com/index.php?page=post&s=view&id=' + id,
 				key: 'file_url',
 				domen: 'gelbooru.com',
+				xml: false,
 			},
 			yandere: {
 				url: 'https://yande.re/post.json?page=1&limit=100&tags=',
+				postURL: id => 'https://yande.re/post/show/' + id,
 				key: 'sample_url',
 				domen: 'yande.re',
 			},
@@ -60,6 +64,23 @@ module.exports = {
 			return text[0].toUpperCase() + text.substring(1)
 		}
 		
+		function parseXML( xml ){
+			let posts = xml.match( /<post\s+(.+?)\/>/gm )
+			let result = []
+			
+			posts.forEach( post => {
+				let post_data = {}
+				
+				post.replace( /([\w_-]+)="(.+?)"/g, ( _, k, v ) => {
+					post_data[k] = v
+				})
+				
+				result.push( post_data )
+			})
+			
+			return result
+		}
+		
 		async function check(){
 			let now = new Date(),
 				today = now.getDate().toString() + '/' + ( now.getMonth() + 1 ).toString()
@@ -103,12 +124,17 @@ module.exports = {
 					
 					httpGet( src.url + tags, pics => {
 						try {
-							pics = JSON.parse( pics )
+							if( src.xml )
+								pics = parseXML( pics )
+							else
+								pics = JSON.parse( pics )
 						} catch( err ){
 							message.edit( embed()
 								.setDescription( `Tag(s) \`${tags}\` not found :c` )
 								.setColor( 0xFF0000 )
 							)
+							
+							console.error( err )
 							return
 						}
 						
@@ -132,7 +158,7 @@ module.exports = {
 						//if( !/\S/.test( tags ) ) tags = 'no tags';
 						
 						message.edit( embed()
-							.setDescription( `[${capitalize( channel.name.replace( /[-_]+/g, ' ' ) )}](https://yande.re/post/show/${pics[r].id})` )
+							.setDescription( `[${capitalize( channel.name.replace( /[-_]+/g, ' ' ) )}](${ src.postURL( pics[r].id ) })` )
 							.setImage( pics[r][src.key] )
 							.setFooter( 'Powered by ' + src.domen )
 						).then( m => last_posts[pagid].push({

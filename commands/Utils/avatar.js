@@ -12,7 +12,7 @@ module.exports = {
 		}, ( msg, args, get_string_args ) => {
 			if( !args[0] )
 				// My avatar
-				msg.channel.send( embed()
+				msg.send( embed()
 					.setDescription( `**${msg.member.displayName}**'s avatar` )
 				   	.setImage( msg.author.avatarURL({ size: 2048 }) )
 				)
@@ -21,7 +21,7 @@ module.exports = {
 				if( args[0].toLowerCase() == 'server' ){
 					let url = `https://cdn.discordapp.com/icons/${msg.guild.id}/${msg.guild.icon}.jpg?size=1024`
 					
-					return msg.channel.send( embed()
+					return msg.send( embed()
 						.setDescription( `**Server**'s icon` )
 						.setImage( url )
 					)
@@ -29,7 +29,7 @@ module.exports = {
 				
 				// Exclusion: everyone
 				if( msg.mentions.everyone )
-					return msg.channel.send( "Are You Baka?" )
+					return msg.send( "Are You Baka?" )
 				
 				let memes = msg.mentions.members.array()
 				
@@ -37,12 +37,12 @@ module.exports = {
 					let meme = findMem( msg.guild, get_string_args() )
 					
 					if( meme )
-						msg.channel.send( embed()
+						msg.send( embed()
 							.setDescription( ( meme.user.equals( client.user ) ? 'My' : `**${meme.displayName}**'s` ) + ' avatar' )
 							.setImage( meme.user.avatarURL({ size: 2048 }) )
 						)
 					else
-						msg.channel.send( 'User not found :c' )
+						msg.send( 'User not found :c' )
 					
 					return
 				}
@@ -50,12 +50,12 @@ module.exports = {
 				// Mentioned member avatar
 				let meme = memes[0]
 				if( meme ){
-					msg.channel.send( embed()
+					msg.send( embed()
 						.setDescription( ( meme.user.equals( client.user ) ? 'My' : `**${meme.displayName}**'s` ) + ' avatar' )
 						.setImage( meme.user.avatarURL({ size: 2048 }) )
 					)
 				} else
-					msg.channel.send( "Woops... Sry, something went wrong :c" )
+					msg.send( "Woops... Sry, something went wrong :c" )
 			}
 		})
 	}

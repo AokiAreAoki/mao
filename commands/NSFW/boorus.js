@@ -44,10 +44,10 @@ module.exports = {
 			}
 			
 			if( !sfw && !msg.channel.nsfw )
-				return msg.channel.send( 'This isn\'t an NSFW channel!' )
+				return msg.send( 'This isn\'t an NSFW channel!' )
 			
 			let tags = args.join( ' ' )
-			let message = await msg.channel.send( getRandomLoadingPhrase() )
+			let message = await msg.send( getRandomLoadingPhrase() )
 		
 			httpGet( `https://gelbooru.com/index.php?page=dapi&s=post&q=index&tags=${tags}&limit=100&json=1`, pics => {
 			//httpGet( 'https://aoki.000webhostapp.com/glbr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&q=' + tags, pics => {
@@ -103,10 +103,10 @@ module.exports = {
 			}
 			
 			if( !sfw && !msg.channel.nsfw )
-				return msg.channel.send( 'This isn\'t an NSFW channel!' );
+				return msg.send( 'This isn\'t an NSFW channel!' );
 			
 			let tags = args.join( ' ' )
-			let message = await msg.channel.send( getRandomLoadingPhrase() )
+			let message = await msg.send( getRandomLoadingPhrase() )
 		
 			httpGet( 'https://yande.re/post.json?page=1&limit=100&tags=' + tags, pics => {
 				try {

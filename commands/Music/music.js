@@ -293,10 +293,10 @@ module.exports = {
 			if( msg.member.voice )
 				join( msg.member.voice.channel, msg.channel, ( succes, vc ) => {
 					if( succes )
-						msg.channel.send( 'Joined ' + vc.name + bound )
+						msg.send( 'Joined ' + vc.name + bound )
 				})
 			else
-				msg.channel.send( 'Connect to the voice channel first, baka~!' )
+				msg.send( 'Connect to the voice channel first, baka~!' )
 		})
 
 		addMCommand( 'leave l', 'Leaves your voice channel', msg => {
@@ -323,14 +323,14 @@ module.exports = {
 				if( vid )
 					queueSong( msg.guild.id, vid, ( err, song ) => {
 						if( err ){
-							msg.channel.send( 'Failed adding song to the queue :(' )
+							msg.send( 'Failed adding song to the queue :(' )
 							console.error( err )
 						} else
 							sendQueuedMessage( msg.channel, song, msg.member )
 					})
 				else {
 					let q = get_string_args()
-					let m = await msg.channel.send( `Searching for \`${q}\`...` )
+					let m = await msg.send( `Searching for \`${q}\`...` )
 					
 					searchOnYT( q, async songs => {
 						if( songs.length == 0 )
@@ -360,7 +360,7 @@ module.exports = {
 												if( queueSong( msg.guild.id, songs[n - 1] ) )
 													sendQueuedMessage( msg.channel, songs[n - 1], msg.member )
                                                 else
-                                                    msg.channel.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
+                                                    msg.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
 											}
 
 											m.delete( 1337 )
@@ -385,12 +385,12 @@ module.exports = {
 			if( queue && queue[0] ){
 				play( msg.guild, queue[0] )
 				sendNowPlaying( msg.channel, queue[0] )
-			} else msg.channel.send( 'Queue is empty' )
+			} else msg.send( 'Queue is empty' )
 		})
 
 		addMCommand( 'skip s', `Skips song (doesn't work ¯\\_(ツ)_/¯)`, async ( msg, args, get_string_args ) => {
 			let skipped_song = skip( msg.guild )
-			msg.channel.send( embed().addField( 'Skipped:', `\`${skipped_song.author}\` - \`${skipped_song.title}\`` ) )
+			msg.send( embed().addField( 'Skipped:', `\`${skipped_song.author}\` - \`${skipped_song.title}\`` ) )
 		})
 
 		/// Main music command ///
@@ -426,7 +426,7 @@ module.exports = {
 						emb.addField( `**${cmd}${data.aliases.length > 0 ? ', ' + data.aliases.join( ', ' ) : ''}**`, data.description || 'no description :c' )
 				}
 
-				msg.channel.send( emb )
+				msg.send( emb )
 			}
 		})
 	}

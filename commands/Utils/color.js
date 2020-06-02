@@ -62,7 +62,7 @@ module.exports = {
                 else if( /^(#|0x)[\da-f]{3,6}$/i.test( arg ) )
                     type = 'hex'
                 else
-                    return msg.channel.send( 'Invalid color specifying' )
+                    return msg.send( 'Invalid color specifying' )
             }
 
             if( typeof types[type] === 'string' )
@@ -72,17 +72,17 @@ module.exports = {
             if( typeof color == 'number' ){
                 new jimp( 64, 64, color, ( err, img ) => {
                     if( err )
-                        return msg.channel.sendcb( err )
+                        return msg.sendcb( err )
 
                     img.getBuffer( jimp.AUTO, ( err, buffer ) => {
                         delete img
-                        if( err ) msg.channel.sendcb( err )
-                        else msg.channel.send({ files: [buffer] })
-                            .catch( err => msg.channel.sendcb( err ) )
+                        if( err ) msg.sendcb( err )
+                        else msg.send({ files: [buffer] })
+                            .catch( err => msg.sendcb( err ) )
                     })
                 })
             } else
-                msg.channel.send( 'Woops... Failed to parse the color :(((' )
+                msg.send( 'Woops... Failed to parse the color :(((' )
         })
     }
 }

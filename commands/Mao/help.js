@@ -10,9 +10,9 @@ module.exports = {
                 if( cmddata.cmds[cmd] ){
                     if( typeof cmddata.cmds[cmd] == 'string' )
                         cmd = cmddata.cmds[cmd]
-                    msg.channel.send( cmddata.cmds[cmd].description.full )
+                    msg.send( cmddata.cmds[cmd].description.full )
                 } else
-                    msg.channel.send( `Unknown command \`${cmd}\`` )
+                    msg.send( `Unknown command \`${cmd}\`` )
                 
                 return
             }
@@ -38,7 +38,7 @@ module.exports = {
                 emb.addField( module.printname + ':', commands )
             }
 
-            msg.channel.send( emb )
+            msg.send( emb )
         })
     }
 }

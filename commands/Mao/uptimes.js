@@ -18,13 +18,13 @@ module.exports = {
                 }
             }
             
-            msg.channel.send( `Uptime: ${Math.floor( uptime )} ${v}` )
+            msg.send( `Uptime: ${Math.floor( uptime )} ${v}` )
         })
 
         addCmd( 'totaluptime', 'Total Mao\'s uptime', msg => {
             let totaluptime = db.totaluptime || 1
             let string_time = `${numsplit( Math.floor( totaluptime ) )}m = ${numsplit( Math.floor( totaluptime / 6 ) / 10 )}h`
-            msg.channel.send( embed().addField( 'Total uptime', string_time ) )
+            msg.send( embed().addField( 'Total uptime', string_time ) )
         })
     }
 }

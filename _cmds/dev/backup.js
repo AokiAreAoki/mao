@@ -1,1 +1,0 @@
-msg => msg.channel.send( `Copied in ${backup()}s` )

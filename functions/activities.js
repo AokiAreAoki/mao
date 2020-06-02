@@ -12,7 +12,7 @@ module.exports = {
 					type: 'PLAYING',
 					game: 'wakes up~',
 				},
-				{
+				{ // Old Mao Total Uptime = 7977 hours
 					type: 'PLAYING',
 					game: () => db.totaluptime ? `for 7977h + ${ Math.floor( db.totaluptime / 60 ) }h` : 'bruh',
 				},

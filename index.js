@@ -401,7 +401,7 @@ function parseArgs( string_args, args, args_pos ){
 }
 
 // Command handler
-unshiftMessageHandler( msg => {
+unshiftMessageHandler( ( msg, edited ) => {
 	if( msg.author.id == client.user.id || msg.author.bot ) return
 	let prefix = msg.content.matchFirst( cmddata.prefix )
 
@@ -461,7 +461,7 @@ client.on( 'ready', () => {
 	eval_prefix = new RegExp( `^(>>+|<@!?${client.user.id}>)\\s*`, 'i' )
 })
 
-unshiftMessageHandler( async msg => {
+unshiftMessageHandler( async ( msg, edited ) => {
 	let ismaster = msg.member.isMaster()
 
 	/// TODO: Sandbox

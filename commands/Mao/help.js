@@ -5,14 +5,28 @@ module.exports = {
         
         addCmd( 'help h', { short: 'Sends this message', full: 'nothing will help you' }, ( msg, args ) => {
             if( args[0] ){
-                let cmd = args[0]
+                let k = args[0].toLowerCase()
 
-                if( cmddata.cmds[cmd] ){
-                    if( typeof cmddata.cmds[cmd] == 'string' )
-                        cmd = cmddata.cmds[cmd]
-                    msg.send( cmddata.cmds[cmd].description.full )
+                if( cmddata.cmds[k] ){
+                    if( typeof cmddata.cmds[k] == 'string' )
+                        k = cmddata.cmds[k]
+                    msg.send( cmddata.cmds[k].description.full )
+                } else if( cmddata.modules[k] && ( k !== 'dev' || msg.author.isMaster() ) ){
+                    let module = cmddata.modules[k],
+                        commands = ''
+                    
+                    for( let k in module.cmds ){
+                        let command = module.cmds[k]
+                        let cmd = cmddata.cmds[command]
+
+                        if( commands ) commands += '\n'
+                        cmd.aliases.forEach( alias => command += '**, **' + alias )
+                        commands += `• **${command}** - ${cmd.description.short}`
+                    }
+                    
+                    msg.send( embed().addField( module.printname + ':', commands ) )
                 } else
-                    msg.send( `Unknown command \`${cmd}\`` )
+                    msg.send( `Unknown command \`${k}\`.` )
                 
                 return
             }
@@ -21,11 +35,11 @@ module.exports = {
                 .setDescription( `Prefix: \`${cmddata.prefix}\`\nFor more information use \`help <command>\`` )
             
             for( let k in cmddata.modules ){
+                if( k == 'dev' ) continue
+
                 let module = cmddata.modules[k],
                     commands = ''
                 
-                if( k == 'dev' && !msg.author.isMaster() ) continue
-
                 for( let k in module.cmds ){
                     let command = module.cmds[k]
                     let cmd = cmddata.cmds[command]

@@ -106,15 +106,15 @@ module.exports = {
 								}
 						
 						if( list )
-							msg.channel.send( `\`${user.tag}\`'s permissions: ` + list )
+							msg.send( `\`${user.tag}\`'s permissions: ` + list )
 						else
-							msg.channel.send( `User \`${user.tag}\` has no permissions` )
+							msg.send( `User \`${user.tag}\` has no permissions` )
 						
 						return
 					}
 				}
 
-				msg.channel.send( 'User not found' )
+				msg.send( 'User not found' )
 			},
 			set: ( msg, args ) => {
 				let username = args.shift()
@@ -126,10 +126,10 @@ module.exports = {
 						if( db.perms[id] ) db.perms[id].add( args )
 						else db.perms[id] = new List( args )
 						
-						msg.channel.send( `Setted next permissions for user \`${client.users.cache.get( id ).tag}\`: \`${args.join( '`, `' )}\`` )
-					} else msg.channel.send( 'User not found' )
+						msg.send( `Setted next permissions for user \`${client.users.cache.get( id ).tag}\`: \`${args.join( '`, `' )}\`` )
+					} else msg.send( 'User not found' )
 				} else
-					msg.channel.send( 'You did not provide permissions' )
+					msg.send( 'You did not provide permissions' )
 			},
 			remove: ( msg, args ) => {
 				let username = args.shift()
@@ -141,10 +141,10 @@ module.exports = {
 						if( db.perms[id] ) db.perms[id].remove( args )
 						else db.perms[id] = new List( args )
 						
-						msg.channel.send( `Removed next permissions for user \`${client.users.cache.get( id ).tag}\`: \`${args.join( '`, `' )}\`` )
-					} else msg.channel.send( 'User not found' )
+						msg.send( `Removed next permissions for user \`${client.users.cache.get( id ).tag}\`: \`${args.join( '`, `' )}\`` )
+					} else msg.send( 'User not found' )
 				} else
-					msg.channel.send( 'You did not provide permissions' )
+					msg.send( 'You did not provide permissions' )
 			},
 		}
 
@@ -154,7 +154,7 @@ module.exports = {
 			if( action ){
 				action = action.toLowerCase()
 				if( actions[action] ) actions[action]( msg, args )
-				else msg.channel.send( 'Unknown action' )
+				else msg.send( 'Unknown action' )
 			} else {
 				let list = ''
 
@@ -163,7 +163,7 @@ module.exports = {
 					list += `\`${k}\``
 				}
 
-				msg.channel.send( embed().addField( 'Actions:', list ) )
+				msg.send( embed().addField( 'Actions:', list ) )
 			}
 		})
 	}

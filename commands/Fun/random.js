@@ -7,12 +7,12 @@ module.exports = {
             let num = Math.round( Math.random() * 99 ) + 1;
             let str = `**${msg.member.displayName}** rolled a **${num}**`
             if( num == 100 ) str += '! My congratulations~!';
-            msg.channel.send( str );
+            msg.send( str );
         })
 
         addCmd( 'select choose', 'Selects one of the given variants', ( msg, args ) => {
             var selected = args[ Math.floor( Math.random() * ( args.length - 1 ) ) ];
-            msg.channel.send( 'I choose **' + selected + '**' );
+            msg.send( 'I choose **' + selected + '**' );
         })
 
         addCmd( 'rpc', "No, this isn't Remote Procedure Call. This is Rock Paper Scissors!", ( msg, args ) => {
@@ -34,8 +34,8 @@ module.exports = {
                 user = Math.floor( Math.random() * 3 )
             
             let result = ( mao - user + 4 ) % 3 - 1
-            msg.channel.send( `**You**: __${rpc[user]}__!\n**Mao**: __${rpc[mao]}__!` )
-            msg.channel.send( result == 0 ? 'DRAW' : ( result == 1 ? 'You lose 😭' : 'You WON! 😎' ) )
+            msg.send( `**You**: __${rpc[user]}__!\n**Mao**: __${rpc[mao]}__!` )
+            msg.send( result == 0 ? 'DRAW' : ( result == 1 ? 'You lose 😭' : 'You WON! 😎' ) )
         })
     }
 }

@@ -16,7 +16,7 @@ module.exports = {
 			}
 			
 			msg.delete()
-			let m = await msg.channel.send( accounts + '[0] cancel```' )
+			let m = await msg.send( accounts + '[0] cancel```' )
 			
 			waitFor( msg.member.id, 10, {
 				onMessage: async ( msg, stop ) => {

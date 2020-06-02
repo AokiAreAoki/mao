@@ -14,7 +14,7 @@ module.exports = {
 				},
 				{
 					type: 'PLAYING',
-					game: () => db.totaluptime ? `for ${ Math.floor( db.totaluptime / 60 ) }h` : 'bruh',
+					game: () => db.totaluptime ? `for 7977h + ${ Math.floor( db.totaluptime / 60 ) }h` : 'bruh',
 				},
 				{
 					type: 'PLAYING',

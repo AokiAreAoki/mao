@@ -258,9 +258,10 @@ async function handleMessage( msg, edited ){
 
 client.on( 'message', handleMessage )
 client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
-	if( typeof oldMsg._answers === 'object' && oldMsg._answers.constructor === Array )
+	if( typeof oldMsg._answers === 'object' && oldMsg._answers.constructor === Array && oldMsg.content !== newMsg.content ){
 		oldMsg.channel.bulkDelete( oldMsg._answers )
-	handleMessage( newMsg, true )
+		handleMessage( newMsg, true )
+	}
 })
 
 // Includer

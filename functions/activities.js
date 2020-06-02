@@ -12,15 +12,15 @@ module.exports = {
 					type: 'PLAYING',
 					game: 'wakes up~',
 				},
-				{ // Old Mao Total Uptime = 7977 hours
+				{ // Mao Total Uptime + Old Mao Total Uptime (7977 hours)
 					type: 'PLAYING',
 					game: () => db.totaluptime ? `for 7977h + ${ Math.floor( db.totaluptime / 60 ) }h` : 'bruh',
 				},
-				{
+				{ // Messages per Minute
 					type: 'PLAYING',
 					game: () => msgrate.length + ' mpm',
 				},
-				{
+				{ // Meme
 					type: 'WATCHING',
 					game: () => { nextgame = Math.min( nextgame, Date.now() + 228 ); return 'Send nudes' }
 				},

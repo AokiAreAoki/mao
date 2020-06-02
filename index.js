@@ -246,9 +246,13 @@ function addMessageHandler( callback ){
 	messageHandlers.push( callback )
 }
 
+function unshiftMessageHandler( callback ){
+	messageHandlers.unshift( callback )
+}
+
 async function handleMessage( msg, edited ){
 	msg._answers = []
-	for( let i = 0; i < messageHandlers.length; i++ )
+	for( let i = 0; i < messageHandlers.length; ++i )
 		if( await messageHandlers[i]( msg, edited || false ) ) break
 }
 
@@ -397,8 +401,8 @@ function parseArgs( string_args, args, args_pos ){
 }
 
 // Command handler
-addMessageHandler( msg => {
-	if( msg.author.id == client.user.id ) return
+unshiftMessageHandler( msg => {
+	if( msg.author.id == client.user.id || msg.author.bot ) return
 	let prefix = msg.content.matchFirst( cmddata.prefix )
 
 	if( prefix ){
@@ -457,7 +461,7 @@ client.on( 'ready', () => {
 	eval_prefix = new RegExp( `^(>>+|<@!?${client.user.id}>)\\s*`, 'i' )
 })
 
-addMessageHandler( async msg => {
+unshiftMessageHandler( async msg => {
 	let ismaster = msg.member.isMaster()
 
 	/// TODO: Sandbox
@@ -471,12 +475,12 @@ addMessageHandler( async msg => {
 		if( ec )
 			ec = ec[0]
 		else {
-			if( !smarteval ) return true
+			if( !smarteval ) return
 			ec = ''
 		}
 		
 		let code = said.substring( ec.length )
-		//if( code.match( // ) ) return
+		//if( code.match( // ) ) return true
 		
 		let checktag = true
 
@@ -521,16 +525,17 @@ addMessageHandler( async msg => {
 		let cbstart = code.match( /^\s*```[a-zA-Z0-9]*/ )
 		let cbend = code.match( /```.*?$/ )
 
-		if( cbstart && cbend ){
+		if( cbstart && cbend )
 			code = code.substring( cbstart[0].length, code.length - cbend[0].length )
-		}
 
 		let __printerr = ec.length > 0
+		let abortHandlersQueue = false
+		let abortHQ = () => abortHandlersQueue = true
 
 		try {
 			if( __printerr && !code.match( /\S/ ) ){
 				msg.send( 'Gimme code baka~!' )
-				return true
+				return abortHQ()
 			}
 
 			//let fs = "sosni ka"
@@ -566,7 +571,7 @@ addMessageHandler( async msg => {
 				evaled = vm.runInContext( code, sandbox, { filename: 'sandbox.js', timeout: 3e3 } )
 			}
 
-			if( __silent ) return
+			if( __silent ) return abortHQ()
 
 			let printEvaled = ( () => {
 				if( typeof evaled != 'undefined' || __printerr ){
@@ -641,7 +646,7 @@ addMessageHandler( async msg => {
 
 						msg.send( __printcb ? cb( evaled ) : evaled )
 							.catch( err => msg.sendcb( err ) )
-						return true
+						return abortHQ()
 					} 
 				} 
 
@@ -650,13 +655,15 @@ addMessageHandler( async msg => {
 				msg.sendcb( err )
 			}
 			
-			return true
+			return abortHQ()
 		} catch( err ){
 			if( __printerr ){
 				msg.sendcb( err )
-				return true
+				return abortHQ()
 			}
 		}
+
+		return abortHandlersQueue
 	}
 })
 

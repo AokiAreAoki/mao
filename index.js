@@ -407,12 +407,13 @@ unshiftMessageHandler( ( msg, edited ) => {
 	let prefix = msg.content.matchFirst( cmddata.prefix )
 
 	if( prefix ){
-		let string_args = msg.content.substring( prefix.length )
-		let cmd = string_args.matchFirst( /^\S+/i ).toLowerCase()
+		let string_args = msg.content.substring( prefix.length ),
+			cmd = string_args.matchFirst( /^\S+/i ).toLowerCase()
 		
 		if( cmddata.cmds[cmd] ){
 			string_args = string_args.substring( cmd.length ).trim()
-			
+			let string_cmd = cmd
+
 			/* Aliases Redirection
 			 * Example:
 			 *	commands = {
@@ -430,8 +431,10 @@ unshiftMessageHandler( ( msg, edited ) => {
 				return
 
 			// Parsing arguments
-			let args = [], args_pos = []
+			let args = [],
+				args_pos = []
 			parseArgs( string_args, args, args_pos )
+			args[-1] = string_cmd
 
 			function get_string_args( number=0 ){
 				return typeof args_pos[number] == 'number' ? string_args.substring( args_pos[number] ) : ''

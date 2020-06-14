@@ -386,7 +386,7 @@ class Vector {
     	return Math.asin( this.x ) < 0 ? ( doReturnDegrees ? 360 : Math.PI * 2 ) - a : a
 	}
 
-	ang( doReturnDegrees ){
+	ang( doReturnDegrees=false ){
 		return this.copy().normalize().angFromNormal( doReturnDegrees )
 	}
 	

@@ -242,18 +242,28 @@ client.once( 'ready2', () => log( 'Logged in as ' + client.user.tag ) )
 
 // Message handlers
 messageHandlers = []
-function addMessageHandler( callback ){
+function addMessageHandler( description, callback ){
+	if( callback ) callback.description = description
+	else callback = description
 	messageHandlers.push( callback )
 }
 
-function unshiftMessageHandler( callback ){
+function unshiftMessageHandler( description, callback ){
+	if( callback ) callback.description = description
+	else callback = description
 	messageHandlers.unshift( callback )
 }
 
 async function handleMessage( msg, edited ){
 	msg._answers = []
-	for( let i = 0; i < messageHandlers.length; ++i )
-		if( await messageHandlers[i]( msg, edited || false ) ) break
+	for( let i = 0; i < messageHandlers.length; ++i ){
+		let stop = await messageHandlers[i]( msg, edited || false )
+		
+		// Debugger
+		//log( String( messageHandlers[i].description ) + ' :: ' + String( !!stop ) )
+		
+		if( stop ) break
+	}
 }
 
 client.on( 'message', handleMessage )
@@ -402,7 +412,7 @@ function parseArgs( string_args, args, args_pos ){
 }
 
 // Command handler
-unshiftMessageHandler( ( msg, edited ) => {
+unshiftMessageHandler( 'commands', ( msg, edited ) => {
 	if( msg.author.id == client.user.id || msg.author.bot ) return
 	let prefix = msg.content.matchFirst( cmddata.prefix )
 
@@ -465,7 +475,7 @@ client.on( 'ready', () => {
 	eval_prefix = new RegExp( `^(>>+|<@!?${client.user.id}>)\\s*`, 'i' )
 })
 
-unshiftMessageHandler( async ( msg, edited ) => {
+unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 	let ismaster = msg.member.isMaster()
 
 	/// TODO: Sandbox
@@ -539,8 +549,9 @@ unshiftMessageHandler( async ( msg, edited ) => {
 
 		try {
 			if( __printerr && !code.match( /\S/ ) ){
-				msg.send( 'Gimme code baka~!' )
-				return abortHQ()
+				return
+				//msg.send( 'Gimme code baka~!' )
+				//return abortHQ()
 			}
 
 			//let fs = "sosni ka"
@@ -555,6 +566,15 @@ unshiftMessageHandler( async ( msg, edited ) => {
 						__output += String( v )
 					})
 				}
+
+				if( /<@!?(\d+)>/i.test( code ) ) // User
+					code = code.replace( /<@!?(\d+)>/gi, `here.guild.members.cache.get('$1')` )
+
+				if( /<#(\d+)>/i.test( code ) ) // Channel
+					code = code.replace( /<#(\d+)>/gi, `here.guild.channels.cache.get('$1')` )
+
+				if( /<:[\w_]+:(\d+)>/i.test( code ) ) // Emojis
+					code = code.replace( /<:[\w_]+:(\d+)>/gi, `here.guild.emojis.cache.get('$1')` )
 				
 				evaled = await eval( code )
 			} else {

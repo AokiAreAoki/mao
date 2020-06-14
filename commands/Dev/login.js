@@ -18,7 +18,11 @@ module.exports = {
 			msg.delete()
 			let m = await msg.send( accounts + '[0] cancel```' )
 			
-			waitFor( msg.member.id, 10, {
+			waitFor({
+				memberID: msg.member.id,
+				timeout: 10,
+				message: m,
+				messageDeleteDelay: 2280,
 				onMessage: async ( msg, stop ) => {
 					async function login( token ){
 						await m.delete()
@@ -42,8 +46,6 @@ module.exports = {
 					} else if( tnums.includes( msg.content.toLowerCase() ) )
 						await login( msg.content.toLowerCase() )
 				},
-				onTimeout: () => m.edit( 'Timed out' ).then( m => m.delete( 1337 ) ),
-				onOverwrite: () => m.edit( 'Canceled' ).then( m => m.delete( 1337 ) )
 			})
 		})
 	}

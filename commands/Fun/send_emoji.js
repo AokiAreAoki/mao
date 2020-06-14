@@ -16,15 +16,19 @@ module.exports = {
                 if( all )
                     msg.send( emojis.join( ' ' ) )
                 else {
-                    let r = Math.floor( Math.random() * emojis.length )
-                    msg.send( emojis[r].toString() )
+                    //let r = Math.floor( Math.random() * emojis.length )
+                    //msg.send( emojis[r].toString() )
                     
-                    /* doesn't work idk why
+                    //* doesn't work idk why
                     let text = ''
                     emojis.forEach( ( e, k ) => text += `[${k + 1}] • ${e.toString()}\n` )
                     let message = await msg.send( text )
 
-                    waitFor( msg.member.id, 60, {
+                    waitFor({
+                        memberID: msg.member.id,
+                        timeout: 60,
+                        message: message,
+                        messageDeleteDelay: 1337 * 2,
                         onMessage: ( msg, stopWaiting ) => {
                             console.log( msg.author.username, '::', msg.content )
 
@@ -33,15 +37,17 @@ module.exports = {
                                 
                                 if( 0 < n && n <= emojis.length ){
                                     stopWaiting()
-                                    msg.send( emojis[n - 1] )
+                                    msg.send( emojis[n - 1].toString() )
+                                    msg.delete()
                                     message.delete()
+                                    return true
                                 }
 
                                 msg.delete()
                             }
+
+                            return false
                         },
-                        onTimeout: stopWaiting => msg.edit( 'Timed out' ).then( m => m.delete( 1337 * 2 ) ),
-                        onOverwrite: stopWaiting => msg.edit( 'Canceled' ).then( m => m.delete( 1337 * 2 ) ),
                     })
                     //*/
                 }

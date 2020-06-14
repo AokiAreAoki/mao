@@ -166,7 +166,7 @@ function findMem( guild, name ){
 	for( let i = 0; i < members.length; i++ ){
 		let m = members[i]
 		
-		if( m.displayName.toLowerCase().match( name ) )
+		if( m.nickname && m.nickname.toLowerCase().search( name ) !== -1 || m.user.username.toLowerCase().search( name ) !== -1 )
 			return m
 	}
 	
@@ -472,9 +472,10 @@ unshiftMessageHandler( async ( msg, edited ) => {
 	/// TODO: Fix eval
 
 	if( ismaster || ( sandboxenabled && allowJSGuilds.includes( msg.guild.id ) && !msg.author.bot ) ){
-		let said = msg.content
-		let here = msg.channel
-		let ec = said.match( eval_prefix )
+		let said = msg.content,
+			here = msg.channel,
+			me = msg.author,
+			ec = said.match( eval_prefix )
 
 		if( ec )
 			ec = ec[0]

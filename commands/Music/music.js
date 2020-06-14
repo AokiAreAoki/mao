@@ -347,7 +347,11 @@ module.exports = {
 
 							m.edit( results + '```' )
 
-							waitFor( msg.member.id, 30, {
+							waitFor({
+								memberID: msg.member.id,
+								timeout: 30,
+								message: m,
+								messageDeleteDelay: 22880,
 								onMessage: ( msg, stopWaiting ) => {
 									let n = msg.content.matchFirst( /^\d\d?$/ )
 									if(n){
@@ -369,8 +373,6 @@ module.exports = {
 										}
 									}
 								},
-								onTimeout: () => m.edit( 'Timed out' ).then( m => m.delete( 2280 ) ),
-								onOverwrite: () => m.edit( 'Canceled' ).then( m => m.delete( 2280 ) ),
 							})
 						}
 					}, console.error )

@@ -3,7 +3,7 @@ module.exports = {
 	execute: ( requirements, mao ) => {
         requirements.define( global )
         
-        addCmd( 'nekos', 'hot girls', ( msg, args ) => {
+        addCmd( 'nekos', 'a bit less but still hot girls', ( msg, args ) => {
             if( args[0] ){
                 if( !msg.channel.nsfw && ( !/-+force/i.test( args[1] ) || !msg.author.isMaster() ) )
                     return msg.channel.send( "This isn't an NSFW channel!" )

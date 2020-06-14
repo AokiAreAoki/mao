@@ -74,7 +74,7 @@ module.exports = {
 		}
 
 		function findMem2( guild, username ){
-			let ping = /^<@!(\d+)>$/i.exec( username )
+			let ping = /^<@!?(\d+)>$/i.exec( username )
 
 			if( ping )
 				return ping[1]

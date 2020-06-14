@@ -22,24 +22,27 @@ module.exports = {
 		]
 		
 		let getRandomLoadingPhrase = () => loadingPhrases[ Math.floor( Math.random() * loadingPhrases.length ) ]
-		
-		addCmd( 'gelbooru', {
+		let maotag = 'amatsuka_mao'
+
+		addCmd( 'gelbooru glbr', {
 			short: 'hot girls',
 			full: `Usage: gelbooru [tags]`
 			+ `\nThis is NSFW command and only available in NSFW channels`
-			+ `\nBut u can add "/safe" (or "rating:safe") tag to use it in non-NSFW channel`
+			+ `\nBut you can add "/safe" (or "rating:safe") tag to use it in non-NSFW channel`
 		}, async ( msg, args, cmd ) => {
 			let sfw = false
 			
 			for( let i = 0; i < args.length; ++i )
-				if( args[i].search( ' ' ) != -1 )
+				if( ( args[i] = args[i].toLowerCase() ).search( ' ' ) !== -1 )
 					args[i] = args[i].replace( /\s/g, '_' )
 			
 			for( let i = 0; i < args.length; ++i ){
-				if( args[i] == '/safe' ){
+				if( args[i] === 'amatsuka_mao' )
+					return msg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
+				else if( args[i] === '/safe' ){
 					args[i] = 'rating:safe'
 					sfw = true
-				} else if( args[i] == 'rating:safe' )
+				} else if( args[i] === 'rating:safe' )
 					sfw = true
 			}
 			
@@ -82,23 +85,25 @@ module.exports = {
 			}, err => message.edit( cb( err ) ) )
 		})
 		
-		addCmd( 'yandere', {
+		addCmd( 'yandere yndr', {
 			short: 'hot girls',
 			full: `Usage: yandere [tags]`
 			+ `\nThis is NSFW command and only available in NSFW channels`
-			+ `\nBut u can add "/safe" (or "s") tag to use it in non-NSFW channel`
+			+ `\nBut you can add "/safe" (or "s") tag to use it in non-NSFW channel`
 		}, async ( msg, args, get_string_args ) => {
 			let sfw = false
 		
 			for( let i = 0; i < args.length; ++i )
-				if( args[i].search( ' ' ) != -1 )
+				if( ( args[i] = args[i].toLowerCase() ).search( ' ' ) !== -1 )
 					args[i] = args[i].replace( /\s/g, '_' )
 			
 			for( let i = 0; i < args.length; ++i ){
-				if( args[i] == '/safe' ){
+				if( args[i] === 'amatsuka_mao' )
+					return msg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
+				else if( args[i] === '/safe' ){
 					args[i] = 's'
 					sfw = true
-				} else if( args[i] == 's' )
+				} else if( args[i] === 's' )
 					sfw = true
 			}
 			

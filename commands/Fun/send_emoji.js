@@ -30,8 +30,6 @@ module.exports = {
                         message: message,
                         messageDeleteDelay: 1337 * 2,
                         onMessage: ( msg, stopWaiting ) => {
-                            console.log( msg.author.username, '::', msg.content )
-
                             if( /^\d+$/.test( msg.content ) ){
                                 let n = Number( msg.content )
                                 

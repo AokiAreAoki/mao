@@ -251,28 +251,39 @@ module.exports = {
 			}
 		}
 
-		function play( guild, song ){
+		async function play( guild, song ){
 			if( song.constructor == Song )
 				song = song.vid
 			
 			if( typeof song == 'string' ){
 				if( /^[\w_-]{11}$/.test( song ) )
-					song = ytdl( 'https://youtu.be/' + song, { filter: 'audioonly' } )
+					song = await ytdl( 'https://youtu.be/' + song ) // { filter: 'audioonly' }
 				else if( /^https?:\/\/(\w+\.)youtu\.?be(\w+)\/.{11,}$/.test( song ) )
-					song = ytdl( song, { filter: 'audioonly' } )
+					song = await ytdl( song ) // { filter: 'audioonly' }
+				else
+					return false
 			}
 			
 			let disp = mdata[guild.id].disp
+
 			if( disp && disp.broadcast )
 				disp.broadcast.end()
 
 			if( guild.voice && guild.voice.connection ){
-				mdata[guild.id].disp = guild.voice.connection.play( song )
-				mdata[guild.id].disp.on( 'finish', () => {
-					if( mdata[guild.id].queue.shift() )
-						play( guild, mdata[guild.id].queue[0] )
-				})
+				mdata[guild.id].disp = guild.voice.connection.play( song, { type: 'opus' } )
+					.on( 'finish', () => {
+						if( mdata[guild.id].queue.shift() )
+							play( guild, mdata[guild.id].queue[0] )
+					})
+					.on( 'error', err => {
+						console.log( '\nMusic error happened:\n' )
+						console.error( err )
+						console.log()
+					})
+				return true
 			}
+
+			return false
 		}
 
 		function skip( guild ){
@@ -385,9 +396,14 @@ module.exports = {
 			let queue = mdata[msg.guild.id].queue
 			
 			if( queue && queue[0] ){
-				play( msg.guild, queue[0] )
-				sendNowPlaying( msg.channel, queue[0] )
-			} else msg.send( 'Queue is empty' )
+				let result = await play( msg.guild, queue[0] )
+
+				if( result )
+					sendNowPlaying( msg, queue[0] )
+				else
+					msg.send( 'An error occurred :(' )
+			} else
+				msg.send( 'Queue is empty' )
 		})
 
 		addMCommand( 'skip s', `Skips song (doesn't work ¯\\_(ツ)_/¯)`, async ( msg, args, get_string_args ) => {

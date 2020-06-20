@@ -3,70 +3,92 @@ module.exports = {
     execute: ( requirements, mao ) => {
 		requirements.define( global )
 		
-		var waitForMembersResponse = []
-		let nearestTimeout = 0
+		var waiters = { length: 0 }
+		let validFunc = func => typeof func === 'function' ? func : () => {}
+		let isWaiter = waiter => waiter && waiter.isWaiter
 
-		function validFunc( func ){
-			return typeof func === 'function' ? func : () => {}
+		class Waiter {
+			constructor( memberID, options ){
+				this.memberID = memberID
+				this.onMessage = validFunc( options.onMessage )
+				this.onTimeout = validFunc( options.onTimeout )
+				this.onOverwrite = validFunc( options.onOverwrite )
+				this.timeout = Date.now() + options.timeout * 1000 // in seconda
+				this.message = typeof options.message === 'object' && options.message !== null && options.message.constructor.name === 'Message' ? options.message : null
+				this.messageDeleteDelay = Number( options.messageDeleteDelay ) > 0 ? Number( options.messageDeleteDelay ) * 1e3 : 1337
+				this.isWaiter = true
+			}
+
+			stopWaiting(){
+				deleteWaiter( this.memberID )
+			}
+		}
+
+		function deleteWaiter( id ){
+			if( isWaiter( waiters[id] ) ){
+				delete waiters[id]
+				--waiters.length
+				return true
+			}
+
+			return false
+		}
+		
+		function addWaiter( memberID, options ){
+			if( isWaiter( waiters[memberID] ) )
+				deleteWaiter( memberID )
+			
+			waiters[memberID] = new Waiter( memberID, options )
+			++waiters.length
 		}
 		
 		function waitFor( options ){
 			let memberID = options.memberID
 
-			if( waitForMembersResponse[memberID] ){
-				let response = waitForMembersResponse[memberID]
+			if( waiters[memberID] ){
+				let response = waiters[memberID]
 
 				if( response.onOverwrite )
 					response.onOverwrite()
-				if( response.message )
+				if( response.message !== null )
 					response.message.edit( 'Canceled' )
 					.then( m => m.delete( response.messageDeleteDelay ) )
 
-				delete waitForMembersResponse[memberID]
+				delete waiters[memberID]
 			}
 
-			waitForMembersResponse[memberID] = {
-				stopWaiting: () => delete waitForMembersResponse[memberID],
-				onMessage: validFunc( options.onMessage ),
-				onTimeout: validFunc( options.onTimeout ),
-				onOverwrite: validFunc( options.onOverwrite ),
-				timeout: Date.now() + options.timeout * 1000, // in seconds
-				message: typeof options.message === 'object' && options.message !== null && options.message.constructor.name === 'Message' ? options.message : null,
-				messageDeleteDelay: Number( options.messageDeleteDelay ) > 0 ? Number( options.messageDeleteDelay ) * 1e3 : 1337,
-			}
+			addWaiter( memberID, options )
 		}
+		
 		mao.waitFor = waitFor
+		mao.waiters = waiters
+		let nearestTimeout = 0
 
 		setInterval( () => {
-			if( waitForMembersResponse.length === 0 ) return;
-			
-			if( nearestTimeout < Date.now() ){
+			if( waiters.length === 0 ) return
+			let now = Date.now()
+
+			if( nearestTimeout < now ){
 				nearestTimeout = -1
 
-				for( let k in waitForMembersResponse ){
-					let response = waitForMembersResponse[k]
+				for( let k in waiters ){
+					let waiter = waiters[k]
 
-					if( response.timeout < Date.now() ){
-						if( response.onTimeout )
-							response.onTimeout()
-						if( response.message )
-							response.message.edit( 'Timed out' )
-							.then( m => m.delete( response.messageDeleteDelay ) )
-						
-						delete waitForMembersResponse[k]
-						continue
+					if( isWaiter( waiter ) ){
+						if( waiter.timeout < now )
+							deleteWaiter(k)
+						else if( nearestTimeout > waiter.timeout || nearestTimeout === -1 )
+							nearestTimeout = waiter.timeout
 					}
-
-					if( nearestTimeout === -1 || nearestTimeout > response.timeout )
-						nearestTimeout = response.timeout
 				}
 			}
 		}, 500 )
 
 		setTimeout( () => { // bruh
 			unshiftMessageHandler( 'waitFor', async msg => {
-				let response = waitForMembersResponse[msg.member.id]
-				if( response ) return await response.onMessage( msg, response.stopWaiting )
+				let response = waiters[msg.member.id]
+				if( response )
+					return await response.onMessage( msg, () => { response.stopWaiting() } )
 			})
 		}, 123 )
 	}

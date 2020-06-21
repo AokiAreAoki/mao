@@ -10,8 +10,8 @@ module.exports = {
 				queue: [],	// queue :think_about:
 				disp: null,	// dispatcher
 				tc: null,	// text channel
-				idlingStarted: -1,
-				timeout: -1,
+				idlingStarted: Date.now(),
+				timeout: 60e3,
 			}
 		}
 
@@ -27,6 +27,7 @@ module.exports = {
 					leave( vc.voice )
 					mdata[gid].timeout = -1
 					mdata[gid].idlingStarted = -1
+					return
 				}
 
 				let timeout = 0
@@ -35,7 +36,7 @@ module.exports = {
 					timeout = 60e3
 					if( mdata[gid].idlingStarted === -1 )
 						mdata[gid].idlingStarted = Date.now()
-				} else if( !vc.voice.speaking ){
+				} else if( !vc.voice.connection.dispatcher ){
 					timeout = 720e3
 					if( mdata[gid].idlingStarted === -1 )
 						mdata[gid].idlingStarted = Date.now()
@@ -230,7 +231,12 @@ module.exports = {
 			
 			if( !voiceChannel.guild.voice || voiceChannel.guild.voice.channelID != voiceChannel.id ){
 				voiceChannel.join().then( c => {
-					if( textChannel ) mdata[voiceChannel.guild.id].tc = textChannel
+					if( textChannel ){
+						let gid = voiceChannel.guild.id
+						mdata[gid].tc = textChannel
+						mdata[gid].timeout = 60e3
+						mdata[gid].idlingStarted = Date.now()
+					}
 					callback( true, voiceChannel )
 				})
 			} else
@@ -252,7 +258,9 @@ module.exports = {
 		}
 
 		async function play( guild, song ){
-			if( song.constructor == Song )
+			if( !song )
+				return false
+			else if( song.constructor === Song )
 				song = song.vid
 			
 			if( typeof song == 'string' ){

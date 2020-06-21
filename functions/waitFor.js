@@ -4,6 +4,7 @@ module.exports = {
 		requirements.define( global )
 		
 		var waiters = { length: 0 }
+		let nearestTimeout = 0
 		let validFunc = func => typeof func === 'function' ? func : () => {}
 		let isWaiter = waiter => waiter && waiter.isWaiter
 
@@ -17,6 +18,8 @@ module.exports = {
 				this.message = typeof options.message === 'object' && options.message !== null && options.message.constructor.name === 'Message' ? options.message : null
 				this.messageDeleteDelay = Number( options.messageDeleteDelay ) > 0 ? Number( options.messageDeleteDelay ) * 1e3 : 1337
 				this.isWaiter = true
+
+				nearestTimeout = Math.min( nearestTimeout, this.timeout )
 			}
 
 			stopWaiting(){
@@ -62,7 +65,6 @@ module.exports = {
 		
 		mao.waitFor = waitFor
 		mao.waiters = waiters
-		let nearestTimeout = 0
 
 		setInterval( () => {
 			if( waiters.length === 0 ) return

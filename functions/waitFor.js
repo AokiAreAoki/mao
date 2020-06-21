@@ -88,9 +88,11 @@ module.exports = {
 
 		setTimeout( () => { // bruh
 			unshiftMessageHandler( 'waitFor', async msg => {
-				let response = waiters[msg.member.id]
-				if( response )
-					return await response.onMessage( msg, () => { response.stopWaiting() } )
+				if( msg.member ){
+					let response = waiters[msg.member.id]
+					if( response )
+						return await response.onMessage( msg, () => { response.stopWaiting() } )
+				}
 			})
 		}, 123 )
 	}

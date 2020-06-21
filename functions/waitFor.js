@@ -19,12 +19,22 @@ module.exports = {
 				this.messageDeleteDelay = Number( options.messageDeleteDelay ) > 0 ? Number( options.messageDeleteDelay ) * 1e3 : 1337
 				this.isWaiter = true
 
+				if( isWaiter( waiters[memberID] ) )
+					deleteWaiter( memberID )
+
+				waiters[memberID] = this
+				++waiters.length
+
 				nearestTimeout = Math.min( nearestTimeout, this.timeout )
 			}
 
 			stopWaiting(){
 				deleteWaiter( this.memberID )
 			}
+		}
+		
+		function addWaiter( memberID, options ){
+			new Waiter( memberID, options )
 		}
 
 		function deleteWaiter( id ){
@@ -37,14 +47,6 @@ module.exports = {
 			return false
 		}
 		
-		function addWaiter( memberID, options ){
-			if( isWaiter( waiters[memberID] ) )
-				deleteWaiter( memberID )
-			
-			waiters[memberID] = new Waiter( memberID, options )
-			++waiters.length
-		}
-		
 		function waitFor( options ){
 			let memberID = options.memberID
 
@@ -53,9 +55,10 @@ module.exports = {
 
 				if( response.onOverwrite )
 					response.onOverwrite()
+
 				if( response.message !== null )
 					response.message.edit( 'Canceled' )
-					.then( m => m.delete( response.messageDeleteDelay ) )
+						.then( m => m.delete( response.messageDeleteDelay ) )
 
 				delete waiters[memberID]
 			}
@@ -77,9 +80,16 @@ module.exports = {
 					let waiter = waiters[k]
 
 					if( isWaiter( waiter ) ){
-						if( waiter.timeout < now )
+						if( waiter.timeout < now ){
+							if( waiter.onTimeout )
+								waiter.onTimeout()
+									
+							if( response.message !== null )
+								response.message.edit( 'Timed out' )
+									.then( m => m.delete( response.messageDeleteDelay ) )
+								
 							deleteWaiter(k)
-						else if( nearestTimeout > waiter.timeout || nearestTimeout === -1 )
+						} else if( nearestTimeout > waiter.timeout || nearestTimeout === -1 )
 							nearestTimeout = waiter.timeout
 					}
 				}

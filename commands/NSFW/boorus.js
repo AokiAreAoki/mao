@@ -30,23 +30,28 @@ module.exports = {
 			+ `\nThis is NSFW command and only available in NSFW channels`
 			+ `\nBut you can add "/safe" (or "rating:safe") tag to use it in non-NSFW channel`
 		}, async ( msg, args, cmd ) => {
-			let sfw = false
+			let sfw = false,
+				force = false
 			
 			for( let i = 0; i < args.length; ++i )
 				if( ( args[i] = args[i].toLowerCase() ).search( ' ' ) !== -1 )
 					args[i] = args[i].replace( /\s/g, '_' )
 			
 			for( let i = 0; i < args.length; ++i ){
-				if( args[i] === 'amatsuka_mao' )
-					return msg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
-				else if( args[i] === '/safe' ){
+				if( args[i] === '/safe' ){
 					args[i] = 'rating:safe'
 					sfw = true
-				} else if( args[i] === 'rating:safe' )
+				} else if( args[i] === 'rating:safe' ){
 					sfw = true
+				} else if( msg.author.isMaster() && /^-+force$/i.test( args[i] ) ){
+					force = true
+					args.splice( i, 1 )
+					--i
+				} else if( args[i] === 'amatsuka_mao' )
+					return msg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
 			}
 			
-			if( !sfw && !msg.channel.nsfw )
+			if( !sfw && !msg.channel.nsfw && !force )
 				return msg.send( 'This isn\'t an NSFW channel!' )
 			
 			let tags = args.join( ' ' )
@@ -91,23 +96,27 @@ module.exports = {
 			+ `\nThis is NSFW command and only available in NSFW channels`
 			+ `\nBut you can add "/safe" (or "s") tag to use it in non-NSFW channel`
 		}, async ( msg, args, get_string_args ) => {
-			let sfw = false
+			let sfw = false, force = false
 		
 			for( let i = 0; i < args.length; ++i )
 				if( ( args[i] = args[i].toLowerCase() ).search( ' ' ) !== -1 )
 					args[i] = args[i].replace( /\s/g, '_' )
 			
 			for( let i = 0; i < args.length; ++i ){
-				if( args[i] === 'amatsuka_mao' )
-					return msg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
-				else if( args[i] === '/safe' ){
+				if( args[i] === '/safe' ){
 					args[i] = 's'
 					sfw = true
-				} else if( args[i] === 's' )
+				} else if( args[i] === 's' ){
 					sfw = true
+				} else if( msg.author.isMaster() && /^-+force$/i.test( args[i] ) ){
+					force = true
+					args.splice( i, 1 )
+					--i
+				} else if( args[i] === 'amatsuka_mao' )
+					return msg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
 			}
 			
-			if( !sfw && !msg.channel.nsfw )
+			if( !sfw && !msg.channel.nsfw && !force )
 				return msg.send( 'This isn\'t an NSFW channel!' );
 			
 			let tags = args.join( ' ' )

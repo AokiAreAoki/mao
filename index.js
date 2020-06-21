@@ -576,6 +576,9 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 				if( /<:[\w_]+:(\d+)>/i.test( code ) ) // Emojis
 					code = code.replace( /<:[\w_]+:(\d+)>/gi, `here.guild.emojis.cache.get('$1')` )
 				
+				if( /<@&(\d+)>/i.test( code ) ) // Roles
+					code = code.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` )
+
 				evaled = await eval( code )
 			} else {
 				/*let script = new vm.Script( code, {

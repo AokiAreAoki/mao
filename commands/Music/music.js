@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'log embed maoclr httpGet waitFor ytdl _tkns',
+	requirements: 'log embed maoclr httpGet waitFor ytdl _tkns instanceOf',
 	execute: ( requirements, mao ) => {
 		requirements.define( global )
 		var mdata = {},
@@ -7,6 +7,7 @@ module.exports = {
 		
 		function defineMData( guildID ){
 			mdata[guildID] = {
+				playing: false,
 				queue: [],	// queue :think_about:
 				disp: null,	// dispatcher
 				tc: null,	// text channel
@@ -189,7 +190,84 @@ module.exports = {
 				queue.forEach( ( song, k ) => songs += `${songs.length != 0 ? '\n' : ''}[${k + 1}] • \`${song.author}\` - \`${song.title}\`` )
 				channel.send( embed().addField( '**Queue:**', songs ) )
 			} else
-				channel.send( embed().setDescription( 'Queue is empty' ) )
+				channel.send( 'Queue is empty' )
+		}
+
+		async function queue( query, msg ){
+			let vid
+
+			if( /^https?:\/\/(\w+\.)?youtube\.com\/watch.+$/.test( query ) )
+				vid = query.matchFirst( /[?&]v=([\w-_]{11})/ )
+			else if( /^https?:\/\/(\w+\.)?youtu\.be\/\w+/.test( query ) )
+				vid = query.matchFirst( /youtu\.be\/([\w-_]{11})/ )
+
+			return new Promise( async res => {
+				if( vid )
+					queueSong( msg.guild.id, vid, ( err, song ) => {
+						if( err ){
+							msg.send( 'Failed adding song to the queue :(' )
+							console.error( err )
+							res( false )
+						} else {
+							sendQueuedMessage( msg, song, msg.member )
+							res( true )
+						}
+					})
+				else {
+					let m = await msg.send( `Searching for \`${query}\`...` )
+					
+					searchOnYT( query, async songs => {
+						if( songs.length == 0 ){
+							( await m.edit( 'Nothing found :(' ) ).delete( 2280 )
+							res( false )
+						} else {
+							let results = '```'
+
+							for( let i = 0; i < songs.length; ++i ){
+								let song = `\n[${i + 1}] ${songs[i].author} - ${songs[i].title}`
+								if( results.length + song.length <= 1997 ) // 2k discord char limit - 3 "```" at the end
+									results += song
+								else break
+							}
+
+							m.edit( results + '```' )
+
+							waitFor({
+								memberID: msg.member.id,
+								timeout: 30,
+								message: m,
+								messageDeleteDelay: 22880,
+								onMessage: ( msg, stopWaiting ) => {
+									let n = msg.content.matchFirst( /^\d\d?$/ )
+									if(n){
+										n = Number(n)
+										
+										if( n <= songs.length ){
+											if( n == 0 )
+												m.edit( 'Canceled' ).then( m => m.delete( 2280 ) )
+											else {
+												if( queueSong( msg.guild.id, songs[n - 1] ) ){
+													sendQueuedMessage( msg.channel, songs[n - 1], msg.member )
+													res( true )
+												} else {
+													msg.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
+													res( false )
+												}
+											}
+
+											m.delete( 1337 )
+											msg.delete( 1337 )
+											stopWaiting()
+										}
+									}
+								},
+								onOverwrite: () => res( false ),
+								onTimeout: () => res( false ),
+							})
+						}
+					}, console.error )
+				}
+			})
 		}
 
 		function sendNowPlaying( channel, song ){
@@ -223,44 +301,53 @@ module.exports = {
 			}, errcallback )
 		}
 
-		function join( voiceChannel, textChannel, callback ){
+		async function join( voiceChannel, textChannel, callback, message=null ){
 			if( typeof textChannel == 'function' ){
 				callback = textChannel
 				textChannel = null
 			}
 			
 			if( !voiceChannel.guild.voice || voiceChannel.guild.voice.channelID != voiceChannel.id ){
-				voiceChannel.join().then( c => {
-					if( textChannel ){
-						let gid = voiceChannel.guild.id
-						mdata[gid].tc = textChannel
-						mdata[gid].timeout = 60e3
-						mdata[gid].idlingStarted = Date.now()
-					}
-					callback( true, voiceChannel )
-				})
-			} else
-				callback( false )
+				await voiceChannel.join()
+				let gid = voiceChannel.guild.id
+				
+				if( textChannel ){
+					mdata[gid].tc = textChannel
+					mdata[gid].timeout = 60e3
+					mdata[gid].idlingStarted = Date.now()
+				}
+				
+				if( message ) await message.send( 'Joined ' + voiceChannel.name + ( mdata[gid].tc != message.channel ? ' and bounded to #' + message.channel.name : '' ) )
+				if( typeof callback === 'function' ) callback( true, voiceChannel )
+			} else {
+				if( message ) await message.send( 'Connect to the voice channel first, baka~!' )
+				if( typeof callback === 'function' ) callback( false )
+			}
 		}
 
-		async function leave( voiceState, callback ){
+		async function leave( guild, callback ){
 			callback = callback || ( () => {} )
 
 			try {
-				if( voiceState && voiceState.channel )
-					await voiceState.kick()
+				if( guild.voice && guild.voice.channel ){
+					stop( guild )
+					await guild.voice.kick()
 						.then( () => callback( true ) )
 						.catch( err => callback( false, err ) )
-				else callback( true )
+				} else
+					callback( true )
 			} catch( err ){
 				callback( false, err )
 			}
 		}
 
 		async function play( guild, song ){
-			if( !song )
-				return false
-			else if( song.constructor === Song )
+			if( !song ){
+				song = mdata[guild.id].queue[0]
+				if( !song ) return false
+			}
+			
+			if( song instanceof Song )
 				song = song.vid
 			
 			if( typeof song == 'string' ){
@@ -279,19 +366,35 @@ module.exports = {
 
 			if( guild.voice && guild.voice.connection ){
 				mdata[guild.id].disp = guild.voice.connection.play( song, { type: 'opus' } )
+					.on( 'start', () => {
+						sendNowPlaying( mdata[guild.id].tc, mdata[guild.id].queue[0] )
+					})
 					.on( 'finish', () => {
-						if( mdata[guild.id].queue.shift() )
+						if( mdata[guild.id].playing && mdata[guild.id].queue.shift() )
 							play( guild, mdata[guild.id].queue[0] )
 					})
 					.on( 'error', err => {
 						console.log( '\nMusic error happened:\n' )
 						console.error( err )
 						console.log()
+						
+						if( mdata[guild.id].tc )
+							mdata[guild.id].tc.send( 'An error occurred :(' )
 					})
+				
+				mdata[guild.id].playing = true
 				return true
 			}
 
 			return false
+		}
+
+		async function play2( message ){
+			if( !message.guild.voice || !message.guild.voice.connection )
+				if( message.member.voice && message.member.voice.channel )
+					await join( message.member.voice.channel, message.channel, null, message )
+		
+			play( message.guild )
 		}
 
 		function skip( guild ){
@@ -305,118 +408,70 @@ module.exports = {
 			return skipped_song
 		}
 
+		function stop( guild ){
+			if( mdata[guild.id].disp && mdata[guild.id].disp.broadcast )
+				mdata[guild.id].disp.broadcast.end()
+			mdata[guild.id].playing = false
+		}
+
 		/// Music commands ///
 		addMCommand( 'join j', 'Joins your voice channel', msg => {
-			let bound = mdata[msg.guild.id].tc != msg.channel ? ' and bounded to #' + msg.channel.name : ''
-
 			if( msg.member.voice )
-				join( msg.member.voice.channel, msg.channel, ( succes, vc ) => {
-					if( succes )
-						msg.send( 'Joined ' + vc.name + bound )
-				})
+				join( msg.member.voice.channel, msg.channel, msg )
 			else
 				msg.send( 'Connect to the voice channel first, baka~!' )
 		})
 
 		addMCommand( 'leave l', 'Leaves your voice channel', msg => {
 			if( msg.guild.voice && msg.guild.voice.channel )
-				leave( msg.guild.voice, succes => msg.send( succes ? 'Left voice channel' : 'Something went wrong 😔' ) )
+				leave( msg.guild, succes => msg.send( succes ? 'Left voice channel' : 'Something went wrong 😔' ) )
 			else
-				msg.send( "I can't, due to quarantine" ) //msg.send( "I'm not in the voice channel" )
+				msg.send( "I can't, due to quarantine" )
+				//msg.send( "I'm not in the voice channel" )
 		})
 
 		addMCommand( 'queue q',
 			'Shows queue/Adds song the queue'
-			+ '\n`music q` - Shows queue'
-			+ '\n`music q <song>` - Searching for a song on the youtube'
-			+ '\n`music q <yt video url>` - Adds a video to the queue',
+			+ '\n`music qp` - Shows queue'
+			+ '\n`music qp <song>` - Searching for a song on the youtube'
+			+ '\n`music qp <yt video url>` - Adds a video to the queue',
 		async ( msg, args, get_string_args ) => {
 			if( args[0] ){
-				let vid = ''
-
-				if( /^https?:\/\/(\w+\.)?youtube\.com\/watch.+$/.test( args[0] ) )
-					vid = args[0].matchFirst( /[?&]v=([\w-_]{11})/ )
-				else if( /^https?:\/\/(\w+\.)?youtu\.be\/\w+/.test( args[0] ) )
-					vid = args[0].matchFirst( /youtu\.be\/([\w-_]{11})/ )
-
-				if( vid )
-					queueSong( msg.guild.id, vid, ( err, song ) => {
-						if( err ){
-							msg.send( 'Failed adding song to the queue :(' )
-							console.error( err )
-						} else
-							sendQueuedMessage( msg.channel, song, msg.member )
-					})
-				else {
-					let q = get_string_args()
-					let m = await msg.send( `Searching for \`${q}\`...` )
-					
-					searchOnYT( q, async songs => {
-						if( songs.length == 0 )
-							( await m.edit( 'Nothing found :(' ) ).delete( 2280 )
-						else {
-							let results = '```'
-
-							for( let i = 0; i < songs.length; ++i ){
-								let song = `\n[${i + 1}] ${songs[i].author} - ${songs[i].title}`
-								if( results.length + song.length <= 1997 ) // 2k discord char limit - 3 "```" at the end
-									results += song
-								else break
-							}
-
-							m.edit( results + '```' )
-
-							waitFor({
-								memberID: msg.member.id,
-								timeout: 30,
-								message: m,
-								messageDeleteDelay: 22880,
-								onMessage: ( msg, stopWaiting ) => {
-									let n = msg.content.matchFirst( /^\d\d?$/ )
-									if(n){
-										n = Number(n)
-										
-										if( n <= songs.length ){
-											if( n == 0 )
-												m.edit( 'Canceled' ).then( m => m.delete( 2280 ) )
-											else {
-												if( queueSong( msg.guild.id, songs[n - 1] ) )
-													sendQueuedMessage( msg.channel, songs[n - 1], msg.member )
-                                                else
-                                                    msg.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
-											}
-
-											m.delete( 1337 )
-											msg.delete( 1337 )
-											stopWaiting()
-										}
-									}
-								},
-							})
-						}
-					}, console.error )
-				}
+				queue( get_string_args(), msg )
 			} else
-				sendQueue( msg.channel )
+				sendQueue( msg )
 		})
 
-		addMCommand( 'play p', 'Plays music', async ( msg, args, get_string_args ) => {
+		addMCommand( 'play p', 'Plays music', async msg => {
 			let queue = mdata[msg.guild.id].queue
-			
-			if( queue && queue[0] ){
-				let result = await play( msg.guild, queue[0] )
+			if( queue && queue[0] ) play2( msg )
+			else msg.send( 'Queue is empty' )
+		})
 
-				if( result )
-					sendNowPlaying( msg, queue[0] )
-				else
-					msg.send( 'An error occurred :(' )
+		addMCommand( 'queueplay qp',
+			'Shows queue/Adds song the queue and plays it'
+			+ '\n`music qp` - Shows queue'
+			+ '\n`music qp <song>` - Searching for a song on the youtube'
+			+ '\n`music qp <yt video url>` - Adds a video to the queue',
+		async ( msg, args, get_string_args ) => {
+			if( args[0] ){
+				queue( get_string_args(), msg ).then( succes => {
+					if( !succes ) return
+					let queue = mdata[msg.guild.id].queue
+					if( queue && queue[0] ) play2( msg )
+				})
 			} else
-				msg.send( 'Queue is empty' )
+				sendQueue( msg )
 		})
 
 		addMCommand( 'skip s', `Skips song (doesn't work ¯\\_(ツ)_/¯)`, async ( msg, args, get_string_args ) => {
 			let skipped_song = skip( msg.guild )
 			msg.send( embed().addField( 'Skipped:', `\`${skipped_song.author}\` - \`${skipped_song.title}\`` ) )
+		})
+
+		addMCommand( 'stop st', 'Stops music', async msg => {
+			await stop( msg.guild )
+			msg.send( 'Music stopped' )
 		})
 
 		/// Main music command ///
@@ -448,7 +503,7 @@ module.exports = {
 				
 				for( let cmd in m ){
 					let data = m[cmd]
-					if( typeof data == 'object' )
+					if( typeof data === 'object' )
 						emb.addField( `**${cmd}${data.aliases.length > 0 ? ', ' + data.aliases.join( ', ' ) : ''}**`, data.description || 'no description :c' )
 				}
 

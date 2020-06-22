@@ -18,7 +18,7 @@ module.exports = {
 				},
 				{ // Messages per Minute
 					type: 'PLAYING',
-					game: () => msgrate.length + ' mpm',
+					game: () => msgrate.length + ' msgs/min',
 				},
 				{ // Meme
 					type: 'WATCHING',

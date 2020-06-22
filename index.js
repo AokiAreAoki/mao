@@ -476,7 +476,7 @@ client.on( 'ready', () => {
 })
 
 unshiftMessageHandler( 'eval', async ( msg, edited ) => {
-	let ismaster = msg.member.isMaster()
+	let ismaster = msg.author instanceof discord.User && msg.author.isMaster()
 
 	/// TODO: Sandbox
 	/// TODO: Fix eval

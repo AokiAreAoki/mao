@@ -30,7 +30,7 @@ module.exports = {
 		
 		client.on( 'message', msg => {
 			if( msg.member && !msg.member.bot )
-				msgrate.push( Date.now() )
+				msgrate.push( Date.now() + 60e3 )
 		})
 		
 		setInterval( () => {

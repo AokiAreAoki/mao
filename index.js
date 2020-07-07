@@ -621,6 +621,12 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 								evaled = numsplit( evaled )
 								break
 
+							case 'string':
+								if( code[0] === code[code.length - 1] && '"\'`'.search( code[0] ) + 1 )
+									if( code.substring( 1, code.length - 1 ) === evaled )
+										return false
+								break
+
 							case 'object':
 								if( !__printerr ) return false
 								break

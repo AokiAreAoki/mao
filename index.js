@@ -617,12 +617,12 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 								break
 
 							case 'number':
-								if( code === String( evaled ) && !__printerr && !__printcb ) return false
+								if( !__printerr && !__printcb && code === String( evaled ) ) return false
 								evaled = numsplit( evaled )
 								break
 
 							case 'string':
-								if( code[0] === code[code.length - 1] && '"\'`'.search( code[0] ) + 1 )
+								if( !__printerr && !__printcb && code[0] === code[code.length - 1] && '"\'`'.search( code[0] ) + 1 )
 									if( code.substring( 1, code.length - 1 ) === evaled )
 										return false
 								break

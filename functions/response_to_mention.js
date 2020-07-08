@@ -14,12 +14,12 @@ module.exports = {
 			return responses[r].replace( /USER/, member.displayName )
 		}
 		
-		let mention = /^(mao|мао)([~_\-\s]((ch|s)an|чан|сан|тян))?~?[!.]?$/i,
-			insult  = /^(mao|мао)([~_\-\s]((ch|s)an|чан|сан|тян))?~?\s*((stupid|shit)\s+bot|baka|бака|дура)\s*~?[!.]?$/i
+		let mention, // = /^(mao|мао)([~_\-\s]((ch|s)an|чан|сан|тян))?~?[!.]?$/i,
+			insult   // = /^(mao|мао)([~_\-\s]((ch|s)an|чан|сан|тян))?~?\s*((stupid|shit)\s+bot|baka|бака|дура|дурында)\s*~?[!.]?$/i
 		
 		client.on( 'ready', () => {
 			mention = new RegExp( `^(mao|мао|<@!?${client.user.id}>)([~_\\-\\s]((ch|s)an|чан|сан|тян))?~?[!.]?$`, 'i' )
-			insult  = new RegExp( `^(mao|мао|<@!?${client.user.id}>)([~_\\-\\s]((ch|s)an|чан|сан|тян))?~?\\s*((stupid|shit)\\s+bot|baka|бака|дура)\\s*~?[!.]?$`, 'i' )
+			insult  = new RegExp( `^(mao|мао|<@!?${client.user.id}>)([~_\\-\\s]((ch|s)an|чан|сан|тян))?~?\\s*((stupid|shit)\\s+bot|baka|бака|дура|дурында)\\s*~?[!.]?$`, 'i' )
 		})
 		
 		addMessageHandler( 'mention response', msg => {

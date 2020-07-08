@@ -1,9 +1,21 @@
 module.exports = {
-    requirements: 'client',
+    requirements: 'client clamp',
     execute: ( requirements, mao ) => {
         requirements.define( global )
 
         addCmd( 'roll', 'Rolls a dice', ( msg, args ) => {
+            let x = 1
+
+            for( let i = 0; i < args.length; ++i ){
+                let xx = args[i].matchFirst( /^x(\d{1,3})/i )
+
+                if( xx ){
+                    x = clamp( Number( xx ), 1, 50 )
+                    args.splice( i, 1 )
+                    break
+                }
+            }
+
             let min = Number( args[0] ),
                 max = Number( args[1] )
             
@@ -15,12 +27,12 @@ module.exports = {
                 min = 0
             }
 
-            let num = min + Math.round( Math.random() * ( max - 1 ) ) + 1,
-                str = `**${msg.member.displayName}** rolled a **${num}**`
+            let nums = []
+
+            for( let i = 0; i < x; ++i )
+                nums.push( min + Math.round( Math.random() * ( max - 1 ) ) + 1 )
             
-            if( num === max ) str += '! What a lucky!'
-            msg.send( str )
-            msg.send( [min,max].toString() )
+            msg.send( `**${msg.member.displayName}** rolled **${nums.join( '**, **' )}**` )
         })
 
         addCmd( 'select choose', 'Selects one of the given variants', ( msg, args ) => {

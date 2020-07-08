@@ -58,6 +58,7 @@ log( '' )
 const maoclr = 0xF2B066
 const write = fs.writeFileSync
 const readdir = fs.readdirSync
+let clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
 
 function process_exit( code ){
 	process.exit( typeof code == 'undefined' || isNaN( code ) ? 0 : code )

@@ -2,6 +2,19 @@ module.exports = {
     requirements: 'discord cb',
     execute: ( requirements, mao ) => {
         requirements.define( global )
+	    
+        let ending = '\n...'
+
+        discord.TextChannel.prototype.original_send = discord.TextChannel.prototype.send
+        discord.TextChannel.prototype.send = function( content, options ){
+            if( typeof content === 'string' && content.length > 2000 ){
+                let cb = content.matchFirst( /```$/ ) || ''
+                content = content.substring( 0, 2000 - ending.length - cb.length )
+                content += ending + cb
+            }
+
+            return this.original_send( content, options )
+        }
 
         discord.TextChannel.prototype.sendcb = function( message, options ){
             return this.send( cb( message ), options )

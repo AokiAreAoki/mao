@@ -158,6 +158,10 @@ function tts( table, maxtab=4, tab=0 ){
 	return str + '}\n'
 }
 
+function instanceOf( object, constructorName ){
+	return typeof object === 'object' && object !== null && object.constructor.name === constructorName
+}
+
 function findMem( guild, name ){
 	let members = ( guild.constructor.name == 'Guild' ? guild : guild.guild ).members.cache.array()
 	

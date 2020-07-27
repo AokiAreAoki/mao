@@ -342,8 +342,6 @@ module.exports = {
 		}
 
 		async function play( guild, song ){
-			if( mdata[guild.id].playing ) return false
-
 			if( !song ){
 				song = mdata[guild.id].queue[0]
 				if( !song ) return false
@@ -370,16 +368,21 @@ module.exports = {
 				mdata[guild.id].disp = guild.voice.connection.play( song, { type: 'opus' } )
 					.on( 'start', () => {
 						sendNowPlaying( mdata[guild.id].tc, mdata[guild.id].queue[0] )
+						mdata[guild.id].playing = true
 					})
 					.on( 'finish', () => {
 						if( mdata[guild.id].playing && mdata[guild.id].queue.shift() )
-							play( guild, mdata[guild.id].queue[0] )
+							play( guild )
+						else
+							mdata[guild.id].playing = false
 					})
 					.on( 'error', err => {
+						mdata[guild.id].playing = false
+						
 						console.log( '\nMusic error happened:\n' )
 						console.error( err )
 						console.log()
-						
+
 						if( mdata[guild.id].tc )
 							mdata[guild.id].tc.send( 'An error occurred :(' )
 					})
@@ -396,7 +399,8 @@ module.exports = {
 				if( message.member.voice && message.member.voice.channel )
 					await join( message.member.voice.channel, message.channel, null, message )
 		
-			play( message.guild )
+			if( !mdata[message.guild.id].playing )
+				play( message.guild )
 		}
 
 		function skip( guild ){

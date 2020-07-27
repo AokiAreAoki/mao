@@ -342,6 +342,8 @@ module.exports = {
 		}
 
 		async function play( guild, song ){
+			if( mdata[guild.id].playing ) return false
+
 			if( !song ){
 				song = mdata[guild.id].queue[0]
 				if( !song ) return false

@@ -5,8 +5,8 @@ function start(){
 	
 	if( process.platform === 'win32' )
 		cp.exec( `wmic process where "ProcessID=${mao.pid}" CALL setpriority "above normal"` )
-	else
-		console.log( `\nmao.js :: DO THE NICE, BAKA\n` )
+	//else
+		//console.log( `\nmao.js :: DO THE NICE, BAKA\n` )
 		// cp.exec( `nice...` )
 
 	mao.once( 'exit', () => {

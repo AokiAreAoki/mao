@@ -54,12 +54,12 @@ module.exports = {
 		/* slojno blyat' nahuy ego kr4
 		client.on( 'voiceStateUpdate', ( oldstate, newstate ) => {
 			let myVoice = newstate.guild.voice
-		    if( !myVoice || !myVoice.speaking ) return
-		    
-		    if( oldstate.channelID !== newstate.channelID ){
+			if( !myVoice || !myVoice.speaking ) return
+			
+			if( oldstate.channelID !== newstate.channelID ){
 				let gid = newstate.guild.id
 
-		        if( newstate.channelID === myVoice.channelID ){
+				if( newstate.channelID === myVoice.channelID ){
 					let timerStart = timeout => timer.create( 'timeout' + gid, timeout, 1, () => leave( myVoice ) )
 					
 					if( newstate.id === myVoice.id ){
@@ -74,7 +74,7 @@ module.exports = {
 						timerStart()
 					}
 				}
-		    }
+			}
 		})*/
 		
 		/// Function for adding music commands ///

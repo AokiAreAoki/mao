@@ -62,7 +62,7 @@ module.exports = {
             else {
                 if( /^\d{1,3}(\s+\d{1,3}){2}/.test( get_string_args() ) )
                     system = 'rgb'
-                else if( /^(#|0x)[\da-f]{3,6}$/i.test( arg ) )
+                else if( /^(#|0x)[\da-f]{3,6}$/i.test( system ) )
                     system = 'hex'
                 else
                     return msg.send( 'Invalid color specifying' )

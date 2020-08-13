@@ -127,8 +127,8 @@ module.exports = {
 			let tags = args.join( ' ' )
 			let message = await msg.send( getRandomLoadingPhrase() )
 		
-			//httpGet( 'https://aoki.000webhostapp.com/glbr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&q=' + tags, pics => {
-			httpGet( `https://gelbooru.com/index.php?page=dapi&s=post&q=index&tags=${tags}&limit=100&json=1`, pics => {
+			//httpGet( `https://gelbooru.com/index.php?page=dapi&s=post&q=index&tags=${tags}&limit=100`, pics => {
+			httpGet( 'https://aoki.000webhostapp.com/glbr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&json=1&q=' + tags, pics => {
 				try {
 					pics = JSON.parse( pics )
 				} catch( err ){
@@ -219,7 +219,8 @@ module.exports = {
 			let tags = args.join( ' ' )
 			let message = await msg.send( getRandomLoadingPhrase() )
 		
-			httpGet( 'https://yande.re/post.json?page=1&limit=100&tags=' + tags, pics => {
+			//httpGet( 'https://yande.re/post.json?page=1&limit=100&tags=' + tags, pics => {
+			httpGet( 'https://aoki.000webhostapp.com/yndr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&q=' + tags, pics => {
 				try {
 					pics = JSON.parse( pics )
 				} catch( err ){

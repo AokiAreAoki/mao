@@ -14,7 +14,7 @@ module.exports = {
 				},
 				{ // Mao Total Uptime + Old Mao Total Uptime (7977 hours)
 					type: 'PLAYING',
-					game: () => db.totaluptime ? `for 7977h + ${ Math.floor( db.totaluptime / 60 ) }h` : 'bruh',
+					game: () => db.totaluptime ? `for ${ Math.floor( db.totaluptime / 60 ) }h` : 'bruh',
 				},
 				{ // Messages per Minute
 					type: 'PLAYING',

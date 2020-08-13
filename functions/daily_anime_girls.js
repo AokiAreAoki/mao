@@ -6,18 +6,20 @@ module.exports = {
 		// guilds::channels::tags
 		let sources = {
 			gelbooru: {
-				url: 'https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&tags=',
-				//url: 'https://aoki.000webhostapp.com/glbr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&q=',
+				//url: 'https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&tags=',
+				url: 'https://aoki.000webhostapp.com/glbr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&json=1&q=',
 				postURL: id => 'https://gelbooru.com/index.php?page=post&s=view&id=' + id,
 				key: 'file_url',
 				domen: 'gelbooru.com',
 				xml: false,
 			},
 			yandere: {
-				url: 'https://yande.re/post.json?page=1&limit=100&tags=',
+				//url: 'https://yande.re/post.json?page=1&limit=100&tags=',
+				url: 'https://aoki.000webhostapp.com/yndr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&q=',
 				postURL: id => 'https://yande.re/post/show/' + id,
 				key: 'sample_url',
 				domen: 'yande.re',
+				xml: false,
 			},
 		}
 		

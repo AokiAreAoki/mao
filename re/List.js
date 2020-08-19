@@ -4,17 +4,17 @@ class List {
     }
 
     add( items ){
-        if( typeof items == 'object' && items !== null && items.constructor == Array )
+        if( items instanceof Array )
             items.forEach( item => this[item.toLowerCase()] = true )
-        else if( typeof items == 'string' )
-            items.toLowerCase().split( /\s+/ ).forEach( item => this[item] = true )
+        else if( typeof items === 'string' )
+            items.toLowerCase().trim().split( /\s+/ ).forEach( item => this[item] = true )
     }
 
     remove( items ){
-        if( typeof items == 'object' && items !== null && items.constructor == Array )
+        if( items instanceof Array )
             items.forEach( item => delete this[item.toLowerCase()] )
-        else if( typeof items == 'string' )
-            items.toLowerCase().split( /\s+/ ).forEach( item => delete this[item] )
+        else if( typeof items === 'string' )
+            items.toLowerCase().trim().split( /\s+/ ).forEach( item => delete this[item] )
     }
 
     toString(){

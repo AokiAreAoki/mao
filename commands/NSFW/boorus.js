@@ -238,7 +238,7 @@ module.exports = {
 					return message.edit( embed()
 						.setDescription( `Tag(s) \`${tags}\` not found :c` )
 						.setColor( 0xFF0000 )
-					)
+					).then( m => m.edit( '' ) )
 				
 				getNewPics( tags, pics, x, msg, pic => {
 					let post = embed()

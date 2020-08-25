@@ -135,7 +135,7 @@ module.exports = {
 					message.edit( embed()
 						.setDescription( `Tag(s) \`${tags}\` not found :c` )
 						.setColor( 0xFF0000 )
-					)
+					).then( m => m.edit( '' ) )
 					return
 				}
 				
@@ -227,7 +227,7 @@ module.exports = {
 					message.edit( embed()
 						.setDescription( `Tag(s) \`${tags}\` not found :c` )
 						.setColor( 0xFF0000 )
-					)
+					).then( m => m.edit( '' ) )
 					return
 				}
 

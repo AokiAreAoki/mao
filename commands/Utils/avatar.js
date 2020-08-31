@@ -14,7 +14,7 @@ module.exports = {
 				// My avatar
 				msg.send( embed()
 					.setDescription( `**${msg.member.displayName}**'s avatar` )
-				   	.setImage( msg.author.avatarURL({ size: 2048 }) )
+				   	.setImage( msg.author.avatarURL({ size: 2048, dynamic: true }) )
 				)
 			else {
 				// Server icon
@@ -39,7 +39,7 @@ module.exports = {
 					if( meme )
 						msg.send( embed()
 							.setDescription( ( meme.user.equals( client.user ) ? 'My' : `**${meme.displayName}**'s` ) + ' avatar' )
-							.setImage( meme.user.avatarURL({ size: 2048 }) )
+							.setImage( meme.user.avatarURL({ size: 2048, dynamic: true }) )
 						)
 					else
 						msg.send( 'User not found :c' )
@@ -52,7 +52,7 @@ module.exports = {
 				if( meme ){
 					msg.send( embed()
 						.setDescription( ( meme.user.equals( client.user ) ? 'My' : `**${meme.displayName}**'s` ) + ' avatar' )
-						.setImage( meme.user.avatarURL({ size: 2048 }) )
+						.setImage( meme.user.avatarURL({ size: 2048, dynamic: true }) )
 					)
 				} else
 					msg.send( "Woops... Sry, something went wrong :c" )

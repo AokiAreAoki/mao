@@ -93,7 +93,7 @@ module.exports = {
 		}
 		
 		// Some functions
-		const ytapikey = _tkns.youtube
+		const ytapikey = _tkns.google
 		
 		class Song {
 			constructor( vid, author, title ){
@@ -217,7 +217,7 @@ module.exports = {
 					let m = await msg.send( `Searching for \`${query}\`...` )
 					
 					searchOnYT( query, async songs => {
-						if( songs.length == 0 ){
+						if( songs == null || songs.length == 0 ){
 							( await m.edit( 'Nothing found :(' ) ).delete( 2280 )
 							res( false )
 						} else {
@@ -282,7 +282,7 @@ module.exports = {
 			httpGet( url, body => {
 				body = JSON.parse( body )
 
-				if( !body.items[0] ){
+				if( !body || !body.items || !body.items[0] ){
 					callback( null )
 					return
 				}

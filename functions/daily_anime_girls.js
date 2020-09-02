@@ -91,7 +91,7 @@ module.exports = {
 			db.last_daily_girls = today
 			bakadb.save()
 			
-			let pagid = last_posts.length
+			const pagid = last_posts.length
 			last_posts.push([])
 
 			for( let gid in db.daily_girls ){

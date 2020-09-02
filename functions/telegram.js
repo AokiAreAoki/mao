@@ -19,8 +19,15 @@ module.exports = {
                 Object.assign( this, msg )
             }
 
-            send( text, options ){
-                return mao.sendMessage( this.chat.id, text, options )
+            async send( text, options ){
+                return await mao.sendMessage( this.chat.id, text, options )
+            }
+
+            async edit( text ){
+                return await mao.editMessageText({
+                    message_id: this.message_id,
+                    text: text,
+                })
             }
         }
 
@@ -63,6 +70,22 @@ module.exports = {
                     }
 
                     msg.send( commands )
+                }
+            },
+            ping: {
+                description: 'ping-pong',
+                callback: msg => {
+                    msg.send( 'Pong!' )
+                    /*let start = Date.now() 
+
+                    msg.send( 'Pinging...' ).then( msg => {
+                        let ping = Date.now() - start
+                        //msg.edit( `Ping: ${ping}ms` )
+                        mao.editMessageText({
+                            message_id: msg.message_id,
+                            text: `Ping: ${ping}ms`,
+                        })
+                    })*/
                 }
             },
             id: {

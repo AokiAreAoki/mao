@@ -45,14 +45,15 @@ let re = module => {
 	return require( `./re/${module}.js` )
 }
 
-log( 'Requiring custom module:' )
+log( 'Requiring custom modules:' )
 const tree = re( 'tree-printer' )
 const bakadb = re( 'bakadb' )
 const timer = re( 'timer' )
 const vec = re( 'vector' )
 const List = re( 'List' )
+const waitFor = re( 'waitFor' )
 //const MyLang = re( 'MyLang' )
-log( '' )
+log()
 
 // Defining some shit
 const maoclr = 0xF2B066
@@ -212,7 +213,7 @@ bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" de
 
 // Creating client
 const client = new discord.Client({
-	messageCacheLifetime: 360,
+	messageCacheLifetime: 1200,
 	messageSweepInterval: 72,
 })
 
@@ -225,7 +226,6 @@ if( !db.token || !_tkns.discord[db.token] )
 	}
 
 client.login( _tkns.discord[db.token] )
-//client.login( read( './token' ).replace( /[\r\n].*/, '' ) )
 
 var isOnlineOrInitialized = false
 client.once( 'ready', () => {
@@ -243,7 +243,14 @@ client.once( 'ready', () => {
 	})
 })
 
-client.once( 'ready2', () => log( 'Logged in as ' + client.user.tag ) )
+client.once( 'ready2', () => {
+    log( 'Logged in as ' + client.user.tag )
+    
+    /// Here goes custom shit after bot fully initialized ///
+    
+    // Handling waitFor
+    unshiftMessageHandler( 'waitFor', waitFor.handler )
+})
 
 // Message handlers
 messageHandlers = []
@@ -274,6 +281,9 @@ async function handleMessage( msg, edited ){
 client.on( 'message', handleMessage )
 client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
 	if( typeof oldMsg._answers === 'object' && oldMsg._answers.constructor === Array && oldMsg.content !== newMsg.content ){
+	    let waiter = waitFor.waiters[oldMsg.member.id]
+	    if( waiter ) waiter.cancel()
+	    
 		oldMsg.channel.bulkDelete( oldMsg._answers )
 		handleMessage( newMsg, true )
 	}
@@ -314,7 +324,7 @@ readdir( './functions' ).forEach( file => {
 		include( './' + join( './functions', file ) )
 	}	
 })
-log( '' )
+log()
 
 // Command manager
 _prefix = /^(-|(mao|мао)\s+)/i
@@ -340,7 +350,7 @@ function addCmd( module, command, description, callback ){
 	cmddata.cmds[cmd] = {
 		module: m,
 		aliases: aliases,
-		description: typeof description == 'string'
+		description: typeof description === 'string'
 			? { short: description, full: description }
 			: description,
 		func: callback,
@@ -363,10 +373,10 @@ function addCmd( module, command, description, callback ){
 tree( 'Including commands:', ( print, fork ) => {
 	readdir( './commands' ).forEach( module => {
 		fork( `Module "${module}":`, print => {
-			readdir( join( './commands', module ) ).forEach( file => {
+			readdir( './' + join( 'commands', module ) ).forEach( file => {
 				if( file.endsWith( '.js' ) ){
 					print( `File "${file}"...` )
-					include( './' + join( './commands', module, file ), {
+					include( './' + join( 'commands', module, file ), {
 						addCmd: ( aliases, description, callback ) => addCmd( module, aliases, description, callback )
 					})
 				}

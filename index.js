@@ -217,7 +217,10 @@ const client = new discord.Client({
 	messageSweepInterval: 72,
 })
 
-const _tkns = JSON.parse( read( './tokens.json' ) )
+const _tkns = JSON.parse( read( './tokens.json' )
+	.replace( /\/\/.+?\n/g, '' )	// removes comments from the file 'cuz JSON.parse can't ignore them. baka.
+	.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas
+)
 
 if( !db.token || !_tkns.discord[db.token] )
 	for( let k in _tkns.discord ){
@@ -466,7 +469,7 @@ unshiftMessageHandler( 'commands', ( msg, edited ) => {
 			}
 			get_string_args.args_pos = args_pos
 
-			if( typeof cmd.func == 'function' )
+			if( cmd.func instanceof Function )
 				cmd.func( msg, args, get_string_args )
 			else
 				log( `Error: cmddata.cmds.${cmd}.func is a ${typeof cmd.func}, function expected` )

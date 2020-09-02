@@ -37,6 +37,7 @@ const discord = requireAndLog( 'discord.js' )
 const ytdl = requireAndLog( 'ytdl-core-discord' )
 const jimp = requireAndLog( 'jimp' )
 const vm = requireAndLog( 'vm' )
+const tgb = requireAndLog( 'node-telegram-bot-api' )
 log()
 
 // Including my modules

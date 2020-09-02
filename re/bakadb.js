@@ -2,8 +2,8 @@ const fs = require( 'fs' )
 const join = require( 'path' ).join
 const events = require( 'events' )
 
-var log = console.log
-var exists = fs.existsSync
+const log = console.log
+const exists = fs.existsSync
 var request
 
 class BakaDB extends events {
@@ -15,6 +15,7 @@ class BakaDB extends events {
 				encode: func => 'Function:' + String( func ),
 				decode: str => eval( str ),
 			},
+			AsyncFunction: 'Function', //redirect
 			RegExp: {
 				encode: reg => 'RegExp:' + String( reg ),
 				decode: str => eval( str ),
@@ -34,7 +35,7 @@ class BakaDB extends events {
 		if( typeof path != 'string' ){
 			if( typeof path == 'object' )
 				for( let k in path ) global[k] = path[k]
-				//shit = path
+			//shit = path
 			path = './bdb'
 		} else
 			for( let k in shit ) global[k] = shit[k]
@@ -75,8 +76,8 @@ class BakaDB extends events {
 		this.db = data.db ? this._decode( data.db ) : {}
 
 		process.on( 'exit', () => this.save() )
-		this.emit( 'initialized' )
 
+		this.emit( 'initialized' )
 		return true
 	}
 
@@ -111,7 +112,7 @@ class BakaDB extends events {
 	}
 
 	_foreach( table, cb ){
-		if( table.constructor == Array )
+		if( table instanceof Array )
 			table.forEach( cb );
 		else
 			for( let k in table )
@@ -119,66 +120,93 @@ class BakaDB extends events {
 	}
 
 	_encode( table, _path='/' ){
-		let encoded = table.constructor == Array ? [] : {}
+		let encoded
+		
+		if( table instanceof Array )
+		    encoded = []
+		else if( table instanceof Object )
+		    encoded = {}
+		else
+		    return this._encodeValue( val, _path )
 
 		this._foreach( table, ( val, k ) => {
-			if( typeof val == 'undefined' || val == null )
-				return
-			else if( typeof val == 'number' || typeof val == 'boolean' ){
-				encoded[k] = val
-				return
-			} else if( typeof val == 'string' ){
-				encoded[k] = 'String:' + val
-				return
-			}
-
-			let type = val.constructor.name
-			let coder = this.coders[type]
-
-			if( typeof coder != 'undefined' )
-				encoded[k] = coder.encode( val, _path )
-			else
-				this.emit( 'missing-encoder', type, join( _path, k ) )
+			encoded[k] = this._encodeValue( val, _path )
 		})
 
 		return encoded
 	}
 
 	_decode( table, _path='/' ){
-		let decoded = table.constructor == Array ? [] : {}
-
+		let decoded
+		
+		if( table instanceof Array )
+		    decoded = []
+		else if( table instanceof Object )
+		    decoded = {}
+        else
+            return this._decodeValue( table, _path )
+        
 		this._foreach( table, ( val, k ) => {
-			if( typeof val == 'number' || typeof val == 'boolean' ){
-				decoded[k] = val
-			} else if( typeof val == 'string' ){
-				let type = val.match( /^(\w*?):/ )
-
-				if( type )
-					type = type[1]
-				else {
-					this.emit( 'type-not-found', val )
-					return
-				}
-				
-				val = val.substring( type.length + 1 )
-
-				if( type == 'String' ){
-					decoded[k] = val
-					return
-				}
-
-				let coder = this.coders[type]
-
-				if( typeof coder != 'undefined' )
-					decoded[k] = coder.decode( val, _path )
-				else
-					this.emit( 'missing-decoder', type, join( _path, k ) )
-			} else if( typeof val == 'object' ){
-				decoded[k] = this._decode( val )
-			}
+			decoded[k] = this._decodeValue( val, _path )
 		})
 
 		return decoded
+	}
+	
+	_encodeValue( val, _path='/' ){
+	    if( typeof val === 'undefined' || val == null )
+			return
+		
+		if( typeof val === 'number' || typeof val === 'boolean' )
+			return val
+		
+		if( typeof val === 'string' )
+			return 'String:' + val
+
+		let type = val.constructor.name
+		let coder = this.coders[type]
+		
+		// redirect
+		if( typeof coder === 'string' )
+		    coder = this.coders[coder]
+
+		if( typeof coder !== 'undefined' && coder.encode instanceof Function )
+			return coder.encode( val, _path )
+		else
+			this.emit( 'missing-encoder', type, join( _path, k ) )
+	}
+	
+	_decodeValue( val, _path='/' ){
+	    if( typeof val === 'number' || typeof val === 'boolean' )
+			return val
+		
+		if( typeof val === 'string' ){
+			let type = val.match( /^(\w*?):/ )
+
+			if( type )
+				type = type[1]
+			else {
+				this.emit( 'type-not-found', val )
+				return
+			}
+			
+			val = val.substring( type.length + 1 )
+
+			if( type === 'String' )
+				return val
+
+			let coder = this.coders[type]
+
+    		// redirect
+    		if( typeof coder === 'string' )
+    		    coder = this.coders[coder]
+
+			if( typeof coder !== 'undefined' && coder.decode instanceof Function )
+				return coder.decode( val, _path )
+			else
+				this.emit( 'missing-decoder', type, join( _path, k ) )
+		} else if( typeof val === 'object' )
+			return this._decode( val )
 	}
 
 	save(){
@@ -254,7 +282,7 @@ if( process.argv[2] && process.argv[2].toLowerCase() === 'debug' ){
 	bakadb._debugmode = true
 
 	console.log( 'Google Cloud:',
-		bakadb.googleCloud( 'AIzaSyD4WE5cO7l7HxNddKghUt1lXpnhchlR2Rw', '630478585130-gj13t2lll1uaovlub3gqngujdlt3kp91.apps.googleusercontent.com' )
+		bakadb.googleCloud( '', '630478585130-gj13t2lll1uaovlub3gqngujdlt3kp91.apps.googleusercontent.com' )
 	)
 }
 

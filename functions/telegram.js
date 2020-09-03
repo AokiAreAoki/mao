@@ -101,8 +101,6 @@ module.exports = {
                 adminonly: true,
                 description: 'does hax',
                 callback: async ( msg, args, get_string_args ) => {
-                    await msg.send( 'executing...' )
-                    
                     try {
                         let res = await eval( get_string_args() )
                         msg.send( String( res ) )

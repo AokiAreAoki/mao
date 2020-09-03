@@ -3,4 +3,4 @@
 /node_modules
 /bdb/*
 /re/MyLang.js
-tokens.json
+/tokens.json

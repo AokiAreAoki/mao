@@ -7,7 +7,7 @@ module.exports = {
 		let sources = {
 			gelbooru: {
 				//url: 'https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&tags=',
-				url: 'https://aoki.000webhostapp.com/glbr/search/??page=dapi&s=post&q=index&json=1&token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&tags=',
+				url: 'https://aoki.000webhostapp.com/glbr/search/?page=dapi&s=post&q=index&json=1&token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&tags=',
 				postURL: id => 'https://gelbooru.com/index.php?page=post&s=view&id=' + id,
 				key: 'file_url',
 				domen: 'gelbooru.com',

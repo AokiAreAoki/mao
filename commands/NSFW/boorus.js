@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'client httpGet embed',
+	requirements: 'client embed Gelbooru Yandere',
 	execute: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -80,6 +80,36 @@ module.exports = {
 				}
 			}
 		}
+
+		function postPictures( result, x, user_msg, bot_msg ){
+			if( result.pics.length === 0 )
+				return bot_msg.edit( embed()
+					.setDescription( `Tag(s) \`${result.tags}\` not found :c` )
+					.setColor( 0xFF0000 )
+				).then( m => m.edit( '' ) )
+			
+			let tags = /\S/.test( result.tags ) ? result.tags : 'no tags'
+			
+			getNewPics( tags, result.pics, x, user_msg, pic => {
+				let post = embed()
+					.setDescription( `[${tags}](${pic.post_url})` )
+					.setImage( pic.sample )
+					.setFooter( 'Powered by ' + ( result.booru.name || 'unknown website' ) )
+				
+				if( x === 1 )
+					bot_msg.edit( post )
+						.then( m => m.edit( '' ) )
+				else
+					user_msg.send( post )
+			})
+			
+			if( !user_msg.author.isMaster() ) ++x
+			cd( user_msg.member, x )
+			delete user_msg.member.antispam
+
+			if( x !== 1 )
+				bot_msg.delete( 1337 )
+		}
 		
 		addCmd( 'gelbooru glbr', {
 			short: 'hot girls',
@@ -127,50 +157,12 @@ module.exports = {
 			let tags = args.join( ' ' )
 			let message = await msg.send( getRandomLoadingPhrase() )
 		
-			//httpGet( `https://gelbooru.com/index.php?page=dapi&s=post&q=index&tags=${tags}&limit=100`, pics => {
-			httpGet( 'https://aoki.000webhostapp.com/glbr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&json=1&q=' + tags, pics => {
-				try {
-					pics = JSON.parse( pics )
-				} catch( err ){
-					message.edit( embed()
-						.setDescription( `Tag(s) \`${tags}\` not found :c` )
-						.setColor( 0xFF0000 )
-					).then( m => m.edit( '' ) )
-					return
-				}
-				
-				if( !/\S/.test( tags ) )
-					tags = 'no tags'
-				
-				if( pics.length === 0 )
-					return message.edit( embed()
-						.setDescription( `Tag(s) \`${tags}\` not found :c` )
-						.setColor( 0xFF0000 )
-					).then( m => m.edit( '' ) )
-				
-				getNewPics( tags, pics, x, msg, pic => {
-					let post = embed()
-						.setDescription( `[${tags}](https://gelbooru.com/index.php?page=post&s=view&id=${pic.id})` )
-						.setImage( pic.file_url )
-						.setFooter( 'Powered by gelbooru.com' )
-					
-					if( x === 1 )
-						message.edit( post )
-							.then( m => m.edit( '' ) )
-					else
-						msg.send( post )
+			Gelbooru.q( tags )
+				.then( res => postPictures( res, x, msg, message ) )
+				.catch( err => {
+					message.edit( cb( err ) )
+					console.error( err )
 				})
-				
-				if( !msg.author.isMaster() ) ++x
-				cd( msg.member, x )
-				delete msg.member.antispam
-
-				if( x !== 1 )
-					message.delete( 1337 )
-			}, err => {
-				message.edit( cb( err ) )
-				console.error( err )
-			})
 		})
 		
 		addCmd( 'yandere yndr', {
@@ -219,50 +211,12 @@ module.exports = {
 			let tags = args.join( ' ' )
 			let message = await msg.send( getRandomLoadingPhrase() )
 		
-			//httpGet( 'https://yande.re/post.json?page=1&limit=100&tags=' + tags, pics => {
-			httpGet( 'https://aoki.000webhostapp.com/yndr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&q=' + tags, pics => {
-				try {
-					pics = JSON.parse( pics )
-				} catch( err ){
-					message.edit( embed()
-						.setDescription( `Tag(s) \`${tags}\` not found :c` )
-						.setColor( 0xFF0000 )
-					).then( m => m.edit( '' ) )
-					return
-				}
-
-				if( !/\S/.test( tags ) )
-					tags = 'no tags';
-				
-				if( pics.length == 0 )
-					return message.edit( embed()
-						.setDescription( `Tag(s) \`${tags}\` not found :c` )
-						.setColor( 0xFF0000 )
-					).then( m => m.edit( '' ) )
-				
-				getNewPics( tags, pics, x, msg, pic => {
-					let post = embed()
-						.setDescription( `[${tags}](https://yande.re/post/show/${pic.id})` )
-						.setImage( pic.sample_url )
-						.setFooter( 'Powered by yande.re' )
-					
-					if( x === 1 )
-						message.edit( post )
-							.then( m => m.edit( '' ) )
-					else
-						msg.send( post )
+			Yandere.q( tags )
+				.then( res => postPictures( res, x, msg, message ) )
+				.catch( err => {
+					message.edit( cb( err ) )
+					console.error( err )
 				})
-				
-				if( !msg.author.isMaster() ) ++x
-				cd( msg.member, x )
-				delete msg.member.antispam
-
-				if( x !== 1 )
-					message.delete( 1337 )
-			}, err => {
-				message.edit( cb( err ) )
-				console.error( err )
-			})
 		})
 	}
 }

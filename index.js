@@ -38,6 +38,7 @@ const ytdl = requireAndLog( 'ytdl-core-discord' )
 const jimp = requireAndLog( 'jimp' )
 const vm = requireAndLog( 'vm' )
 const tgb = requireAndLog( 'node-telegram-bot-api' )
+const req = require( 'request' )
 log()
 
 // Including my modules
@@ -53,6 +54,7 @@ const timer = re( 'timer' )
 const vec = re( 'vector' )
 const List = re( 'List' )
 const waitFor = re( 'waitFor' )
+const { Booru } = re( 'booru-wrapper' )( req )
 //const MyLang = re( 'MyLang' )
 log()
 
@@ -61,6 +63,72 @@ const maoclr = 0xF2B066
 const write = fs.writeFileSync
 const readdir = fs.readdirSync
 let clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
+
+const _tkns = JSON.parse( read( './tokens.json' )
+	.replace( /\/\/.+?\n/g, '' )	// removes comments from the file 'cuz JSON.parse can't ignore them. baka.
+	.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas
+)
+
+const Gelbooru = new Booru({
+	//url: 'https://gelbooru.com/index.php',
+	url: 'https://aoki.000webhostapp.com/glbr/search/',
+	name: 'gelbooru.com',
+	qs: {
+		// tags keyword is "tags" by default
+		page: 'pid',
+		// limit keyword is "limit" by default
+	},
+	const_qs: {
+		page: 'dapi',
+		s: 'post',
+		q: 'index',
+		json: '1',
+		token: _tkns.booru_proxy,
+	},
+	limit: 100,
+	keys: {
+		id: ( post, pic ) => {
+			pic.id = post.id
+			pic.post_url = 'https://gelbooru.com/index.php?page=post&s=view&id=' + pic.id
+		},
+		score: '',
+		// sample_url: 'sample',
+		// file_url: 'full',
+		file_url: ( post, pic ) => {
+			pic.hasSample = post.sample == 1
+			pic.full = post.file_url
+			pic.sample = pic.hasSample
+				? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.\w+)/, '/samples/$1sample_$3' )
+				: pic.full
+		}
+	},
+	remove_other_keys: true,
+})
+
+const Yandere = new Booru({
+	//url: 'https://yande.re/post.json',
+	url: 'https://aoki.000webhostapp.com/yndr/search/',
+	name: 'yande.re',
+	qs: {
+		// tags keyword is "tags" be default
+		// page keyword is "page" by default
+		// limit keyword is "limit" by default
+	},
+	const_qs: {
+		token: _tkns.booru_proxy,
+	},
+	limit: 100,
+	keys: {
+		id: ( post, pic ) => {
+			pic.id = post.id
+			pic.post_url = 'https://yande.re/post/show/' + pic.id
+		},
+		score: '',
+		file_url: 'full',
+		sample_url: 'sample',
+	},
+	remove_other_keys: true,
+})
 
 function process_exit( code ){
 	process.exit( typeof code == 'undefined' || isNaN( code ) ? 0 : code )
@@ -217,11 +285,6 @@ const client = new discord.Client({
 	messageCacheLifetime: 1200,
 	messageSweepInterval: 72,
 })
-
-const _tkns = JSON.parse( read( './tokens.json' )
-	.replace( /\/\/.+?\n/g, '' )	// removes comments from the file 'cuz JSON.parse can't ignore them. baka.
-	.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas
-)
 
 if( !db.token || !_tkns.discord[db.token] )
 	for( let k in _tkns.discord ){

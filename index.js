@@ -98,7 +98,7 @@ const Gelbooru = new Booru({
 			pic.hasSample = post.sample == 1
 			pic.full = post.file_url
 			pic.sample = pic.hasSample
-				? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.\w+)/, '/samples/$1sample_$3' )
+				? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
 				: pic.full
 		}
 	},

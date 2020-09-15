@@ -78,6 +78,15 @@ module.exports = request_module => {
 				}, ( err, res, body ) => {
 					if( err )
 						return error( err )
+						
+					if( !body )
+					    return succes( new BooruResults( [], {
+    						keys: this.keys,
+    						remove_other_keys: this.remove_other_keys,
+    						tags: tags,
+    						page: page,
+    						booru: this,
+    					}))
 
 					try {
 						body = JSON.parse( body )
@@ -88,12 +97,12 @@ module.exports = request_module => {
 					}
 					
 					succes( new BooruResults( body, {
-						keys: this.keys,
-						remove_other_keys: this.remove_other_keys,
-						tags: tags,
-						page: page,
-						booru: this,
-					}))
+    					keys: this.keys,
+    					remove_other_keys: this.remove_other_keys,
+    					tags: tags,
+    					page: page,
+    					booru: this,
+    				}))
 				})
 			})
 		}

@@ -72,7 +72,6 @@ const _tkns = JSON.parse( read( './tokens.json' )
 const Gelbooru = new Booru({
 	//url: 'https://gelbooru.com/index.php',
 	url: 'https://aoki.000webhostapp.com/glbr/search/',
-	name: 'gelbooru.com',
 	qs: {
 		// tags keyword is "tags" by default
 		page: 'pid',
@@ -104,11 +103,11 @@ const Gelbooru = new Booru({
 	},
 	remove_other_keys: true,
 })
+Gelbooru.name = 'gelbooru.com'
 
 const Yandere = new Booru({
 	//url: 'https://yande.re/post.json',
 	url: 'https://aoki.000webhostapp.com/yndr/search/',
-	name: 'yande.re',
 	qs: {
 		// tags keyword is "tags" be default
 		// page keyword is "page" by default
@@ -129,6 +128,7 @@ const Yandere = new Booru({
 	},
 	remove_other_keys: true,
 })
+Yandere.name = 'yande.re'
 
 function process_exit( code ){
 	process.exit( typeof code == 'undefined' || isNaN( code ) ? 0 : code )

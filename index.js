@@ -500,8 +500,11 @@ unshiftMessageHandler( 'commands', ( msg, edited ) => {
 
 	if( prefix ){
 		let string_args = msg.content.substring( prefix.length ),
-			cmd = string_args.matchFirst( /^\S+/i ).toLowerCase()
+			cmd = string_args.matchFirst( /^\S+/i )
 		
+		if( cmd ) cmd = cmd.toLowerCase()
+		else return
+
 		if( cmddata.cmds[cmd] ){
 			string_args = string_args.substring( cmd.length ).trim()
 			let string_cmd = cmd

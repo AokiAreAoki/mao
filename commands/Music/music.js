@@ -31,6 +31,11 @@ module.exports = {
 		client.once( 'ready2', () => client.guilds.cache.array().forEach( g => defineMData( g.id ) ) )
 		client.on( 'guildCreate', guild => defineMData( guild.id ) )
 		
+		client.on( 'voiceStateUpdate', ( oldState, newState ) => {
+			if( !newState.selfDeaf )
+				newState.setSelfDeaf( true )
+		})
+
 		timer.create( 'voiceTimeout', 1.337, 0, () => {
 			client.voice.connections.forEach( connection => {
 				if( !connection ) return

@@ -11,43 +11,44 @@ module.exports = {
 				queue: [],	// queue :think_about:
 				disp: null,	// dispatcher
 				tc: null,	// text channel
-				idlingStarted: Date.now(),
-				timeout: 60e3,
+				idlingStarted: -1,
 			}
+		}
+
+		function getTimeoutForConnection( connection ){
+			if( !instanceOf( connection, 'VoiceConnection' ) )
+				return 0
+			
+			if( connection.channel.members.size === 1 )
+				return 60e3
+			
+			if( !connection.dispatcher )
+				return 720e3
+			
+			return 0
 		}
 
 		client.once( 'ready2', () => client.guilds.cache.array().forEach( g => defineMData( g.id ) ) )
 		client.on( 'guildCreate', guild => defineMData( guild.id ) )
 		
 		timer.create( 'voiceTimeout', 1.337, 0, () => {
-			client.voice.connections.forEach( vc => {
-				if( !vc ) return
-				let gid = vc.channel.guild.id
-
-				if( mdata[gid].idlingStarted !== -1 && mdata[gid].idlingStarted + mdata[gid].timeout < Date.now() ){
-					leave( vc.voice )
-					mdata[gid].timeout = -1
-					mdata[gid].idlingStarted = -1
+			client.voice.connections.forEach( connection => {
+				if( !connection ) return
+				
+				let now = Date.now()
+				let guild = connection.channel.guild
+				let timeout = getTimeoutForConnection( connection )
+					
+				if( mdata[guild.id].idlingStarted === -1 ){
+					if( timeout !== 0 )
+						mdata[guild.id].idlingStarted = now
+				} else if( timeout === 0 ){
+					mdata[guild.id].idlingStarted = -1
+				} else if( mdata[guild.id].idlingStarted + timeout < now ){
+					leave( guild )
+					mdata[guild.id].idlingStarted = -1
 					return
 				}
-
-				let timeout = 0
-				
-				if( vc.channel.members.size === 1 ){
-					timeout = 60e3
-					if( mdata[gid].idlingStarted === -1 )
-						mdata[gid].idlingStarted = Date.now()
-				} else if( !vc.voice.connection.dispatcher ){
-					timeout = 720e3
-					if( mdata[gid].idlingStarted === -1 )
-						mdata[gid].idlingStarted = Date.now()
-				} else if( mdata[gid].idlingStarted !== -1 ){
-					mdata[gid].idlingStarted = -1
-					mdata[gid].timeout = -1
-				}
-				
-				if( timeout !== 0 && mdata[gid].timeout !== timeout )
-					mdata[gid].timeout = timeout
 			})
 		})
 

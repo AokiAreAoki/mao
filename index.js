@@ -130,10 +130,6 @@ const Yandere = new Booru({
 })
 Yandere.name = 'yande.re'
 
-function process_exit( code ){
-	process.exit( typeof code == 'undefined' || isNaN( code ) ? 0 : code )
-}
-
 function charka( charOrNumber ){ // Converts number to char and vice versa
 	if( typeof charOrNumber === 'number' )
 		return String.fromCharCode( charOrNumber )

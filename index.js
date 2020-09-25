@@ -99,11 +99,15 @@ const Gelbooru = new Booru({
 		// sample_url: 'sample',
 		// file_url: 'full',
 		file_url: ( post, pic ) => {
-			pic.hasSample = post.sample == 1
 			pic.full = post.file_url
-			pic.sample = pic.hasSample
-				? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
-				: pic.full
+			
+			if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
+			    pic.hasSample = post.sample == 1
+    			pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
+    				? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
+    				: pic.full
+			} else
+			    pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
 		}
 	},
 	remove_other_keys: true,

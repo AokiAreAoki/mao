@@ -93,14 +93,18 @@ module.exports = {
 			getNewPics( tags, result.pics, x, user_msg, pic => {
 				let post = embed()
 					.setDescription( `[${tags}](${pic.post_url})` )
-					.setImage( pic.sample )
 					.setFooter( 'Powered by ' + ( result.booru.name || 'unknown website' ) )
 				
-				if( x === 1 )
+				if( pic.unsupportedExtention )
+					post.setDescription( `${post.description}\n\`${pic.unsupportedExtention}\` extention is not supported by Discord AFAIK. So open the [link](${pic.post_url}) to post manually to view it's *content*`)
+				else
+					post.setImage( pic.sample )
+				
+				if( x !== 1 )
+					user_msg.send( post )
+				else
 					bot_msg.edit( post )
 						.then( m => m.edit( '' ) )
-				else
-					user_msg.send( post )
 			})
 			
 			if( !user_msg.author.isMaster() ) ++x

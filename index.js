@@ -62,7 +62,12 @@ log()
 const maoclr = 0xF2B066
 const write = fs.writeFileSync
 const readdir = fs.readdirSync
-let clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
+const clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
+
+if( !fs.existsSync( './tokens.json' ) ){
+	log( '\nFile "tokens.json" does not exists, exit.' )
+	process.exit()
+}
 
 const _tkns = JSON.parse( read( './tokens.json' )
 	.replace( /\/\/.+?\n/g, '' )	// removes comments from the file 'cuz JSON.parse can't ignore them. baka.

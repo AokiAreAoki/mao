@@ -21,7 +21,7 @@ module.exports = request_module => {
 			for( let k in all_options ){
 				let dv = all_options[k] // default value
 				
-				if( dv instanceof Array ){
+				if( dv instanceof Array && options[k] instanceof Object ){
 					let array = {}
 					
 					dv.forEach( dk => {

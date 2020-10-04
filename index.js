@@ -91,9 +91,10 @@ const Gelbooru = new Booru({
 	},
 	limit: 100,
 	keys: {
-		id: ( post, pic ) => {
+		id: ( post, pic, tags ) => {
+			tags = tags.replace( /\s+/g, '+' )
 			pic.id = post.id
-			pic.post_url = 'https://gelbooru.com/index.php?page=post&s=view&id=' + pic.id
+			pic.post_url = `https://gelbooru.com/index.php?page=post&s=view&id=${pic.id}&tags=${tags}`
 		},
 		score: '',
 		// sample_url: 'sample',
@@ -102,10 +103,10 @@ const Gelbooru = new Booru({
 			pic.full = post.file_url
 			
 			if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
-			    pic.hasSample = post.sample == 1
-    			pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
-    				? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
-    				: pic.full
+				pic.hasSample = post.sample == 1
+    				pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
+    					? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
+    					: pic.full
 			} else
 			    pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
 		}

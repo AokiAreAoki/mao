@@ -127,7 +127,7 @@ module.exports = request_module => {
 						if( typeof keys[k] === 'string' )
 							new_pic[keys[k] || k] = old_pic[k]
 						else if( typeof keys[k] === 'function' )
-							keys[k]( old_pic, new_pic )
+							keys[k]( old_pic, new_pic, this.tags )
 						else if( !remove_other_keys && k !== keys[k] )
 							new_pic[k] = old_pic[k]
 					}

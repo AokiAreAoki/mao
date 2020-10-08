@@ -26,7 +26,10 @@ module.exports = {
                 callback( channels.length !== 0 ? channels : null )
         }
         
-        addCmd( 'sortchannels', 'sorts channels in category\nUsage: `sortchannels <category ID>`', ( msg, args ) => {
+        addCmd( 'sortchannels', {
+            short: 'sorts channels in category',
+            full: 'sorts channels in category\nUsage: `sortchannels <category ID>`'
+        }, ( msg, args ) => {
             if( msg.member.hasPermission( discord.Permissions.FLAGS.MANAGE_CHANNELS ) ){
                 if( /^\d+$/.test( args[0] ) ){
                     let category = client.channels.cache.get( args[0] )

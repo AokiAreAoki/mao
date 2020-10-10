@@ -18,14 +18,11 @@ module.exports = {
 				)
 			else {
 				// Server icon
-				if( args[0].toLowerCase() == 'server' ){
-					let url = `https://cdn.discordapp.com/icons/${msg.guild.id}/${msg.guild.icon}.jpg?size=1024`
-					
+				if( args[0].toLowerCase() == 'server' )
 					return msg.send( embed()
 						.setDescription( `**Server**'s icon` )
-						.setImage( url )
+						.setImage( msg.guild.iconURL({ size: 1024, dynamic: true }) )
 					)
-				}
 				
 				// Exclusion: everyone
 				if( msg.mentions.everyone )

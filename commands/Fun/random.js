@@ -36,8 +36,11 @@ module.exports = {
         })
 
         addCmd( 'select choose', 'Selects one of the given variants', ( msg, args ) => {
-            var selected = args[ Math.floor( Math.random() * ( args.length - 1 ) ) ]
-            msg.send( 'I choose **' + selected + '**' )
+            if( args.length === 0 )
+                return msg.send( 'Gimme something to choose, baka' )
+
+            let r = Math.floor( Math.random() * args.length )
+            msg.send( `I ${args[-1]} **${args[r]}**` )
         })
 
         addCmd( 'rpc', "No, this isn't Remote Procedure Call. This is Rock Paper Scissors!", ( msg, args ) => {

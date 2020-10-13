@@ -72,14 +72,14 @@ let FunctionsForVM = {
 		return v
 	},
 	fromHex: hex => {
-	    let array = []
-	    
-	    while( hex > 0 && array.length < 4 ){
-	        array.push( hex % 256 )
-	        hex = Math.floor( hex / 256 )
-	    }
-	    
-	    return vec.fromArray( array.reverse() )
+		let array = []
+		
+		while( hex > 0 && array.length < 4 ){
+			array.push( hex % 256 )
+			hex = Math.floor( hex / 256 )
+		}
+		
+		return vec.fromArray( array.reverse() )
 	},
 	fromArray: array => {
 		let v = vec()
@@ -383,7 +383,7 @@ class Vector {
 
 	angFromNormal( doReturnDegrees=false ){
 		let a = Math.acos( this.y ) * ( doReturnDegrees ? 180 / Math.PI : 1 )
-    	return Math.asin( this.x ) < 0 ? ( doReturnDegrees ? 360 : Math.PI * 2 ) - a : a
+		return Math.asin( this.x ) < 0 ? ( doReturnDegrees ? 360 : Math.PI * 2 ) - a : a
 	}
 
 	ang( doReturnDegrees=false ){
@@ -391,9 +391,9 @@ class Vector {
 	}
 	
 	toHex(){
-	    let hex = 0
-	    this.forEach( v => hex = hex * 256 + v )
-	    return hex
+		let hex = 0
+		this.forEach( v => hex = hex * 256 + v )
+		return hex
 	}
 
 	/// toString ///

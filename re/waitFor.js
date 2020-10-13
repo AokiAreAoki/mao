@@ -30,10 +30,10 @@ class Waiter {
 	}
 	
 	cancel(){
-	    if( this.onTimeout )
-	        this.onTimeout()
-	    
-	    if( this.message !== null )
+		if( this.onTimeout )
+			this.onTimeout()
+		
+		if( this.message !== null )
 			this.message.edit( 'Canceled' )
 				.then( m => m.delete( this.messageDeleteDelay ) )
 		

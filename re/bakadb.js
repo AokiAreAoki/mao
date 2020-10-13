@@ -123,11 +123,11 @@ class BakaDB extends events {
 		let encoded
 		
 		if( table instanceof Array )
-		    encoded = []
+			encoded = []
 		else if( table instanceof Object )
-		    encoded = {}
+			encoded = {}
 		else
-		    return this._encodeValue( val, _path )
+			return this._encodeValue( val, _path )
 
 		this._foreach( table, ( val, k ) => {
 			encoded[k] = this._encodeValue( val, _path )
@@ -140,12 +140,12 @@ class BakaDB extends events {
 		let decoded
 		
 		if( table instanceof Array )
-		    decoded = []
+			decoded = []
 		else if( table instanceof Object )
-		    decoded = {}
-        else
-            return this._decodeValue( table, _path )
-        
+			decoded = {}
+		else
+			return this._decodeValue( table, _path )
+		
 		this._foreach( table, ( val, k ) => {
 			decoded[k] = this._decodeValue( val, _path )
 		})
@@ -154,7 +154,7 @@ class BakaDB extends events {
 	}
 	
 	_encodeValue( val, _path='/' ){
-	    if( typeof val === 'undefined' || val == null )
+		if( typeof val === 'undefined' || val == null )
 			return
 		
 		if( typeof val === 'number' || typeof val === 'boolean' )
@@ -168,7 +168,7 @@ class BakaDB extends events {
 		
 		// redirect
 		if( typeof coder === 'string' )
-		    coder = this.coders[coder]
+			coder = this.coders[coder]
 
 		if( typeof coder !== 'undefined' && coder.encode instanceof Function )
 			return coder.encode( val, _path )
@@ -177,7 +177,7 @@ class BakaDB extends events {
 	}
 	
 	_decodeValue( val, _path='/' ){
-	    if( typeof val === 'number' || typeof val === 'boolean' )
+		if( typeof val === 'number' || typeof val === 'boolean' )
 			return val
 		
 		if( typeof val === 'string' ){
@@ -197,9 +197,9 @@ class BakaDB extends events {
 
 			let coder = this.coders[type]
 
-    		// redirect
-    		if( typeof coder === 'string' )
-    		    coder = this.coders[coder]
+			// redirect
+			if( typeof coder === 'string' )
+				coder = this.coders[coder]
 
 			if( typeof coder !== 'undefined' && coder.decode instanceof Function )
 				return coder.decode( val, _path )

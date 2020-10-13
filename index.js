@@ -104,11 +104,11 @@ const Gelbooru = new Booru({
 			
 			if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
 				pic.hasSample = post.sample == 1
-    				pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
-    					? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
-    					: pic.full
+					pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
+						? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
+						: pic.full
 			} else
-			    pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
+				pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
 		}
 	},
 	remove_other_keys: true,
@@ -317,12 +317,12 @@ client.once( 'ready', () => {
 })
 
 client.once( 'ready2', () => {
-    log( 'Logged in as ' + client.user.tag )
-    
-    /// Here goes custom shit after bot fully initialized ///
-    
-    // Handling waitFor
-    unshiftMessageHandler( 'waitFor', waitFor.handler )
+	log( 'Logged in as ' + client.user.tag )
+	
+	/// Here goes custom shit after bot fully initialized ///
+	
+	// Handling waitFor
+	unshiftMessageHandler( 'waitFor', waitFor.handler )
 })
 
 // Message handlers
@@ -354,9 +354,9 @@ async function handleMessage( msg, edited ){
 client.on( 'message', handleMessage )
 client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
 	if( typeof oldMsg._answers === 'object' && oldMsg._answers.constructor === Array && oldMsg.content !== newMsg.content ){
-	    let waiter = waitFor.waiters[oldMsg.member.id]
-	    if( waiter ) waiter.cancel()
-	    
+		let waiter = waitFor.waiters[oldMsg.member.id]
+		if( waiter ) waiter.cancel()
+		
 		oldMsg.channel.bulkDelete( oldMsg._answers )
 		handleMessage( newMsg, true )
 	}

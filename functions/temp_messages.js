@@ -25,10 +25,10 @@ module.exports = {
 					.then( async m => {
 						await m.delete()
 						delete db.temp_messages[messageid]
-				    })
-				    .catch( err => {
-				        delete db.temp_messages[messageid]
-				    })
+					})
+					.catch( err => {
+						delete db.temp_messages[messageid]
+					})
 			}
 		}, 5e3 )
 		
@@ -40,9 +40,9 @@ module.exports = {
 				let tms = 0
 				
 				for( let k in db.temp_messages )
-				    if( db.temp_messages[k].userid == msg.author.id )
-				        if( ++tms >= max_tms )
-				            return msg.send( "You've reached the limit of temporary messages" )
+					if( db.temp_messages[k].userid == msg.author.id )
+						if( ++tms >= max_tms )
+							return msg.send( "You've reached the limit of temporary messages" )
 				
 				let message = await msg.send( embed()
 					.setAuthor( '@' + msg.author.tag, msg.author.avatarURL() )
@@ -80,7 +80,7 @@ module.exports = {
 						s = lifetime % 60;
 						
 						[d,h,m,s].forEach( ( v, i ) => {
-						    if( v > 0 ) timeleft.push( v + ' ' + time_units[i] + ss(v) )
+							if( v > 0 ) timeleft.push( v + ' ' + time_units[i] + ss(v) )
 						})
 						
 						message.edit( embed()

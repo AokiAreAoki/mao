@@ -239,15 +239,14 @@ function instanceOf( object, constructorName ){
 }
 
 function findMem( guild, name ){
-	let members = ( guild.constructor.name == 'Guild' ? guild : guild.guild ).members.cache.array()
+    guild = guild.guild || guild
+	const members = guild.members.cache.array()
+	name = name.toLowerCase()
 	
-	if( typeof name == 'string' )
-		name = name.toLowerCase()
-	
-	for( let i = 0; i < members.length; i++ ){
+	for( let i = 0; i < members.length; ++i ){
 		let m = members[i]
 		
-		if( m.nickname && m.nickname.toLowerCase().search( name ) !== -1 || m.user.username.toLowerCase().search( name ) !== -1 )
+		if( m.nickname && m.nickname.toLowerCase().indexOf( name ) !== -1 || m.user.username.toLowerCase().indexOf( name ) !== -1 )
 			return m
 	}
 	

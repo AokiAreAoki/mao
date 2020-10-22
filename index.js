@@ -648,13 +648,17 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 			let evaled, __output = ''
 			
 			if( ismaster && !__sbox ){
-				let print = ( ...args ) => {
+				function print( ...args ){
 					if( __output ) __output += '\n'
 
 					args.forEach( ( v, k ) => {
 						if( k > 0 ) __output += '\t'
 						__output += String( v )
 					})
+				}
+
+				function say( ...args ){
+					return msg.send( ...args )
 				}
 
 				if( /<@!?(\d+)>/i.test( code ) ) // User

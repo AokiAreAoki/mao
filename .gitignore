@@ -4,3 +4,4 @@
 /bdb/*
 /re/MyLang.js
 tokens.json
+*.sh

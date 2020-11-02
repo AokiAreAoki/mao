@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'embed httpGet',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		let months = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ]

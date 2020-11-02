@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'client',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 				
 		async function sortChannels( parentID, callback ){

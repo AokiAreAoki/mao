@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'requirements',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		// code here
 	}

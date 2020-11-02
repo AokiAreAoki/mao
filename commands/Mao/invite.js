@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'embed',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		const invite_types = {

@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'tgb _tkns.telegram cb bakadb db List parseArgs',
-	execute: ( requirements, dmao ) => {
+	init: ( requirements, dmao ) => {
 		requirements.define( global )
 		
 		const log = console.log

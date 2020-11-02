@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'embed',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		let en = `qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>?@#$^&\`~`

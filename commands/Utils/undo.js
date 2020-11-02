@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'client',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		addCmd( 'undo', 'Removes edited message', async msg => {

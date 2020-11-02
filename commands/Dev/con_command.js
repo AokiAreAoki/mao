@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'cp',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		function exec( channel, command, delete_delay ){

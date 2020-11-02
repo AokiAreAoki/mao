@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'client clamp',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 
 		addCmd( 'roll', 'Rolls a dice', ( msg, args ) => {

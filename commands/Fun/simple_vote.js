@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'embed',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		addCmd( 'simplevote vote', 'simple vote', async ( msg, args, get_string_args ) => {

@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'embed',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		addCmd( 'lmgtfy lmg whatis whats', { short: 'googles that for you or someone else', full: `Usage: \`lmgtfy <search request> [--iie]\`\n• \`--iie\` - includes internet expainer` }, ( msg, args, get_string_args ) => {

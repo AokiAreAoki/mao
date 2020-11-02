@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'discord bakadb db List maoclr findMem',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		bakadb.createCoder( List, perms => 'List:' + perms.toString(), list => new List( list ) )

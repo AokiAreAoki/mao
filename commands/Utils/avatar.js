@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'embed findMem instanceOf',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		function sendAvatar( messageOrChannel, userOrMember ){

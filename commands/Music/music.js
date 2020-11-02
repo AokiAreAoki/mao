@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'log embed maoclr httpGet waitFor ytdl _tkns instanceOf',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		var mdata = {},
 			m = {}

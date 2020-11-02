@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'httpGet embed',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		addCmd( 'nekos', 'a bit less but still hot girls', ( msg, args ) => {

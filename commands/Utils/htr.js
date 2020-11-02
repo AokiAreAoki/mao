@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'embed',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		addCmd( 'hextorgb htr', { full: 'Converts HEX to RGB', short: 'yes' }, ( msg, args ) => {

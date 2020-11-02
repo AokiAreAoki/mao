@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: '_tkns waitFor bakadb',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		let tokens = _tkns.discord

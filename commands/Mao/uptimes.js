@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'embed numsplit maoclr db',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		addCmd( 'uptime', 'Mao\'s uptime', msg => {

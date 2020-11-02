@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'cmddata embed maoclr',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		addCmd( 'help h', { short: 'Sends this message', full: 'nothing will help you' }, ( msg, args ) => {

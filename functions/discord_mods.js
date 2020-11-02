@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'discord cb',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		let ending = '\n...'

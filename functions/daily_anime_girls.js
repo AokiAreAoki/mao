@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'client httpGet db bakadb',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		// guilds::channels::tags

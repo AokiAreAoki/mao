@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'vec jimp maoclr',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		function toByte( string_int ){

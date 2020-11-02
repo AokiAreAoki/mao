@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'client timer db',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		let nextgame = 0,

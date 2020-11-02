@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'bakadb db client',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 
 		client.once( 'ready2', () => {

@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'addMessageHandler',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		let responses = [

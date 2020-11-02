@@ -367,14 +367,15 @@ function include( path, overwrites ){
 	let requirements = {}
 
 	inclusion.requirements.split( /\s+/ ).forEach( variable => {
-		if( variable ) requirements[variable.replace( /\./g, '_' )] = eval( variable )
+		if( variable )
+			requirements[variable.replace( /\./g, '_' )] = eval( variable )
 	})
 
 	if( inclusion.evaluations )
 		for( let k in inclusion.evaluations )
 			requirements[k] = eval( inclusion.evaluations[k] )
 
-	if( typeof overwrites == 'object' )
+	if( overwrites instanceof Object )
 		for( let k in overwrites )
 			requirements[k] = overwrites[k]
 	
@@ -383,7 +384,7 @@ function include( path, overwrites ){
 			local_global[k] = requirements[k]
 	}
 
-	inclusion.execute( requirements, global )
+	inclusion.init( requirements, global )
 	delete inclusion
 	delete requirements
 }

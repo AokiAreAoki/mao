@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'client embed Gelbooru Yandere',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		let loadingPhrases = [

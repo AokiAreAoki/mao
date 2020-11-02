@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'client embed bakadb db waitFor addMessageHandler',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		const max_tms = 5

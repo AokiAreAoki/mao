@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'client waitFor',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		addCmd( 'sendemoji emoji e', 'Sends random emoji that matches the keyword', async ( msg, args ) => {

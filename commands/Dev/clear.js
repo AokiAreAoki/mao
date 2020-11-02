@@ -1,6 +1,6 @@
 module.exports = {
 	requirements: 'client',
-	execute: ( requirements, mao ) => {
+	init: ( requirements, mao ) => {
 		requirements.define( global )
 
 		addCmd( 'clear clean purge', { short: 'Removes messages', full: 'Usage: `clear <number messages (max 50)>`' }, async ( msg, args ) => {

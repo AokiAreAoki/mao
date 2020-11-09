@@ -20,9 +20,9 @@ module.exports = {
 				'vc':		new Language( 29, '-o a.exe' ),
 			},
 			'C++': {
-				'gcc':		new Language( 7, '-o a.out' ),
-				'clang':	new Language( 27, '-o a.out' ),
-				'vc++':		new Language( 28, '-o a.exe' ),
+				'gcc':		new Language( 7, 'source_file.cpp -o a.out' ),
+				'clang':	new Language( 27, 'source_file.cpp -o a.out' ),
+				'vc++':		new Language( 28, 'source_file.cpp -o a.exe' ),
 			},
 			'Clojure':		new Language( 47 ),
 			'D':			new Language( 30 ),

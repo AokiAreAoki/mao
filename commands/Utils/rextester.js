@@ -72,7 +72,7 @@ module.exports = {
 				compilers: [],
 			}
 			
-			if( compilers instanceof Object )
+			if( instanceOf( compilers, 'Object' ) )
 				for( let compiler in compilers )
 					lang.compilers.push( compiler )
 

@@ -4,7 +4,7 @@ module.exports = {
 		requirements.define( global )
 		
 		class Language {
-			constructor( id, compiler_args='' ){
+			constructor( id, compiler_args ){
 				this.id = id
 				this.compiler_args = compiler_args
 			}
@@ -142,7 +142,7 @@ module.exports = {
 							LanguageChoice: lang.id,
 							Program: code,
 							Input: '',
-							CompilerArgs : '',
+							CompilerArgs : lang.compiler_args || '',
 						}
 					}, ( err, req, body ) => {
 						if( err )

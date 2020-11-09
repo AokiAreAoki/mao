@@ -174,12 +174,15 @@ let __duplicates,
 	tabstr = amount => ' '.repeat( amount * 4 )
 
 function tts( table, maxtab=4, tab=0 ){
-	let isarray = table && table.constructor == Array
+	if( table === null )
+		return 'null\n'
+
+	let isarray = table && table instanceof Array
 	
 	if( tab >= maxtab )
 		return ( isarray ? '[ ... ]' : '{ ... }' ) + '\n'
 	
-	if( typeof table != 'object' )
+	if( typeof table !== 'object' )
 		return `here's ur ${typeof table} for u:\n	${String( table )}`
 	
 	let str = ''
@@ -204,18 +207,20 @@ function tts( table, maxtab=4, tab=0 ){
 			if( isarray && !k.match( /^[0-9]*$/ ) )
 				continue
 			
+			let val
+
 			switch( typeof table[k] ){
 				case 'string':
-					var val = `"${table[k]}"`
+					val = `"${table[k]}"`
 					break
 				
 				case 'function':
-					//var val = String( table[k] ).split( '{' )[0] + '{ ... }'
-					var val = String( table[k] ).replace( /^((async\s+)?(.+?=>\s*|function\s*[\w_]*\(.*?\)\s*))\{.*\}$/, '$1{ ... }' )
+					//val = String( table[k] ).split( '{' )[0] + '{ ... }'
+					val = String( table[k] ).replace( /^((async\s+)?(.+?=>\s*|function\s*[\w_]*\(.*?\)\s*))\{.*\}$/, '$1{ ... }' )
 					break
 
 				default:
-					var val = table[k]
+					val = table[k]
 					break
 			}
 
@@ -223,15 +228,15 @@ function tts( table, maxtab=4, tab=0 ){
 		}
 	}
 	
-	str = str ? '{\n' + str + tabstr( tab - 1 ) : '{'
+	str = ( isarray ? '[' : '{' ) + ( str ? '\n' + str + tabstr( tab - 1 ) : '' ) + ( isarray ? ']' : '}' )
 	--tab
 	
-	if( tab === 0 ){
+	if( tab === 0 )
 		__duplicates = []
-		return str + '}'
-	}
+	else
+		str += '\n'
 	
-	return str + '}\n'
+	return str
 }
 
 function instanceOf( object, constructorName ){

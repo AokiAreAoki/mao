@@ -15,9 +15,9 @@ module.exports = {
 			'Bash':			new Language( 38 ),
 			'Brainfuck':	new Language( 44 ),
 			'C': {
-				'gcc':		new Language( 6, '-o a.out' ),
-				'clang':	new Language( 26, '-o a.out' ),
-				'vc':		new Language( 29, '-o a.exe' ),
+				'gcc':		new Language( 6, 'source_file.c -o a.out' ),
+				'clang':	new Language( 26, 'source_file.c -o a.out' ),
+				'vc':		new Language( 29, 'source_file.c -o a.exe' ),
 			},
 			'C++': {
 				'gcc':		new Language( 7, 'source_file.cpp -o a.out' ),

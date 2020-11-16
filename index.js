@@ -435,7 +435,7 @@ function addCmd( module, command, description, callback ){
 	}
 
 	if( aliases.length > 0 )
-		aliases.forEach( alias => cmddata.cmds[alias] = cmd )
+		aliases.forEach( alias => cmddata.cmds[alias] = cmddata.cmds[cmd] )
 
 	if( cmddata.modules[m] )
 		cmddata.modules[m].cmds.push( cmd )
@@ -518,33 +518,18 @@ unshiftMessageHandler( 'commands', ( msg, edited ) => {
 
 		if( cmddata.cmds[cmd] ){
 			string_args = string_args.substring( cmd.length ).trim()
-			let string_cmd = cmd
-
-			/* Aliases Redirection
-			 * Example:
-			 *	commands = {
-			 *		...
-			 *		ping: ( ... ) => { ... },
-			 *		pong: 'ping',
-			 *		...
-			 *	}
-			 */
-			if( typeof cmddata.cmds[cmd] == 'string' )
-				cmd = cmddata.cmds[cmd] 
+			let cmd_name = cmd
 			cmd = cmddata.cmds[cmd]
 			
-			if( cmd.module === 'dev' && !msg.member.isMaster() )
+			if( cmd.module === 'dev' && !msg.author.isMaster() )
 				return
 
 			// Parsing arguments
-			let args = [],
-				args_pos = []
+			let args = [], args_pos = []
 			parseArgs( string_args, args, args_pos )
-			args[-1] = string_cmd
+			args[-1] = cmd_name
 
-			function get_string_args( number=0 ){
-				return typeof args_pos[number] == 'number' ? string_args.substring( args_pos[number] ) : ''
-			}
+			let get_string_args = ( number = 0 ) => typeof args_pos[number] == 'number' ? string_args.substring( args_pos[number] ) : ''
 			get_string_args.args_pos = args_pos
 
 			if( cmd.func instanceof Function )

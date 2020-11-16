@@ -1,31 +1,31 @@
 {
-  "name": "mao2",
-  "version": "2.0.0",
-  "description": "yes",
-  "main": "mao.js",
-  "scripts": {
-	"test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-	"mao",
-	"bot",
-	"aoki"
-  ],
-  "author": "Aoki",
-  "license": "ISC",
-  "dependencies": {
-	"@discordjs/opus": "^0.1.0",
-	"discord.js": "^12.2.0",
-	"express": "^4.17.1",
-	"install": "^0.13.0",
-	"jimp": "^0.9.5",
-	"node-telegram-bot-api": "^0.50.0",
-	"npm": "^6.14.5",
-	"opusscript": "0.0.7",
-	"request": "^2.88.2",
-	"vm": "^0.1.0",
-	"youtube-audio-stream": "^0.3.5",
-	"ytdl-core": "^2.0.0",
-	"ytdl-core-discord": "^1.2.0"
-  }
+	"name": "mao2",
+	"version": "2.0.0",
+	"description": "yes",
+	"main": "mao.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [
+		"mao",
+		"bot",
+		"aoki"
+	],
+	"author": "Aoki",
+	"license": "ISC",
+	"dependencies": {
+		"@discordjs/opus": "^0.1.0",
+		"discord.js": "^12.2.0",
+		"express": "^4.17.1",
+		"install": "^0.13.0",
+		"jimp": "^0.9.5",
+		"node-telegram-bot-api": "^0.50.0",
+		"npm": "^6.14.5",
+		"opusscript": "0.0.7",
+		"request": "^2.88.2",
+		"vm": "^0.1.0",
+		"youtube-audio-stream": "^0.3.5",
+		"ytdl-core": "^2.0.0",
+		"ytdl-core-discord": "^1.2.0"
+	}
 }

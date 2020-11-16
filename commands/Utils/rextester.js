@@ -61,7 +61,6 @@ module.exports = {
 			'Tcl':			new Language( 32 ),
 			'VB.NET':		new Language( 2 )
 		}
-		
 		let langList = []
 
 		for( let lang in langs ){
@@ -91,6 +90,9 @@ module.exports = {
 			short: 'Runs code',
 			full: 'todo',
 		}, async ( msg, args, get_string_args ) => {
+			if( args.length === 0 )
+				return msg.send( `Usage: \`-help ${args[-1]}\`` )
+
 			let arg0 = args[0].toLowerCase()
 
 			if( arg0 === 'list' )

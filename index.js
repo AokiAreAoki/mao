@@ -42,7 +42,7 @@ const req = require( 'request' )
 log()
 
 // Including my modules
-let re = module => {
+function re( module ){
 	log( `    Requiring "${module}" module...` )
 	return require( `./re/${module}.js` )
 }
@@ -304,7 +304,8 @@ if( !db.token || !_tkns.discord[db.token] )
 
 client.login( _tkns.discord[db.token] )
 
-var isOnlineOrInitialized = false
+let isOnlineOrInitialized = false
+
 client.once( 'ready', () => {
 	if( isOnlineOrInitialized ){
 		delete isOnlineOrInitialized

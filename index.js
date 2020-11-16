@@ -633,11 +633,8 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 		
 		if( __deletmsg ) await msg.delete()
 
-		let cbstart = code.match( /^\s*```[a-zA-Z0-9]*/ )
-		let cbend = code.match( /```.*?$/ )
-
-		if( cbstart && cbend )
-			code = code.substring( cbstart[0].length, code.length - cbend[0].length )
+		let codeblock = code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s )
+		if( codeblock ) code = codeblock
 
 		let __printerr = ec.length > 0
 		let abortHandlersQueue = false

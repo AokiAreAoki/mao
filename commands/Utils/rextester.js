@@ -128,7 +128,7 @@ module.exports = {
 					let code = get_string_args(1)
 					
 					if( code.startsWith( '```' ) )
-						code = code.matchFirst( /```[\w\+]*\s+(.+)```/s )
+						code = code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s )
 					
 					if( !code ){
 						msg.send( 'Gimme code, baka~!' )

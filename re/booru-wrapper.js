@@ -81,13 +81,11 @@ module.exports = request_module => {
 
 					try {
 						body = JSON.parse( body )
-						//if( body.length === 0 )
-						//	return error( 'Not found' )
 					} catch( err ){
-						return error( err )
+					    body = []
 					}
 					
-					succes( new BooruResults( body || [], {
+					succes( new BooruResults( body, {
 						keys: this.keys,
 						remove_other_keys: this.remove_other_keys,
 						tags: tags,
@@ -101,6 +99,9 @@ module.exports = request_module => {
 	
 	class BooruResults {
 		constructor( array_pics, options ){
+		    if( !( array_pics instanceof Array ) )
+		        array_pics = []
+		    
 			let keys = options.keys
 			let remove_other_keys = options.remove_other_keys
 			

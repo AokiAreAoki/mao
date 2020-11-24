@@ -72,7 +72,7 @@ class BakaDB extends events {
 				}
 			}
 		} else
-			this.makePath( path )
+			this.makePath( this.path )
 
 		this.coders = this.default_coders
 		if( data.coders )

@@ -81,6 +81,82 @@ class BakaDB extends events {
 		return true
 	}
 
+	get( ...path ){
+		let props = [],
+			value = this.db
+			
+		path.forEach( key => key.split( /[\/\.]+/ ).forEach( key => {
+			if( key ) props.push( key )
+		}))
+
+		for( let i = 0; i < props.length; ++i ){
+			let prop = props[i]
+			if( !prop ) continue
+			
+			if( typeof value[prop] === 'undefined' )
+				return
+			
+			value = value[prop]
+		}
+
+		if( value === this.db )
+			return
+
+		return value
+	}
+
+	set( ...path ){
+		let props = [],
+			value = path.pop(),
+			object = this.db
+			
+		path.forEach( key => key.split( /[\/\.]+/ ).forEach( key => {
+			if( key ) props.push( key )
+		}))
+
+		let key = props.pop()
+
+		for( let i = 0; i < props.length; ++i ){
+			let prop = props[i]
+			if( !prop ) continue
+			
+			if( typeof object[prop] === 'undefined' )
+				object[prop] = {}
+			
+			object = object[prop]
+		}
+
+		object[key] = value
+	}
+
+	delete( ...path ){
+		let props = []
+			
+		path.forEach( key => key.split( /[\/\.]+/ ).forEach( key => {
+			if( key ) props.push( key )
+		}))
+
+		this._delete( this.db, props )
+	}
+
+	_delete( object, props ){
+        if( props.length === 0 )
+            return false
+
+        let key = props.shift()
+
+        if( typeof object[key] !== 'undefined' ){
+            if( props.length === 0 )
+                delete object[key]
+            else {
+                if( this._delete( object[key], props ) )
+                    delete object[key]
+            }
+        }
+
+        return Object.keys( object ).length === 0
+    }
+
 	googleCloud( api_key, access_token, path_to_request ){ // later // maybe
 		/*this.api_key = api_key
 		this.access_token = access_token

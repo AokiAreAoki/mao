@@ -31,6 +31,13 @@ class BakaDB extends events {
 		}
 	}
 
+	makePath( path ){
+		if( !exists( path ) ){
+			this.makePath( path.matchFirst( /(.+)[^\/\\]+[\/\\]*$/ ) )
+			fs.mkdirSync( path )
+		}
+	}
+
 	init( path, shit ){
 		if( path instanceof Object )
 			shit = path
@@ -65,7 +72,7 @@ class BakaDB extends events {
 				}
 			}
 		} else
-			fs.mkdirSync( path )
+			this.makePath( path )
 
 		this.coders = this.default_coders
 		if( data.coders )

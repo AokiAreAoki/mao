@@ -1,7 +1,8 @@
 /.vscode
 /.vs
 /node_modules
-/bdb/*
+/bdb
 /re/MyLang.js
+/test
 tokens.json
 *.sh

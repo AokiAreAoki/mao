@@ -1,7 +1,7 @@
 const cp = require( 'child_process' )
 
 function start(){
-	let mao = cp.fork( __dirname + '/index.js' )
+	let mao = cp.fork( __dirname + '/index.js', process.argv.slice(2) )
 	
 	if( process.platform === 'win32' )
 		cp.exec( `wmic process where "ProcessID=${mao.pid}" CALL setpriority "above normal"` )

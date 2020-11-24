@@ -1,5 +1,17 @@
 const log = console.log
 
+const __flags = {}
+{
+	let flags = {
+		'--testmode': 'testmode',
+	}
+
+	process.argv.slice(2).forEach( flag => {
+		flag = flags[flag].toLowerCase()
+		if( flag ) __flags[flag] = true
+	})
+}
+
 // Including modules
 let requireAndLog = module => {
 	let match = module.match( /^([^\/]+)\/([^\/]+)$/ )
@@ -281,7 +293,7 @@ function httpGet( url, callback, errfunc ){
 }
 
 // Initializing BakaDB
-bakadb.init({
+bakadb.init( __flags.testmode ? './test/bdb' : null, {
 	List: List,
 })
 bakadb.autoSave( 3600 / 2 )

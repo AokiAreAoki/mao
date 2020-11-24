@@ -32,15 +32,13 @@ class BakaDB extends events {
 	}
 
 	init( path, shit ){
-		if( typeof path != 'string' ){
-			if( typeof path == 'object' )
-				for( let k in path ) global[k] = path[k]
-			//shit = path
-			path = './bdb'
-		} else
+		if( path instanceof Object )
+			shit = path
+			
+		if( shit instanceof Object )
 			for( let k in shit ) global[k] = shit[k]
 		
-		this.path = path.replace( /^(?!\.[\/\\])[\/\\]?([\w\s_-]+)(?!:)/, './$1' )
+		this.path = ( typeof path === 'string' && path ) ? path.replace( /^(?!\.[\/\\])[\/\\]?([\w\s_-]+)(?!:)/, './$1' ) : './bdb'
 		let data = {}
 
 		if( exists( path ) ){

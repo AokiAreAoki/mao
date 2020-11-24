@@ -40,7 +40,7 @@ class BakaDB extends events {
 		} else
 			for( let k in shit ) global[k] = shit[k]
 		
-		this.path = path.replace( /^(\.\/)?/, './' )
+		this.path = path.replace( /^(?!\.[\/\\])[\/\\]?([\w\s_-]+)(?!:)/, './$1' )
 		let data = {}
 
 		if( exists( path ) ){

@@ -32,8 +32,9 @@ class BakaDB extends events {
 	}
 
 	makePath( path ){
+		console.log( path )
 		if( !exists( path ) ){
-			this.makePath( path.matchFirst( /(.+)[^\/\\]+[\/\\]*$/ ) )
+			this.makePath( path.matchFirst( /(.+?)[^\/\\]+[\/\\]*$/ ) )
 			fs.mkdirSync( path )
 		}
 	}
@@ -48,9 +49,9 @@ class BakaDB extends events {
 		this.path = ( typeof path === 'string' && path ) ? path.replace( /^(?!\.[\/\\])[\/\\]?([\w\s_-]+)(?!:)/, './$1' ) : './bdb'
 		let data = {}
 
-		if( exists( path ) ){
-			let saves = fs.readdirSync( path )
-
+		if( exists( this.path ) ){
+			let saves = fs.readdirSync( this.path )
+			
 			saves.forEach( ( file, k ) => {
 				if( /\D/.test( file ) )
 					delete saves[k]
@@ -64,11 +65,11 @@ class BakaDB extends events {
 				let file = saves[i]
 
 				try {
-					data = JSON.parse( fs.readFileSync( join( path, String( file ) ) ).toString() )
-					this.emit( 'save-parsed', path, file )
+					data = JSON.parse( fs.readFileSync( join( this.path, String( file ) ) ).toString() )
+					this.emit( 'save-parsed', this.path, file )
 					break
 				} catch( error ){
-					this.emit( 'error-parsing-save', path, file, error )
+					this.emit( 'error-parsing-save', this.path, file, error )
 				}
 			}
 		} else

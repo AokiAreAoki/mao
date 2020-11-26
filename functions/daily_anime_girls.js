@@ -138,10 +138,11 @@ module.exports = {
 								}
 							})
 							
-							let tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ) /// ?tags= param remover
-
+							let title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
+								url = pics[r].post_url.replace( /\)(?!$)/g, '\\)' )
+							
 							message.edit( embed()
-								.setDescription( `[${capitalize( channel.name.replace( /[-_]+/g, ' ' ) )}](${pics[r].post_url.replace( tagsParam, '' )})` )
+								.setDescription( `[${title}](${url})` )
 								.setImage( pics[r].sample )
 								.setFooter( 'Powered by ' + Booru.name )
 							).then( m => last_posts[pagid].push({

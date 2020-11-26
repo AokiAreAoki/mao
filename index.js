@@ -88,7 +88,8 @@ const _tkns = JSON.parse( read( './tokens.json' )
 
 const Gelbooru = new Booru({
 	//url: 'https://gelbooru.com/index.php',
-	url: 'https://aoki.000webhostapp.com/glbr/search/',
+	url: 'https://aoki.000webhostapp.com/glbr/',
+	page_offset: 0,
 	qs: {
 		// tags keyword is "tags" by default
 		page: 'pid',
@@ -99,7 +100,7 @@ const Gelbooru = new Booru({
 		s: 'post',
 		q: 'index',
 		json: '1',
-		token: _tkns.booru_proxy,
+		_token: _tkns.booru_proxy,
 	},
 	limit: 100,
 	keys: {

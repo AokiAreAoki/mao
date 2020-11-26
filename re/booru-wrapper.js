@@ -7,6 +7,7 @@ module.exports = request_module => {
 			let all_options = {
 				url: '', // API request URL
 				limit: 100, // Posts limit per request
+				page_offset: 1, // page offset
 				qs: [ // API keywords
 					'tags', // here goes your tags
 					'page', // page keyword
@@ -69,7 +70,7 @@ module.exports = request_module => {
 					qs[k] = this.const_qs[k]
 				
 				qs[this.qs.tags] = tags
-				qs[this.qs.page] = page || 1
+				qs[this.qs.page] = ( page || 0 ) + this.page_offset
 				qs[this.qs.limit] = limit || this.limit
 				
 				req({
@@ -80,8 +81,13 @@ module.exports = request_module => {
 						return error( err )
 
 					try {
+						console.log( "url: " + this.url )
+						console.log( "queries: " , qs )
+						console.log( "body: " + body )
 						body = JSON.parse( body )
 					} catch( err ){
+						console.log( 'error' )
+						console.error( err )
 					    body = []
 					}
 					

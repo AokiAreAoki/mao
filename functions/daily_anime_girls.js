@@ -1,13 +1,14 @@
 module.exports = {
-	requirements: 'client httpGet db bakadb',
+	requirements: 'client httpGet db bakadb Gelbooru Yandere',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		// guilds::channels::tags
 		let sources = {
+			/*
 			gelbooru: {
 				//url: 'https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&tags=',
-				url: 'https://aoki.000webhostapp.com/glbr/search/?page=dapi&s=post&q=index&json=1&token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&tags=',
+				url: 'https://aoki.000webhostapp.com/glbr/?page=dapi&s=post&q=index&json=1&_token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&tags=',
 				postURL: id => 'https://gelbooru.com/index.php?page=post&s=view&id=' + id,
 				key: 'file_url',
 				domen: 'gelbooru.com',
@@ -15,22 +16,16 @@ module.exports = {
 			},
 			yandere: {
 				//url: 'https://yande.re/post.json?page=1&limit=100&tags=',
-				url: 'https://aoki.000webhostapp.com/yndr/search/?token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&tags=',
+				url: 'https://aoki.000webhostapp.com/yndr/?_token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&tags=',
 				postURL: id => 'https://yande.re/post/show/' + id,
 				key: 'sample_url',
 				domen: 'yande.re',
 				xml: false,
 			},
+			*/
+			gelbooru: Gelbooru,
+			yandere: Yandere,
 		}
-		
-		/*{
-			'314411314724208641': {
-				'695758720780599329': { src: 'yandere', tags: 'catgirl -nipples -e' },
-				'695758663406583918': { src: 'yandere', tags: 'feet -nipples -e' },
-				'695758756469800970': { src: 'yandere', tags: 'pantsu ass -nipples -e' },
-				'700580844254920724': { src: 'yandere', tags: 'maid s' },
-			}
-		}*/
 		
 		// Debugger
 		function post_anime_girls(){
@@ -117,57 +112,49 @@ module.exports = {
 					)
 					tags = tags || ''
 					
-					let src = sources[db.daily_girls[gid][chid].src]
+					let Booru = sources[db.daily_girls[gid][chid].src]
 					
-					if( !src ){
+					if( !Booru ){
 						log( `ERROR: Unknown source "${db.daily_girls[gid][chid].src}"` )
 						return
 					}
 					
-					httpGet( src.url + tags, pics => {
-						try {
-							if( src.xml )
-								pics = parseXML( pics )
-							else
-								pics = JSON.parse( pics )
-						} catch( err ){
-							message.edit( embed()
-								.setDescription( `Tag(s) \`${tags}\` not found :c` )
-								.setColor( 0xFF0000 )
-							)
+					Booru.q( tags )
+						.then( results => {
+							let pics = results.pics
+
+							if( pics.length == 0 )
+								return message.edit( embed()
+									.setDescription( `Tag(s) \`${tags}\` not found :c` )
+									.setColor( 0xFF0000 )
+								)
 							
-							console.error( err )
-							return
-						}
-						
-						if( pics.length == 0 )
-							return message.edit( embed()
-								.setDescription( `Tag(s) \`${tags}\` not found :c` )
-								.setColor( 0xFF0000 )
-							)
-						
-						//let r = Math.floor( Math.random() * pics.length ),
-						let r = 0,
-							score = 0
-						
-						pics.forEach( ( pic, k ) => {
-							if( Date.now() - ( new Date( pic.created_at ).getTime() ) < 86400e3 && score < pic.score ){
-								score = pic.score
-								r = k
-							}
+							let score = 0, r = 0
+							
+							pics.forEach( ( pic, k ) => {
+								if( Date.now() - ( new Date( pic.created_at ).getTime() ) < 86400e3 && score < pic.score ){
+									score = pic.score
+									r = k
+								}
+							})
+							
+							let tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ) /// ?tags= param remover
+
+							message.edit( embed()
+								.setDescription( `[${capitalize( channel.name.replace( /[-_]+/g, ' ' ) )}](${pics[r].post_url.replace( tagsParam, '' )})` )
+								.setImage( pics[r].sample )
+								.setFooter( 'Powered by ' + Booru.name )
+							).then( m => last_posts[pagid].push({
+								channel_id: m.channel.id,
+								message_id: m.id,
+							}))
 						})
-						
-						//if( !/\S/.test( tags ) ) tags = 'no tags';
-						
-						message.edit( embed()
-							.setDescription( `[${capitalize( channel.name.replace( /[-_]+/g, ' ' ) )}](${ src.postURL( pics[r].id ) })` )
-							.setImage( pics[r][src.key] )
-							.setFooter( 'Powered by ' + src.domen )
-						).then( m => last_posts[pagid].push({
-							channel_id: m.channel.id,
-							message_id: m.id,
-						}))
-					}, err => message.edit( cb( err ) ) )
+						.catch( err => {
+							message.edit( cb( err ) ).then( m => last_posts[pagid].push({
+								channel_id: m.channel.id,
+								message_id: m.id,
+							}))
+						})
 				}
 			}
 		}

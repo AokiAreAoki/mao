@@ -138,9 +138,10 @@ module.exports = {
 								}
 							})
 							
-							let title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
-								url = pics[r].post_url.replace( /\)(?!$)/g, '\\)' )
-							
+							let tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ), // ?tags= param remover
+								title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
+								url = pics[r].post_url.replace( tagsParam, '' )
+								
 							message.edit( embed()
 								.setDescription( `[${title}](${url})` )
 								.setImage( pics[r].sample )

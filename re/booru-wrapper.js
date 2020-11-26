@@ -82,12 +82,8 @@ module.exports = request_module => {
 						return error( err )
 
 					try {
-						console.log( "url: " + this.url )
-						console.log( "queries: " , qs )
-						console.log( "body: " + body )
 						body = JSON.parse( body )
 					} catch( err ){
-						console.log( 'error' )
 						console.error( err )
 					    body = []
 					}

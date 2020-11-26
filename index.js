@@ -87,6 +87,7 @@ const _tkns = JSON.parse( read( './tokens.json' )
 )
 
 const Gelbooru = new Booru({
+	name: 'gelbooru.com',
 	//url: 'https://gelbooru.com/index.php',
 	url: 'https://aoki.000webhostapp.com/glbr/',
 	page_offset: 0,
@@ -117,27 +118,28 @@ const Gelbooru = new Booru({
 			
 			if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
 				pic.hasSample = post.sample == 1
-					pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
-						? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
-						: pic.full
+				pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
+					? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
+					: pic.full
 			} else
 				pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
 		}
 	},
 	remove_other_keys: true,
 })
-Gelbooru.name = 'gelbooru.com'
 
 const Yandere = new Booru({
+	name: 'yande.re',
 	//url: 'https://yande.re/post.json',
-	url: 'https://aoki.000webhostapp.com/yndr/search/',
+	url: 'https://aoki.000webhostapp.com/yndr/',
+	// page_offset is 1 by default
 	qs: {
 		// tags keyword is "tags" be default
 		// page keyword is "page" by default
 		// limit keyword is "limit" by default
 	},
 	const_qs: {
-		token: _tkns.booru_proxy,
+		_token: _tkns.booru_proxy,
 	},
 	limit: 100,
 	keys: {
@@ -151,7 +153,6 @@ const Yandere = new Booru({
 	},
 	remove_other_keys: true,
 })
-Yandere.name = 'yande.re'
 
 function charka( charOrNumber ){ // Converts number to char and vice versa
 	if( typeof charOrNumber === 'number' )

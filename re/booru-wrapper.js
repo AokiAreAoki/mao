@@ -5,6 +5,7 @@ module.exports = request_module => {
 	class Booru {
 		constructor( options ){
 			let all_options = {
+				name: 'unknown booru', // Just a name of booru
 				url: '', // API request URL
 				limit: 100, // Posts limit per request
 				page_offset: 1, // page offset

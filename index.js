@@ -103,7 +103,7 @@ const Gelbooru = new Booru({
 		json: '1',
 		_token: _tkns.booru_proxy,
 	},
-	limit: 100,
+	limit: 250,
 	keys: {
 		id: ( post, pic, tags ) => {
 			tags = tags.replace( /\s+/g, '+' )

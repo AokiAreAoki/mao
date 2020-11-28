@@ -1,59 +1,58 @@
 module.exports = request_module => {
 	const log = console.log
 	const req = request_module
+
+	const all_options = {
+		name: 'unknown booru', // Just a name of booru
+		url: '', // API request URL
+		limit: 100, // Posts limit per request
+		page_offset: 1, // page offset
+		qs: [ // API keywords
+			'tags', // here goes your tags
+			'page', // page keyword
+			'limit', // how many pics/posts should be requested
+			// * if some keys are not specified default keys will be used
+		],
+		const_qs: {}, // Table of constant keys
+		keys: {}, // Response keys
+		remove_other_keys: false,
+	}
 	
 	class Booru {
 		constructor( options ){
-			let all_options = {
-				name: 'unknown booru', // Just a name of booru
-				url: '', // API request URL
-				limit: 100, // Posts limit per request
-				page_offset: 1, // page offset
-				qs: [ // API keywords
-					'tags', // here goes your tags
-					'page', // page keyword
-					'limit', // how many pics/posts should be requested
-					// *if some keys not specified default keys will be used
-				],
-				const_qs: {}, // Table of constant keys
-				keys: {}, // Response keys
-				remove_other_keys: false,
-			}
-			
-			for( let k in all_options ){
-				let dv = all_options[k] // default value
-				
-				if( dv instanceof Array && options[k] instanceof Object ){
-					let array = {}
+			for( let key in all_options ){
+				let defaultValue = all_options[key]
+
+				if( defaultValue instanceof Array && options[key] instanceof Object ){
+					this[key] = {}
 					
-					dv.forEach( dk => {
-						if( typeof options[k][dk] === 'undefined' )
-							return array[dk] = dk
+					defaultValue.forEach( defaultKey => {
+						if( typeof options[key][defaultKey] === 'undefined' )
+							return this[key][defaultKey] = defaultKey
 							
-						if( typeof options[k][dk] === 'string' ){
-							array[dk] = options[k][dk].trim()
-							if( !array[dk] ) array[dk] = dk
+						if( typeof options[key][defaultKey] === 'string' ){
+							this[key][defaultKey] = options[key][defaultKey].trim()
+							if( !this[key][defaultKey] ) this[key][defaultKey] = defaultKey
 							return
 						}
 
-						array[dk] = options[k][dk]
+						this[key][defaultKey] = options[key][defaultKey]
 					})
 					
-					this[k] = array
 					continue
 				}
 
-				switch( typeof options[k] ){
+				switch( typeof options[key] ){
 					case 'string':
-						this[k] = dv.trim()
-						if( this[k] )
-							break;
+						this[key] = options[key].trim()
+						if( this[key] ) break
 					
 					case 'undefined':
-						this[k] = dv
+						this[key] = defaultValue
 
 					default:
-						this[k] = options[k]
+						this[key] = options[key]
+						break
 				}
 			}
 			
@@ -148,7 +147,9 @@ module.exports = request_module => {
 		Booru: Booru,
 		BooruResults: BooruResults,
 		Gelbooru: new Booru({
+			name: 'gelbooru.com',
 			url: 'https://gelbooru.com/index.php',
+			page_offset: 0,
 			qs: {
 				// tags keyword is "tags" by default
 				page: 'pid',
@@ -162,13 +163,24 @@ module.exports = request_module => {
 			},
 			limit: 100,
 			keys: {
-				id: '',
+				id: ( post, pic, tags ) => {
+					tags = tags.replace( /\s+/g, '+' )
+					pic.id = post.id
+					pic.post_url = `https://gelbooru.com/index.php?page=post&s=view&id=${pic.id}&tags=${tags}`
+				},
 				score: '',
 				// sample_url: 'sample',
 				// file_url: 'full',
-				file_url: ( old_pic, new_pic ) => {
-					new_pic.full = old_pic.file_url
-					new_pic.sample = new_pic.full.replace( /\/images\/((\w+\/)+)(\w+\.\w+)/, '/samples/$1sample_$3' )
+				file_url: ( post, pic ) => {
+					pic.full = post.file_url
+					
+					if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
+						pic.hasSample = post.sample == 1
+						pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
+							? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
+							: pic.full
+					} else
+						pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
 				}
 			},
 			remove_other_keys: true,

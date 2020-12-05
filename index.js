@@ -621,8 +621,12 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 				   break
 
 				case 'sb':
-				   code = code.substring( tag[0].length )
 				   var __sbox = true
+				   break
+
+				case 'noparse':
+				   code = code.substring( tag[0].length )
+				   var __noparse = true
 				   break
 
 				default:
@@ -664,17 +668,19 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 					return msg.send( ...args )
 				}
 
-				if( /<@!?(\d+)>/i.test( code ) ) // User
-					code = code.replace( /<@!?(\d+)>/gi, `here.guild.members.cache.get('$1')` )
+				if( !__noparse ){
+					if( /<@!?(\d+)>/i.test( code ) ) // User
+						code = code.replace( /<@!?(\d+)>/gi, `here.guild.members.cache.get('$1')` )
 
-				if( /<#(\d+)>/i.test( code ) ) // Channel
-					code = code.replace( /<#(\d+)>/gi, `here.guild.channels.cache.get('$1')` )
+					if( /<#(\d+)>/i.test( code ) ) // Channel
+						code = code.replace( /<#(\d+)>/gi, `here.guild.channels.cache.get('$1')` )
 
-				if( /<:[\w_]+:(\d+)>/i.test( code ) ) // Emojis
-					code = code.replace( /<:[\w_]+:(\d+)>/gi, `here.guild.emojis.cache.get('$1')` )
-				
-				if( /<@&(\d+)>/i.test( code ) ) // Roles
-					code = code.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` )
+					if( /<:[\w_]+:(\d+)>/i.test( code ) ) // Emojis
+						code = code.replace( /<:[\w_]+:(\d+)>/gi, `here.guild.emojis.cache.get('$1')` )
+					
+					if( /<@&(\d+)>/i.test( code ) ) // Roles
+						code = code.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` )
+				}
 
 				evaled = await eval( code )
 			} else {

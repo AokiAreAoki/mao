@@ -95,7 +95,7 @@ module.exports = {
 					.setFooter( 'Powered by ' + ( result.booru.name || 'unknown website' ) )
 				
 				if( pic.unsupportedExtention )
-					post.setDescription( `${post.description}\n\`${pic.unsupportedExtention}\` extention is not supported by Discord AFAIK. So open the [link](${pic.post_url}) to post manually to view it's *content*`)
+					post.setDescription( `[${tags}](${pic.post_url})\n\`${pic.unsupportedExtention}\` extention is not supported by Discord AFAIK. So open the [link](${pic.post_url}) to post manually to view it's *content*`)
 				else {
 					post.setDescription( `[${tags}](${pic.post_url})` )
 					post.setImage( pic.sample )

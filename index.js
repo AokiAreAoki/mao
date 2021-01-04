@@ -125,7 +125,7 @@ const Gelbooru = new Booru({
 				pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
 		}
 	},
-	remove_other_keys: true,
+	remove_other_keys: false,
 })
 
 const Yandere = new Booru({
@@ -151,7 +151,7 @@ const Yandere = new Booru({
 		file_url: 'full',
 		sample_url: 'sample',
 	},
-	remove_other_keys: true,
+	remove_other_keys: false,
 })
 
 function charka( charOrNumber ){ // Converts number to char and vice versa

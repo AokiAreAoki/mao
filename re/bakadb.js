@@ -327,13 +327,24 @@ class BakaDB extends events {
 				fs.unlinkSync( join( this.path, String( saves[k] ) ) )
 	}
 
+	_getConstructorName( constructor ){
+		return typeof constructor === 'string' ? constructor : ( typeof constructor === 'function' ? constructor : constructor.constructor ).name
+	}
+	
 	createCoder( constructor, encoder, decoder ){
-		constructor = typeof constructor == 'string' ? constructor : ( typeof constructor == 'function' ? constructor : constructor.constructor ).name
+		constructor = this._getConstructorName( constructor )
+		
 		this.coders[constructor] = {
 			encode: encoder,
 			decode: decoder,
 		}
 		this.emit( 'coder-created', constructor, this.coders[constructor] )
+	}
+
+	setRedirection( from, to ){
+		from = this._getConstructorName( from )
+		to = this._getConstructorName( to )
+		this.coders[from] = to
 	}
 
 	autoSave( seconds ){

@@ -208,15 +208,17 @@ function tts( table, maxtab=4, tab=0 ){
 	
 	for( var k in table ){
 		if( typeof table[k] == 'object' ){
+			str += tabstr(tab)
+			
 			if( table[k] !== null ){
 				if( __duplicates.includes( table[k] ) ){
-					str += 'Duplicate of ' + table[k].constructor.name
+					str += `Duplicate of ${table[k].constructor.name}\n`
 					continue
 				} else
 					__duplicates.push( table[k] )
 			}
 			
-			str += `${tabstr(tab) + k}: ${tts( table[k], maxtab, tab )}`
+			str += `${k}: ${tts( table[k], maxtab, tab )}`
 		} else {
 			if( isarray && !k.match( /^[0-9]*$/ ) )
 				continue
@@ -544,7 +546,7 @@ unshiftMessageHandler( 'commands', ( msg, edited ) => {
 			parseArgs( string_args, args, args_pos )
 			args[-1] = cmd_name
 
-			let get_string_args = ( number = 0 ) => typeof args_pos[number] == 'number' ? string_args.substring( args_pos[number] ) : ''
+			let get_string_args = ( number = 0 ) => typeof args_pos[number] === 'number' ? string_args.substring( args_pos[number] ) : null
 			get_string_args.args_pos = args_pos
 
 			if( cmd.func instanceof Function )

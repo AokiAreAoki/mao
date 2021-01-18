@@ -33,8 +33,10 @@ const __flags = {}
 		for( let k in __flags )
 			flags_array.push(k)
 
-		log( `Running Mao with next flags:\n    ${flags_array.join( '\n    ' )}\n` )
+		log( `Running Mao with next flags:\n    ${flags_array.join( '\n    ' )}` )
 	}
+
+	log()
 }
 
 // Including modules

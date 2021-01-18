@@ -9,11 +9,16 @@ function start(){
 		//console.log( `\nmao.js :: DO THE NICE, BAKA\n` )
 		// cp.exec( `nice...` )
 
-	mao.once( 'exit', () => {
-		console.log( '\nRestarting Mao...\n' )
+	mao.once( 'exit', code => {
+		console.log( `\nMao exited with code ${code}` )
+		
+		if( code == 228 ) // full exit code (will not restart)
+			return console.log( `Full exit code received. Mao won't be restarted. Exit.` )
+		
+		console.log( `Restarting Mao...\n` )
 		setTimeout( start, 228 )
 	})
 }
 
-console.log( '\nStarting Mao...\n' )
+console.log()
 start()

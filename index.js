@@ -1,15 +1,40 @@
 const log = console.log
-
 const __flags = {}
-{
-	let flags = {
-		'--testmode': 'testmode',
-	}
+
+{ // simple flag parser
+	let flags = {}
+	let noflags = true
+	let list_of_flags = [
+		'--testmode',
+		'--flags',
+	]
+		
+	list_of_flags.forEach( f => flags[f] = f.replace( /^-+/, '' ) )
 
 	process.argv.slice(2).forEach( flag => {
 		flag = flags[flag].toLowerCase()
-		if( flag ) __flags[flag] = true
+		if( flag ){
+			__flags[flag] = true
+			noflags = false
+		}
 	})
+
+	if( noflags )
+		log( `Running Mao with no flags` )
+	else {
+		if( __flags.flags ){
+			log( 'List of flags:' )
+			list_of_flags.forEach( f => log( `   ${f}` ) )
+			process.exit( 228 ) // full exit code
+		}
+
+		let flags_array = []
+
+		for( let k in __flags )
+			flags_array.push(k)
+
+		log( `Running Mao with next flags:\n    ${flags_array.join( '\n    ' )}\n` )
+	}
 }
 
 // Including modules

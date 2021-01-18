@@ -44,25 +44,25 @@ module.exports = {
 			}
 			
 			let game = games[gameid]
-			let text = String( typeof game.game == 'function' ? game.game() : game.game )
+			let text = String( typeof game.game === 'function' ? game.game() : game.game )
 			
-			if( gametext != text ){
+			if( gametext !== text ){
 				gametext = text
 				client.user.setActivity( text, { type: game.type } )
 			}
 		}
 
-		client.once( 'ready2', () => {
-			client.on( 'ready', () => {
-				gameid = 0
-				gametext = ''
-				nextgame = Date.now() + 15e3
-				updateActivity()
-			})
-			
+		function reset_games(){
+			gameid = 0
+			gametext = ''
 			nextgame = Date.now() + 15e3
 			timer.create( 'activities', 1.337, 0, updateActivity )
-			updateActivity()
+		}
+		mao.reset_games = reset_games
+		
+		client.once( 'ready2', () => {
+			client.on( 'ready', reset_games )
+			reset_games()
 		})
 	}
 }

@@ -34,7 +34,7 @@ module.exports = {
 		})
 		
 		setInterval( () => {
-			while( msgrate[0] < Date.now() ) msgrate.shift()
+			while( msgrate.length !== 0 && msgrate[0] < Date.now() ) msgrate.shift()
 		}, 1337 )
 		
 		function updateActivity(){

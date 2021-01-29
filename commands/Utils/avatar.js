@@ -29,7 +29,7 @@ module.exports = {
 			// Server icon
 			if( args[0].toLowerCase() === 'server' )
 				return msg.send( embed()
-					.setDescription( `**Server**'s icon` )
+					.setDescription( `Server icon` )
 					.setImage( msg.guild.iconURL({ size: 1024, dynamic: true }) )
 				)
 			

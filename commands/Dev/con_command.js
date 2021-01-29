@@ -4,7 +4,7 @@ module.exports = {
 		requirements.define( global )
 		
 		function exec( channel, command, delete_delay ){
-			cp.exec( command, ( error, stdout, stderr ) => {
+			cp.exec( command, { timeout: 5e3 }, ( error, stdout, stderr ) => {
 				if( error ){
 					let m = channel.send( 'Error:' + cb( error.toString().replace( /error:\s*/i, '' ) ) )
 					if( typeof delete_delay === 'number' ) m.then( m => m.delete( delete_delay * 1e3 ) )

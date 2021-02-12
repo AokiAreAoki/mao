@@ -45,13 +45,15 @@ module.exports = {
 				if( this.id === -1 )
 					return this.wakeupActivity
 
-				let customActivity
+				if( db.customActivities instanceof Array ){
+					let customActivity
 
-				while( customActivity = db.customActivities?.[0] ){
-					if( !isNaN( customActivity.deadline ) && isFinite( customActivity.deadline ) && customActivity.deadline > Date.now() )
-						return customActivity
+					while( customActivity = db.customActivities[0] ){
+						if( !isNaN( customActivity.deadline ) && isFinite( customActivity.deadline ) && customActivity.deadline > Date.now() )
+							return customActivity
 
-					db.customActivities.shift()
+						db.customActivities.shift()
+					}
 				}
 
 				return this.activities[this.id]

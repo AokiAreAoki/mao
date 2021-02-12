@@ -415,10 +415,11 @@ function include( path, overwrites ){
 	let inclusion = require( path )
 	let requirements = {}
 
-	inclusion.requirements.split( /\s+/ ).forEach( variable => {
-		if( variable )
-			requirements[variable.replace( /\./g, '_' )] = eval( variable )
-	})
+	if( inclusion.requirements )
+		inclusion.requirements.split( /\s+/ ).forEach( variable => {
+			if( variable )
+				requirements[variable.replace( /\./g, '_' )] = eval( variable )
+		})
 
 	if( inclusion.evaluations )
 		for( let k in inclusion.evaluations )

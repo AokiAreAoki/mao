@@ -57,7 +57,7 @@ module.exports = {
 				return this.activities[this.id]
 			}
 
-			static update(){	
+			static update(){
 				if( this.next < Date.now() ){
 					this.next = Date.now() + this.interval
 					this.id = ++this.id % this.activities.length
@@ -85,14 +85,14 @@ module.exports = {
 			}
 
 			static pushCustomActivity( deadline, type, callback ){
-				db.customActivities ??= []
+				db.customActivities = db.customActivities ?? []
 				let activity = Activity( type, callback )
 				activity.deadline = Number( deadline )
 				db.customActivities.push( activity )
 			}
 
 			static setCurrentCustomActivity( deadline, type, callback ){
-				db.customActivities ??= []
+				db.customActivities = db.customActivities ?? []
 				let activity = Activity( type, callback )
 				activity.deadline = Number( deadline )
 				db.customActivities[0] = activity

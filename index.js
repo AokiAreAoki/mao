@@ -1,83 +1,105 @@
 const log = console.log
 const __flags = {}
 
-{ // simple flag parser
-	let flags = {}
-	let noflags = true
-	let list_of_flags = [
-		'--testmode',
-		'--flags',
-	]
-		
-	list_of_flags.forEach( f => flags[f] = f.replace( /^-+/, '' ) )
+/// Some custom methods
+String.prototype.matchFirst = function( re, cb ){
+	let matched = this.match( re )
+	
+	if( matched )
+		matched = matched[1] ?? matched[0]
 
-	process.argv.slice(2).forEach( flag => {
-		flag = flags[flag].toLowerCase()
-		if( flag ){
-			__flags[flag] = true
-			noflags = false
-		}
-	})
+	if( matched && typeof cb === 'function' )
+		cb( matched )
 
-	if( noflags )
-		log( `Running Mao with no flags` )
-	else {
-		if( __flags.flags ){
-			log( 'List of flags:' )
-			list_of_flags.forEach( f => log( `   ${f}` ) )
-			process.exit( 228 ) // full exit code
-		}
-
-		let flags_array = []
-
-		for( let k in __flags )
-			flags_array.push(k)
-
-		log( `Running Mao with next flags:\n    ${flags_array.join( '\n    ' )}` )
-	}
-
-	log()
+	return matched
 }
 
-// Including modules
-let requireAndLog = module => {
-	let match = module.match( /^([^\/]+)\/([^\/]+)$/ )
-	let mod
+String.prototype.char = function(){
+	return this.charCodeAt()
+}
 
-	if( match ){
-		log( `    Requiring "${match[2]}" from "${match[1]}" module...` )
-		mod = require( match[1] )
+Number.prototype.char = function(){
+	return String.fromCharCode( this )
+}
 
-		if( typeof mod === 'undefined' || !mod )
-			log( `        Failed to require "${match[1]}" module.` )
-		else {
-			mod = mod[match[2]]
-			if( typeof mod === 'undefined' || !mod )
-				log( `        Failed to require "${match[2]}" from "${match[1]}" module.` )
-		}
-	} else {
-		log( `    Requiring "${module}" module...` )
-		mod = require( module )
+//////////  Simple flag parser  //////////
 
-		if( typeof mod === 'undefined' || !mod )
-			log( `        Failed to require "${module}" module.` )
+let flags = {}
+let noflags = true
+let list_of_flags = [
+	'--testmode',
+	'--flags',
+]
+	
+list_of_flags.forEach( f => flags[f] = f.replace( /^-+/, '' ) )
+
+process.argv.slice(2).forEach( flag => {
+	flag = flags[flag].toLowerCase()
+	if( flag ){
+		__flags[flag] = true
+		noflags = false
+	}
+})
+
+if( noflags )
+	log( `Running Mao with no flags` )
+else {
+	if( __flags.flags ){
+		log( 'List of flags:' )
+		list_of_flags.forEach( f => log( `   ${f}` ) )
+		process.exit( 228 ) // full exit code
 	}
 
-	return mod
+	let flags_array = []
+
+	for( let k in __flags )
+		flags_array.push(k)
+
+	log( `Running Mao with next flags:\n    ${flags_array.join( '\n    ' )}` )
+}
+
+log()
+
+//////////  Including modules  //////////
+
+let requireAndLog = ( module, submodule ) => {
+	let mod
+
+	if( submodule ){
+		log( `    Requiring "${submodule}" from "${module}" module...` )
+		
+		if( mod = require( module ) ){
+			if( mod = mod[submodule] )
+				return mod
+			
+			log( `        Failed to require "${submodule}" from "${module}" module.` )
+			return null
+		}
+		
+		log( `        Failed to require "${module}" module.` )
+		return null
+	}
+
+	log( `    Requiring "${module}" module...` )
+
+	if( mod = require( module ) )
+		return mod
+
+	log( `        Failed to require "${module}" module.` )
+	return null
 }
 
 log( 'Requiring modules:' )
 const fs = requireAndLog( 'fs' )
 const http = requireAndLog( 'http' )
 const https = requireAndLog( 'https' )
-const join = requireAndLog( 'path/join' )
+const join = requireAndLog( 'path', 'join' )
 const cp = requireAndLog( 'child_process' )
 const discord = requireAndLog( 'discord.js' )
 const ytdl = requireAndLog( 'ytdl-core-discord' )
 const jimp = requireAndLog( 'jimp' )
-const vm = requireAndLog( 'vm' )
 //const tgb = requireAndLog( 'node-telegram-bot-api' )
-const req = require( 'request' )
+const req = requireAndLog( 'request' )
 log()
 
 // Including my modules
@@ -105,7 +127,7 @@ const clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
 
 if( !fs.existsSync( './tokens.json' ) ){
 	log( '\nFile "tokens.json" does not exists, exit.' )
-	process.exit()
+	process.exit( 228 )
 }
 
 const _tkns = JSON.parse( read( './tokens.json' )
@@ -181,13 +203,7 @@ const Yandere = new Booru({
 	remove_other_keys: false,
 })
 
-function charka( charOrNumber ){ // Converts number to char and vice versa
-	if( typeof charOrNumber === 'number' )
-		return String.fromCharCode( charOrNumber )
-	else if( typeof charOrNumber === 'string' )
-		return charOrNumber.charCodeAt()
-	return null
-}
+//////////  Some Functions  //////////
 
 function numsplit( num ){
 	return String( num ).replace( /(\.|,)?\d+/g, ( match, comma, i, num ) =>
@@ -200,11 +216,6 @@ function read( path ){
 
 function embed(){
 	return new discord.MessageEmbed().setColor( maoclr )
-}
-
-String.prototype.matchFirst = function( re ){
-	let matched = this.match( re )
-	if( matched ) return matched[1] || matched[0]
 }
 
 function cb( text ){
@@ -287,17 +298,17 @@ function instanceOf( object, constructorName ){
 }
 
 function findMem( guild, name ){
-    guild = guild.guild || guild
+	guild = guild.guild || guild
 	const members = guild.members.cache.array()
 	name = name.toLowerCase()
-	
+
 	for( let i = 0; i < members.length; ++i ){
 		let m = members[i]
-		
+
 		if( m.nickname && m.nickname.toLowerCase().indexOf( name ) !== -1 || m.user.username.toLowerCase().indexOf( name ) !== -1 )
 			return m
 	}
-	
+
 	return null
 }
 
@@ -323,8 +334,9 @@ function httpGet( url, callback, errfunc ){
 	}).on( 'error', errfunc )
 }
 
-// Initializing BakaDB
-bakadb.init( __flags.testmode ? './test/bdb' : null, {
+//////////  Initializing BakaDB  //////////
+
+bakadb.init( __flags.testmode ? './test/bdb' : './bdb', {
 	List: List,
 })
 bakadb.autoSave( 3600 / 2 )
@@ -333,7 +345,8 @@ db = bakadb.db
 bakadb.on( 'missing-encoder', encoder => log( `[WARNING] Missing "${encoder}" encoder` ) ) 
 bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" decoder` ) ) 
 
-// Creating client
+//////////  Creating client  //////////
+
 const client = new discord.Client({
 	messageCacheLifetime: 1200,
 	messageSweepInterval: 72,
@@ -373,8 +386,9 @@ client.once( 'ready2', () => {
 	unshiftMessageHandler( 'waitFor', waitFor.handler )
 })
 
-// Message handlers
+//////////  Message handlers  //////////
 messageHandlers = []
+
 function addMessageHandler( description, callback ){
 	if( callback ) callback.description = description
 	else callback = description
@@ -410,7 +424,7 @@ client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
 	}
 })
 
-// Includer
+//////////  Including functions  /////
 function include( path, overwrites ){
 	let inclusion = require( path )
 	let requirements = {}
@@ -439,7 +453,6 @@ function include( path, overwrites ){
 	delete requirements
 }
 
-// Including functions
 log( 'Including functions:' )
 readdir( './functions' ).forEach( file => {
 	if( file.endsWith( '.js' ) ){
@@ -449,7 +462,7 @@ readdir( './functions' ).forEach( file => {
 })
 log()
 
-// Command manager
+//////////  Command manager  //////////
 _prefix = /^(-|(mao|мао)\s+)/i
 cmddata = {
 	prefix: _prefix,
@@ -587,7 +600,7 @@ unshiftMessageHandler( 'commands', ( msg, edited ) => {
 	}
 })
 
-// Eval
+//////////  Eval  //////////
 let smarteval = true
 let eval_prefix = /^>>+\s*/i
 
@@ -799,7 +812,7 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 	}
 })
 
-// Say "done" after including all
+//////////  Finish  //////////
 if( isOnlineOrInitialized ){
 	delete isOnlineOrInitialized
 	log( "I'm already online and finished initialization!" )

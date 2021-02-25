@@ -479,7 +479,8 @@ client.on( 'ready', () => {
 })
 
 function addCmd( module, command, description, callback ){
-	let m = module.toLowerCase()
+	module = module.replace( /\s+/g, ' ' )
+	let m = module.toLowerCase().replace( /\s/g, '_' )
 	let aliases = command.split( /\s+/ )
 	let cmd = aliases.shift()
 	
@@ -519,7 +520,7 @@ tree( 'Including commands:', ( print, fork ) => {
 			})
 		})
 	})
-	print( '' )
+	log()
 })
 
 function parseArgs( string_args, args, args_pos ){

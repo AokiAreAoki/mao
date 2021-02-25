@@ -661,9 +661,16 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 			here = msg.channel,
 			mem = msg.member,
 			me = msg.author,
-			prefix_length = said.matchFirst( eval_prefix )?.length
+			prefix = said.matchFirst( eval_prefix )
 
-		let [code, tags] = evalTags.parseAndCut( prefix_length ? said.substring( prefix_length ) : said )
+		if( prefix ){
+			if( !db.evalall?.[msg.author.id] )
+				return
+				
+			said = said.substring( prefix.length )
+		}
+
+		let [code, tags] = evalTags.parseAndCut( said )
 
 		if( tags.del ) await msg.delete()
 
@@ -794,8 +801,6 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 						.catch( err => msg.sendcb( err ) )
 
 					return abortHQ()
-				}
-					} 
 				}
 			} catch( err ){
 				msg.sendcb( err )

@@ -109,14 +109,15 @@ function re( module ){
 }
 
 log( 'Requiring custom modules:' )
-const tree = re( 'tree-printer' )
 const bakadb = re( 'bakadb' )
-const timer = re( 'timer' )
-const vec = re( 'vector' )
-const List = re( 'List' )
-const waitFor = re( 'waitFor' )
 const { Booru } = re( 'booru-wrapper' )( req )
+const TimeSplitter = re( 'time-splitter' )
+const List = re( 'List' )
 //const MyLang = re( 'MyLang' )
+const timer = re( 'timer' )
+const tree = re( 'tree-printer' )
+const vec = re( 'vector' )
+const waitFor = re( 'waitFor' )
 log()
 
 // Defining some shit

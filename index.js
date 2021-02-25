@@ -700,10 +700,10 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 
 			if( !tags.noparse ){
 				code = code
-					.replace( /<@!?(\d+)>/gi, `here.guild.members.cache.get('$1')` ) // User
-					.replace( /<#(\d+)>/gi, `here.guild.channels.cache.get('$1')` ) // Channel
-					.replace( /<:[\w_]+:(\d+)>/gi, `here.guild.emojis.cache.get('$1')` ) // Emojis
-					.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Roles
+					.replace( /<@!?(\d+)>/gi, `client.users.cache.get('$1')` ) // User
+					.replace( /<#(\d+)>/gi, `client.channels.cache.get('$1')` ) // Channel
+					.replace( /<:[\w_]+:(\d+)>/gi, `client.emojis.cache.get('$1')` ) // Emoji
+					.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Role
 			}
 
 			evaled = await eval( code )

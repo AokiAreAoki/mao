@@ -7,7 +7,7 @@ module.exports = {
 			short: 'turns evalall on/off',
 			full: `Turns evalall on or off\nIf evalall is on then Mao will try to evaluate everything you type in chat`
 		}, ( msg, args ) => {
-			let arg = args[0].toLowerCase()
+			let arg = args[0]?.toLowerCase()
 
 			switch( arg ){
 				case 'on':

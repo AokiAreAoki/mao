@@ -663,12 +663,10 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 			me = msg.author,
 			prefix = said.matchFirst( eval_prefix )
 
-		if( prefix ){
-			if( !db.evalall?.[msg.author.id] )
-				return
-				
+		if( prefix )
 			said = said.substring( prefix.length )
-		}
+		else if( !db.evalall?.[msg.author.id] )
+			return
 
 		let [code, tags] = evalTags.parseAndCut( said )
 

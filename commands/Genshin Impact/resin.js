@@ -9,10 +9,10 @@ module.exports = {
 		addCmd( 'resin', {
 			short: 'calcs time required to regenerate resin from N to M value',
 			full: `Usage: \`-resin <from> <to>\`\n\nCalcs time required for resin to regenerate from \`<from>\` to \`<to>\`\n\nExamples:`
-			+ '\n    `-resin 60` - calcs time required for resin to regenerate from 0 to 60'
-			+ '\n    `-resin 15 40` - calcs time required for resin to regenerate from 15 to 40'
-			+ '\n    `-resin 123 max` - calcs time required for resin to regenerate from 123 to max (160)'
-			+ '\n        `max` also has an alias: `full`'
+			+ '\n`-resin 60` - calcs time required for resin to regenerate from 0 to 60'
+			+ '\n`-resin 15 40` - calcs time required for resin to regenerate from 15 to 40'
+			+ '\n`-resin 123 max` - calcs time required for resin to regenerate from 123 to max (160)'
+			+ '\n    `max` also has an alias: `full`'
 		}, ( msg, args ) => {
 			let [from, to] = args
 

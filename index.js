@@ -674,7 +674,7 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 
 		code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s, it => code = it )
 		
-		let __printerr = !!prefix_length
+		let __printerr = !!prefix
 		let abortHandlersQueue = false
 		let abortHQ = () => abortHandlersQueue = true
 

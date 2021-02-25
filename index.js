@@ -587,237 +587,202 @@ unshiftMessageHandler( 'commands', ( msg, edited ) => {
 	}
 })
 
-// Sandbox for eval
-sandboxenabled = false
-sandbox = vm.createContext({
-	vec: vec,
-})
-
 // Eval
 let smarteval = true
 let eval_prefix = /^>>+\s*/i
 
-client.on( 'ready', () => {
-	eval_prefix = new RegExp( `^(>>+|<@!?${client.user.id}>)\\s*`, 'i' )
-})
+client.on( 'ready', () => eval_prefix = new RegExp( `^(>>+|<@!?${client.user.id}>)\\s*`, 'i' ) )
+
+class EvalTags {
+	constructor( tags ){
+		this.tags = new List( tags )
+	}
+
+	parseAndCutFirstTag( code ){
+		let tag = null,
+			value = null
+
+		code.matchFirst( /^\s*([A-Za-z]+)/, matched => {
+			if( this.tags[matched] ){
+				tag = matched
+				code = code.trimLeft().substring( tag.length )
+
+				if( code[0] === ':' ){
+					value = code.matchFirst( /^.(\w+)/ ) ?? ''
+					code = code.substring( value.length + 1 )
+				}
+			}
+		})
+
+		return [code, tag, value]
+	}
+
+	parseAndCut( code ){
+		let tag, value,
+			tags = {}
+
+		do {
+			[code, tag, value] = this.parseAndCutFirstTag( code )
+			if( !tag ) break
+			tags[tag] = { value }
+		} while( true )
+
+		return [code, tags]
+	}
+}
+
+const evalTags = new EvalTags([
+	'cb',
+	'tts',
+	'del',
+	'silent',
+	'noparse',
+])
 
 unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 	let ismaster = msg.author instanceof discord.User && msg.author.isMaster()
 
-	/// TODO: Sandbox
-	/// TODO: Fix eval
-
-	if( ismaster || ( sandboxenabled && allowJSGuilds.includes( msg.guild.id ) && !msg.author.bot ) ){
+	if( ismaster ){
 		let said = msg.content,
 			here = msg.channel,
+			mem = msg.member,
 			me = msg.author,
-			ec = said.match( eval_prefix )
+			prefix_length = said.matchFirst( eval_prefix )?.length
 
-		if( ec )
-			ec = ec[0]
-		else {
-			if( !smarteval ) return
-			ec = ''
-		}
+		let [code, tags] = evalTags.parseAndCut( prefix_length ? said.substring( prefix_length ) : said )
+
+		if( tags.del ) await msg.delete()
+
+		code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s, it => code = it )
 		
-		let code = said.substring( ec.length )
-		//if( code.match( // ) ) return true
-		
-		let checktag = true
-
-		while( checktag ){
-			let tag = code.match( /^\s*([A-Za-z]+)(?=[\s\n```])/ )
-			if( !tag ) break
-
-			switch( tag[1].toLowerCase() ){
-				case 'cb':
-					code = code.substring( tag[0].length )
-					var __printcb = true
-					break
-
-				case 'tts':
-					code = code.substring( tag[0].length )
-					var __printtts = true
-					break
-
-				case 'del':
-				   code = code.substring( tag[0].length )
-				   var __deletmsg = true
-				   break
-
-				case 'silent':
-				   code = code.substring( tag[0].length )
-				   var __silent = true
-				   break
-
-				case 'sb':
-				   var __sbox = true
-				   break
-
-				case 'noparse':
-				   code = code.substring( tag[0].length )
-				   var __noparse = true
-				   break
-
-				default:
-					checktag = false
-					break
-			}
-		}
-		
-		if( __deletmsg ) await msg.delete()
-
-		let codeblock = code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s )
-		if( codeblock ) code = codeblock
-
-		let __printerr = ec.length > 0
+		let __printerr = !!prefix_length
 		let abortHandlersQueue = false
 		let abortHQ = () => abortHandlersQueue = true
 
 		try {
-			if( __printerr && !code.match( /\S/ ) ){
+			if( __printerr && !code.match( /\S/ ) )
 				return
-				//msg.send( 'Gimme code baka~!' )
-				//return abortHQ()
-			}
 
-			//let fs = "sosni ka"
 			let evaled, __output = ''
-			
-			if( ismaster && !__sbox ){
-				function print( ...args ){
-					if( __output ) __output += '\n'
+		
+			function print( ...args ){
+				if( __output )
+					__output += '\n'
 
-					args.forEach( ( v, k ) => {
-						if( k > 0 ) __output += '\t'
-						__output += String( v )
-					})
-				}
-
-				function say( ...args ){
-					return msg.send( ...args )
-				}
-
-				if( !__noparse ){
-					if( /<@!?(\d+)>/i.test( code ) ) // User
-						code = code.replace( /<@!?(\d+)>/gi, `here.guild.members.cache.get('$1')` )
-
-					if( /<#(\d+)>/i.test( code ) ) // Channel
-						code = code.replace( /<#(\d+)>/gi, `here.guild.channels.cache.get('$1')` )
-
-					if( /<:[\w_]+:(\d+)>/i.test( code ) ) // Emojis
-						code = code.replace( /<:[\w_]+:(\d+)>/gi, `here.guild.emojis.cache.get('$1')` )
-					
-					if( /<@&(\d+)>/i.test( code ) ) // Roles
-						code = code.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` )
-				}
-
-				evaled = await eval( code )
-			} else {
-				/*let script = new vm.Script( code, {
-					filename: 'sandbox.js',
-					timeout: 30e3,
-				})*/
-
-				sandbox.msg = msg.content
-				sandbox.print = ( ...args ) => {
-					if( __output ) __output += '\n'
-
-					args.forEach( ( v, k ) => {
-						if( k > 0 ) __output += '\t'
-						__output += String( v )
-					})
-				}
-
-				evaled = vm.runInContext( code, sandbox, { filename: 'sandbox.js', timeout: 3e3 } )
+				args.forEach( ( v, k ) => {
+					if( k > 0 ) __output += '\t'
+					__output += String( v )
+				})
 			}
 
-			if( __silent ) return abortHQ()
+			function say( ...args ){
+				return msg.send( ...args )
+			}
 
-			let printEvaled = ( () => {
-				if( typeof evaled != 'undefined' || __printerr ){
-					if( __printtts ){
-						if( typeof evaled !== 'object' ){
-							//msg.sendcb( `TTSError: object expected, got ${typeof evaled}` )
-							//return false
-							evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
-						} else
-							evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled )}`
-					} else {
-						switch( typeof evaled ){
-							case 'undefined': 
-								evaled = 'undefined'
-								break
+			if( !tags.noparse ){
+				code = code
+					.replace( /<@!?(\d+)>/gi, `here.guild.members.cache.get('$1')` ) // User
+					.replace( /<#(\d+)>/gi, `here.guild.channels.cache.get('$1')` ) // Channel
+					.replace( /<:[\w_]+:(\d+)>/gi, `here.guild.emojis.cache.get('$1')` ) // Emojis
+					.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Roles
+			}
 
-							case 'number':
-								if( !__printerr && !__printcb && code === String( evaled ) ) return false
-								evaled = numsplit( evaled )
-								break
+			evaled = await eval( code )
 
-							case 'string':
-								if( !__printerr && !__printcb && code[0] === code[code.length - 1] && '"\'`'.search( code[0] ) + 1 )
-									if( code.substring( 1, code.length - 1 ) === evaled )
-										return false
-								break
+			if( tags.silent )
+				return abortHQ()
 
-							case 'object':
-								if( !__printerr ) return false
-								break
-								
-							case 'function':
-								evaled = '```JS\n' + String( evaled ) + '```'
-								var __printcb = false
-								break
-						   }
-					}
-					
-					if( typeof evaled == 'object' ){
-						if( evaled === null ){
-							evaled = 'null'
-						} else {
-							switch( evaled.constructor.name ){
-								case 'MessageEmbed':
-									__printcb = false
-									break
-
-								case 'Jimp':
-									evaled.getBuffer( jimp.AUTO, ( err, buffer ) => {
-										if( err ) msg.sendcb( err )
-										else msg.send( { files: [buffer] } )
-									})
-
-									return false
-									break
-
-								default:
-									evaled = String( evaled )
-									break
-							}
-						}
-					}
+			let printEvaled = !!( () => {
+				if( tags.tts ){
+					evaled = typeof evaled === 'object'
+						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled )}`
+						: evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
 
 					return true
 				}
+				
+				switch( typeof evaled ){
+					case 'undefined':
+							case 'undefined': 
+					case 'undefined':
+					case 'boolean':
+					case 'bigint':
+					case 'symbol':
+						evaled = String( evaled )
+						return __printerr
 
-				return false
+					case 'number':
+						if( !__printerr && !tags.cb && code === String( evaled ) )
+							return
+						evaled = numsplit( evaled )
+						break
+
+					case 'string':
+						if( !__printerr && !tags.cb && code[0] === code[code.length - 1] && '"\'`'.search( code[0] ) + 1 )
+							if( code.substring( 1, code.length - 1 ) === evaled )
+								return
+						break
+
+					case 'object':
+						if( !__printerr )
+							return
+								
+						if( evaled === null ){
+							evaled = 'null'
+							return true
+						}
+						
+						switch( evaled.constructor.name ){
+							case 'MessageEmbed':
+								tags.cb = false
+								break
+
+							case 'Jimp':
+								evaled.getBuffer( jimp.AUTO, ( err, buffer ) => {
+									if( err ) msg.sendcb( err )
+									else msg.send( { files: [buffer] } )
+								})
+
+								return
+
+							default:
+								evaled = String( evaled )
+								break
+						}
+						break
+						
+					case 'function':
+						evaled = '```JS\n' + String( evaled ) + '```'
+						tags.cb = false
+						break
+						
+					default:
+						evaled = cb( `Result parse error: unknown type "${typeof evaled}" of evaled` )
+				}
+
+				return true
 			})()
 
 			try {
-				if( printEvaled ){
-					if( __output && typeof evaled != 'object' ){
+				if( typeof evaled !== 'string' )
+					return
+
+				if( __output ){
+					if( printEvaled )
 						__output += '\n' + String( evaled )
-					} else {
-						if( __output ) msg.sendcb( __output )
-						if( typeof evaled == 'string' && !__printcb && !msg.member.hasPermission( discord.Permissions.FLAGS.EMBED_LINKS ) )
-							evaled = evaled.replace( /(https?:\/\/[\w/#%@&$?=+.,:;]+)/, '<$1>' )
 
-						msg.send( __printcb ? cb( evaled ) : evaled )
-							.catch( err => msg.sendcb( err ) )
-						return abortHQ()
+					msg.sendcb( __output )
+				} else if( printEvaled ){
+					if( !tags.cb && !msg.member.hasPermission( discord.Permissions.FLAGS.EMBED_LINKS ) )
+						evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
+
+					msg.send( tags.cb ? cb( evaled ) : evaled )
+						.catch( err => msg.sendcb( err ) )
+
+					return abortHQ()
+				}
 					} 
-				} 
-
-				if( __output ) msg.sendcb( __output )
+				}
 			} catch( err ){
 				msg.sendcb( err )
 			}

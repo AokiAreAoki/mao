@@ -18,7 +18,7 @@ module.exports = {
 
 			if( to )
 				to = to?.toLowerCase()
-			else
+			else if( from )
 				[from, to] = [0, from]
 
 			if( isNaN( from = parseInt( from ) ) )

@@ -15,11 +15,14 @@ module.exports = {
 			+ '\n    `max` also has an alias: `full`'
 		}, ( msg, args ) => {
 			let [from, to] = args
+			let oneArg = false
 
 			if( to )
 				to = to?.toLowerCase()
-			else if( from )
+			else if( from ){
+				oneArg = true
 				[from, to] = [0, from]
+			}
 
 			if( isNaN( from = parseInt( from ) ) )
 				return msg.send( '`-help resin` for help' )
@@ -46,7 +49,10 @@ module.exports = {
 				formatter: ( value, unit, units ) => `\`${value} ${units}\``
 			})
 
-			msg.send( `Resin will regenerate from \`${from}\` to \`${to}\` in ${timeleft} ± \`${minutesPerResin / 2} minutes\`` )
+			if( oneArg )
+				msg.send( `\`${to}\` resin will be regenerated in ${timeleft} ± \`${minutesPerResin / 2} minutes\`` )
+			else
+				msg.send( `Resin will regenerate from \`${from}\` to \`${to}\` in ${timeleft} ± \`${minutesPerResin / 2} minutes\`` )
 		})
 	}
 }

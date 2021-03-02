@@ -701,7 +701,7 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 
 			if( !tags.noparse ){
 				code = code
-					.replace( /<@!?(\d+)>/gi, `client.users.cache.get('$1')` ) // User
+					.replace( /<@!?(\d+)>/gi, `( here.guild.members.cache.get('$1') || client.users.cache.get('$1') )` ) // Member || User
 					.replace( /<#(\d+)>/gi, `client.channels.cache.get('$1')` ) // Channel
 					.replace( /<:[\w_]+:(\d+)>/gi, `client.emojis.cache.get('$1')` ) // Emoji
 					.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Role

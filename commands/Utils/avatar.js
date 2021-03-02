@@ -6,7 +6,7 @@ module.exports = {
 		function sendAvatar( messageOrChannel, userOrMember ){
 			const user = userOrMember.user || userOrMember
 			
-			if( !instanceOf( user, 'User' ) ) return
+			if( !instanceOf( user, 'User' ) && !instanceOf( user, 'ClientUser' ) ) return
 			if( !instanceOf( messageOrChannel, 'Message' ) && !instanceOf( messageOrChannel, 'TextChannel' ) ) return
 			
 			messageOrChannel.send( embed()

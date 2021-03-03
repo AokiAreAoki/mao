@@ -3,6 +3,7 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
+		// send and cut the message if > 2000 chars
 		const ending = '\n...'
 
 		discord.TextChannel.prototype.original_send = discord.TextChannel.prototype.send
@@ -15,10 +16,12 @@ module.exports = {
 			return this.original_send( content, options )
 		}
 
+		// send in codeblock
 		discord.TextChannel.prototype.sendcb = function( message, options ){
 			return this.send( cb( message ), options )
 		}
 
+		// old delete
 		discord.Message.prototype.original_delete = discord.Message.prototype.delete
 		discord.Message.prototype.delete = function( timeOrOptions ){
 			if( typeof timeOrOptions == 'number' )
@@ -27,6 +30,7 @@ module.exports = {
 				this.original_delete( timeOrOptions )
 		}
 
+		// send and bind to `this` message
 		discord.Message.prototype.send = async function( content, options ){
 			let promise = this.channel.send( content, options )
 			
@@ -36,6 +40,7 @@ module.exports = {
 			return promise
 		}
 		
+		// send in codeblock and bind to `this` message
 		discord.Message.prototype.sendcb = async function( content, options ){
 			let promise = this.channel.sendcb( content, options )
 			
@@ -45,6 +50,7 @@ module.exports = {
 			return promise
 		}
 		
+		// reply and bind to `this` message
 		discord.Message.prototype.original_reply = discord.Message.prototype.reply
 		discord.Message.prototype.reply = function( content, options ){
 			let promise = this.original_reply( content, options )
@@ -55,6 +61,7 @@ module.exports = {
 			return promise
 		}
 
+		// advanced setActivity
 		let repeat,
 			quota = 0,
 			quotaReset = 0,

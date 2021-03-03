@@ -54,5 +54,36 @@ module.exports = {
 			
 			return promise
 		}
+
+		let repeat,
+			quota = 0,
+			quotaReset = 0,
+			lastRequest = 0
+
+		discord.ClientUser.prototype.original_setActivity = discord.ClientUser.prototype.setActivity
+		discord.ClientUser.prototype.setActivity = function( name, options ){
+			if( quotaReset < Date.now() ){
+				// quota will reset in 20 seconds + 1 second to be sure and compensate the ping
+				quotaReset = Date.now() + 21e3
+				quota = 0
+			}
+			
+			let nextRequest = quotaReset - Date.now() + 1
+
+			if( quota < 5 ){
+				nextRequest = lastRequest + 3500 - Date.now()
+				
+				if( nextRequest < 0 ){
+					this.original_setActivity( name, options )
+					++quota
+					lastRequest = Date.now()
+					return true
+				}
+			}
+				
+			clearTimeout( repeat )
+			repeat = setTimeout( () => this.setActivity( name, options ), nextRequest )
+			return false
+		}
 	}
 }

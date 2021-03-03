@@ -3,14 +3,13 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
-		let ending = '\n...'
+		const ending = '\n...'
 
 		discord.TextChannel.prototype.original_send = discord.TextChannel.prototype.send
 		discord.TextChannel.prototype.send = function( content, options ){
 			if( typeof content === 'string' && content.length > 2000 ){
 				let cb = content.matchFirst( /```$/ ) || ''
-				content = content.substring( 0, 2000 - ending.length - cb.length )
-				content += ending + cb
+				content = content.substring( 0, 2000 - ending.length - cb.length ) + ending + cb
 			}
 
 			return this.original_send( content, options )

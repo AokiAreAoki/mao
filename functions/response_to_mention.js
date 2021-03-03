@@ -18,18 +18,19 @@ module.exports = {
 			insult   // = /^(mao|мао)([~_\-\s]((ch|s)an|чан|сан|тян))?~?\s*((stupid|shit)\s+bot|baka|бака|дура|дурында)\s*~?[!.]?$/i
 		
 		client.on( 'ready', () => {
-			mention = new RegExp( `^(mao|мао|<@!?${client.user.id}>)([~_\\-\\s]((ch|s)an|чан|сан|тян))?~?[!.]?$`, 'i' )
-			insult  = new RegExp( `^(mao|мао|<@!?${client.user.id}>)([~_\\-\\s]((ch|s)an|чан|сан|тян))?~?\\s*((stupid|shit)\\s+bot|baka|бака|дура|дурында)\\s*~?[!.]?$`, 'i' )
+			mention = new RegExp( `^(?:mao|мао|<@!?${client.user.id}>)(?:[~_-\\s](?:(?:ch|s)an|чан|сан|тян))?([.?!~]*)$`, 'i' )
+			insult  = new RegExp( `^(mao|мао|<@!?${client.user.id}>)([~_-\\s]((ch|s)an|чан|сан|тян))?\\s*((stupid|shit)\\s+bot|baka|бака|дура|дурында)\\s*[.?!~]*$`, 'i' )
 		})
 		
 		addMessageHandler( 'mention response', msg => {
 			if( msg.author.id == client.user.id || msg.author.bot ) return
 			
-			if( insult.test( msg.content ) )
-				msg.reply( 'no u' )
+			let match = msg.content.match( mention )
 
-			if( mention.test( msg.content ) )
-				msg.send( getRandomResponse( msg.member ) + ( msg.content.matchFirst( /(~?[!.]?)$/ ) || '' ) )
+			if( match )
+				msg.send( getRandomResponse( msg.member ) + ( match[1] || '' ) )
+			else if( insult.test( msg.content ) )
+				msg.reply( 'no u' )
 		})
 	}
 }

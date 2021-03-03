@@ -57,6 +57,11 @@ module.exports = {
 				return this.activities[this.id]
 			}
 
+			static init( client ){
+				client.on( 'ready', () => ActivityManager.reset() )
+				this.reset()
+			}
+
 			static update(){
 				if( this.next < Date.now() ){
 					this.next = Date.now() + this.interval
@@ -98,12 +103,9 @@ module.exports = {
 				db.customActivities[0] = activity
 			}
 		}
-		mao.AM = ActivityManager
 		
-		client.once( 'ready2', () => {
-			ActivityManager.reset()
-			client.on( 'ready', ActivityManager.reset )
-		})
+		mao.AM = ActivityManager
+		client.once( 'ready2', () => AM.init( client ) )
 
 		// uptime
 		ActivityManager.pushActivity( 'PLAYING', () => {

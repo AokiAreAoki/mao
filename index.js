@@ -200,6 +200,7 @@ const Yandere = new Booru({
 		score: '',
 		file_url: 'full',
 		sample_url: 'sample',
+		created_at: ( post, pic ) => pic.created_at = post.created_at * 1000
 	},
 	remove_other_keys: false,
 })

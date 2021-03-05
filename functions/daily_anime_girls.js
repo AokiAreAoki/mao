@@ -1,66 +1,21 @@
 module.exports = {
-	requirements: 'client httpGet db bakadb Gelbooru Yandere',
+	requirements: 'client httpGet db bakadb Gelbooru Yandere discord',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
-		// guilds::channels::tags
-		let sources = {
-			/*
-			gelbooru: {
-				//url: 'https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&tags=',
-				url: 'https://aoki.000webhostapp.com/glbr/?page=dapi&s=post&q=index&json=1&_token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&tags=',
-				postURL: id => 'https://gelbooru.com/index.php?page=post&s=view&id=' + id,
-				key: 'file_url',
-				domen: 'gelbooru.com',
-				xml: false,
-			},
-			yandere: {
-				//url: 'https://yande.re/post.json?page=1&limit=100&tags=',
-				url: 'https://aoki.000webhostapp.com/yndr/?_token=V4OrT6KatVcyHOLaDIVC6yQTNp3RVFKMa47Obwdvee4dc&tags=',
-				postURL: id => 'https://yande.re/post/show/' + id,
-				key: 'sample_url',
-				domen: 'yande.re',
-				xml: false,
-			},
-			*/
+		const sources = {
 			gelbooru: Gelbooru,
 			yandere: Yandere,
-		}
-		
-		// Debugger
-		function post_anime_girls(){
-			db.last_daily_girls = 0
-			check()
-		}
-		
-		let last_posts = []
-		async function undo_last_posts(){
-			if( last_posts.length === 0 )
-				return false
-			
-			await last_posts.pop().forEach( async post => {
-				let chnl = client.channels.cache.get( post.channel_id )
-				let msg = await chnl.messages.fetch( post.message_id )
-				msg.edit( embed()
-					.setDescription( 'Deleted' )
-					.setColor( 0xFF0000 )
-				).then( () => msg.delete( 3752 ) )
-			})
-			
-			return true
-		}
-		
-		mao._pag = post_anime_girls
-		mao._pag_undo = undo_last_posts
-		
-		function log( text ){
-			if( text ) console.log( '[DAG] ' + text )
 		}
 		
 		function capitalize( text ){
 			return text[0].toUpperCase() + text.substring(1)
 		}
 		
+		function stringDayMonth( date ){
+			return date.getDate().toString() + '/' + ( date.getMonth() + 1 ).toString()
+		}
+
 		function parseXML( xml ){
 			let posts = xml.match( /<post\s+(.+?)\/>/gm )
 			let result = []
@@ -77,88 +32,208 @@ module.exports = {
 			
 			return result
 		}
-		
-		async function check(){
-			let now = new Date(),
-				today = now.getDate().toString() + '/' + ( now.getMonth() + 1 ).toString()
+	
+		// Main function
+		async function postAnimeGirls( channel ){
+			// "*" passed
+			if( channel === '*' ){
+				const guilds = bakadb.get( 'daily_girls' )
+
+				if( guilds ){
+					let guild
+
+					for( let guild_id in guilds )
+						if( guild = client.guilds.cache.get( guild_id ) )
+							postAnimeGirls( guild )
+
+					return true
+				}
+
+				return false
+			}
+
+			// Guild passed
+			if( channel instanceof discord.Guild ){
+				const guild = channel
+				const channels = bakadb.get( 'daily_girls', guild.id )
+
+				if( channels ){
+					for( let channel_id in channels )
+						postAnimeGirls( channel_id )
+
+					return true
+				}
+
+				return false
+			}
+
+			// Channel passed
+			if( typeof channel === 'number' )
+				channel = String( channel )
+
+			if( typeof channel === 'string' )
+				channel = client.channels.cache.get( channel )
+
+			if( channel instanceof discord.TextChannel ){
+				if( !( channel.guild instanceof discord.Guild ) )
+					throw new Error( 'The channel have no guild' )
+			} else
+				throw new Error( 'The channel arg must be an instance of Discord.TextChannel or an ID of a channel' )
 			
-			if( db.last_daily_girls === today ) return
+			let dailies = bakadb.get( 'daily_girls', channel.guild.id, channel.id )
+
+			if( !dailies )
+				throw new Error( 'This channel have no dailies setup' )
+
+			let { src, tags } = dailies
+			tags = tags ?? ''
+			const Booru = sources[src]
+			const today = stringDayMonth( new Date() )
+			
+			if( !Booru )
+				throw new Error( `ERROR: Unknown source "${src}"` )
+			
+			let message = await channel.send( embed()
+				.addField( 'Parsing daily anime girls...', `Tags: ${tags ? `\`${tags}\`` : 'no tags'}` )
+				.setFooter( 'Powered by ' + Booru.name )
+			)
+	
+			if( channel.last_posts )
+				undoAnimeGirls( channel, today )
+			else
+				channel.last_posts = []
+
+			channel.last_posts.push({
+				channel_id: channel.id,
+				message_id: message.id,
+				date: today,
+			})
+			
+			Booru.q( tags ).then( res => {
+				if( res.pics.length === 0 ){
+					message.edit( embed()
+						.setDescription( `Tag(s) \`${tags}\` not found :(` )
+						.setColor( 0xFF0000 )
+					)
+					return
+				}
+				
+				const pics = res.pics.filter( pic => Date.now() - ( new Date( pic.created_at ).getTime() ) < 86400e3 )
+
+				if( pics.length === 0 ){
+					message.edit( embed()
+						.setDescription( `Nothing new were posted today :(` )
+						.setColor( 0xFF8000 )
+					)
+					return
+				}
+
+				// Choose a pic with the best score or else the first one
+				const pic = pics.reduce( ( final_pic, cur_pic ) => final_pic.score < cur_pic.score ? cur_pic : final_pic, pics[0] )
+				
+				let tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ), // ?tags= param remover
+					title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
+					url = pic.post_url.replace( tagsParam, '' )
+					
+				message.edit( embed()
+					.setDescription( `[${title}](${url})` )
+					.setImage( pic.sample )
+					.setFooter( 'Powered by ' + Booru.name )
+				)
+			}).catch( err => {
+				message.edit( cb( err ) )
+			})
+		}
+
+		// Undo function
+		function undoAnimeGirls( channel, date = stringDayMonth( new Date() ) ){
+			// "*" passed
+			if( channel === '*' ){
+				const guilds = bakadb.get( 'daily_girls' )
+
+				if( guilds ){
+					let guild
+
+					for( let guild_id in guilds )
+						if( guild = client.guilds.cache.get( guild_id ) )
+							undoAnimeGirls( guild, date )
+
+					return true
+				}
+
+				return false
+			}
+
+			// Guild passed
+			if( channel instanceof discord.Guild ){
+				const guild = channel
+				const channels = bakadb.get( 'daily_girls', guild.id )
+
+				if( channels ){
+					for( let channel_id in channels )
+						undoAnimeGirls( channel_id, date )
+
+					return true
+				}
+
+				return false
+			}
+
+			// Channel passed
+			if( typeof channel === 'number' )
+				channel = String( channel )
+
+			if( typeof channel === 'string' )
+				channel = client.channels.cache.get( channel )
+
+			if( channel instanceof discord.TextChannel ){
+				if( !( channel.guild instanceof discord.Guild ) )
+					throw new Error( 'The channel have no guild' )
+			} else
+				throw new Error( 'The channel arg must be an instance of Discord.TextChannel or an ID of a channel' )
+			
+			if( channel.last_posts ){
+				let posts = channel.last_posts.filter( post => post.date === date )
+				// postS in case if smth bad happen and there will be more than 1 post at the same day
+
+				if( posts.length > 0 ){
+					posts.forEach( async post => {
+						let msg = await client.channels.cache.get( post.channel_id )?.messages.fetch( post.message_id )
+
+						if( msg?.deletable )
+							msg.delete()
+					})
+
+					channel.last_posts = channel.last_posts.filter( post => post.date !== date )
+					return true
+				}
+
+				return false
+			}
+
+			channel.last_posts = []
+			return false
+		}
+
+		// Access to function from main scope
+		mao.dag = {
+			standsfor: 'daily anime girls',
+			post: postAnimeGirls,
+			undo: undoAnimeGirls,
+		}
+		
+		// Poster
+		async function check(){
+			const today = stringDayMonth( new Date() )
+			
+			if( db.last_daily_girls === today )
+				return
+
 			db.last_daily_girls = today
 			bakadb.save()
 			
-			const pagid = last_posts.length
-			last_posts.push([])
-
-			for( let gid in db.daily_girls ){
-				for( let chid in db.daily_girls[gid] ){
-					let guild = client.guilds.cache.get( gid )
-					
-					if( !guild ){
-						log( `ERROR: Guild not found (ID: "${gid}")` )
-						break
-					}
-					
-					let channel = guild.channels.cache.get( chid )
-					
-					if( !channel ){
-						log( `ERROR: Channel not found (ID: "${gid}/${chid}")` )
-						continue
-					}
-					
-					let tags = db.daily_girls[gid][chid].tags
-					let message = await channel.send( embed()
-						.addField( 'Parsing daily anime girl...', `Tags: ${tags ? `\`${tags}\`` : 'no tags'}` )
-						.setFooter( 'Today: ' + today )
-					)
-					tags = tags || ''
-					
-					let Booru = sources[db.daily_girls[gid][chid].src]
-					
-					if( !Booru ){
-						log( `ERROR: Unknown source "${db.daily_girls[gid][chid].src}"` )
-						return
-					}
-					
-					Booru.q( tags )
-						.then( results => {
-							let pics = results.pics
-
-							if( pics.length == 0 )
-								return message.edit( embed()
-									.setDescription( `Tag(s) \`${tags}\` not found :c` )
-									.setColor( 0xFF0000 )
-								)
-							
-							let score = 0, r = 0
-							
-							pics.forEach( ( pic, k ) => {
-								if( Date.now() - ( new Date( pic.created_at ).getTime() ) < 86400e3 && score < pic.score ){
-									score = pic.score
-									r = k
-								}
-							})
-							
-							let tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ), // ?tags= param remover
-								title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
-								url = pics[r].post_url.replace( tagsParam, '' )
-								
-							message.edit( embed()
-								.setDescription( `[${title}](${url})` )
-								.setImage( pics[r].sample )
-								.setFooter( 'Powered by ' + Booru.name )
-							).then( m => last_posts[pagid].push({
-								channel_id: m.channel.id,
-								message_id: m.id,
-							}))
-						})
-						.catch( err => {
-							message.edit( cb( err ) ).then( m => last_posts[pagid].push({
-								channel_id: m.channel.id,
-								message_id: m.id,
-							}))
-						})
-				}
-			}
+			postAnimeGirls( '*' )
+				.catch( console.log )
 		}
 		
 		client.on( 'ready2', () => {

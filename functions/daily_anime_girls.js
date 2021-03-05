@@ -200,8 +200,13 @@ module.exports = {
 					posts.forEach( async post => {
 						let msg = await client.channels.cache.get( post.channel_id )?.messages.fetch( post.message_id )
 
-						if( msg?.deletable )
-							msg.delete()
+						if( msg?.deletable ){
+							await msg.edit( embed()
+								.setDescription( 'Deleted' )
+								.setColor( 0xFF0000 )
+							)
+							msg.delete( 1337 )
+						}
 					})
 
 					channel.last_posts = channel.last_posts.filter( post => post.date !== date )

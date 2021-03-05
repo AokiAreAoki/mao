@@ -122,7 +122,7 @@ module.exports = {
 
 				if( pics.length === 0 ){
 					message.edit( embed()
-						.setDescription( `Nothing new were posted today :(` )
+						.setDescription( `Nothing new has been posted today :(` )
 						.setColor( 0xFF8000 )
 					)
 					return

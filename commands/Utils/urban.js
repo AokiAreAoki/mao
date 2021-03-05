@@ -18,7 +18,7 @@ module.exports = {
 					let res = JSON.parse( body ).list[0]
 					
 					if( !res ){
-						msg.send( 'Word not found :c' )
+						msg.send( 'Word not found :(' )
 						return
 					}
 					

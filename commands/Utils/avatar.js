@@ -51,7 +51,7 @@ module.exports = {
 				if( meme )
 					sendAvatar( msg, meme.user )
 				else
-					msg.send( 'User not found :c' )
+					msg.send( 'User not found :(' )
 				
 				return
 			}
@@ -60,7 +60,7 @@ module.exports = {
 			if( memes[0] )
 				sendAvatar( msg, memes[0].user )
 			else
-				msg.send( "Woops... Sry, something went wrong :c" )
+				msg.send( "Woops... Sry, something went wrong :(" )
 		})
 	}
 }

@@ -113,7 +113,7 @@ module.exports = {
 				adminonly: true,
 				description: 'kills the bot',
 				callback: msg => {
-					msg.send( ':c' )
+					msg.send( ':(' )
 					setTimeout( process.exit, 1337 )
 				}
 			},

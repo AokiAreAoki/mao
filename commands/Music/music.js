@@ -516,7 +516,7 @@ module.exports = {
 				for( let cmd in m ){
 					let data = m[cmd]
 					if( typeof data === 'object' )
-						emb.addField( `**${cmd}${data.aliases.length > 0 ? ', ' + data.aliases.join( ', ' ) : ''}**`, data.description || 'no description :c' )
+						emb.addField( `**${cmd}${data.aliases.length > 0 ? ', ' + data.aliases.join( ', ' ) : ''}**`, data.description || 'no description :(' )
 				}
 
 				msg.send( emb )

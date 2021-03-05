@@ -84,7 +84,7 @@ module.exports = {
 		function postPictures( result, x, user_msg, bot_msg ){
 			if( result.pics.length === 0 )
 				return bot_msg.edit( embed()
-					.setDescription( `Tag(s) \`${result.tags}\` not found :c` )
+					.setDescription( `Tag(s) \`${result.tags}\` not found :(` )
 					.setColor( 0xFF0000 )
 				).then( m => m.edit( '' ) )
 			

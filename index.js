@@ -729,8 +729,9 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 				
 				switch( typeof evaled ){
 					case 'undefined':
+						evaled = 'undefined'
 						return __printerr
-						
+
 					case 'boolean':
 					case 'bigint':
 					case 'symbol':
@@ -785,7 +786,9 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 						break
 						
 					default:
-						evaled = cb( `Result parse error: unknown type "${typeof evaled}" of evaled` )
+						tags.cb = true
+						evaled = `Result parse error: unknown type "${typeof evaled}" of evaled`
+						break
 				}
 
 				return true

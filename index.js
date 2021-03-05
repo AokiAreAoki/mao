@@ -729,6 +729,8 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 				
 				switch( typeof evaled ){
 					case 'undefined':
+						return __printerr
+						
 					case 'boolean':
 					case 'bigint':
 					case 'symbol':

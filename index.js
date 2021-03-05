@@ -652,6 +652,7 @@ const evalTags = new EvalTags([
 	'del',
 	'silent',
 	'noparse',
+	'iom',
 ])
 
 unshiftMessageHandler( 'eval', async ( msg, edited ) => {
@@ -671,7 +672,11 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 
 		let [code, tags] = evalTags.parseAndCut( said )
 
-		if( tags.del ) await msg.delete()
+		if( tags.iom && tags.iom.value !== null && tags.iom.value !== db.token )
+			return
+
+		if( tags.del )
+			await msg.delete()
 
 		code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s, it => code = it )
 		
@@ -723,13 +728,13 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 				
 				switch( typeof evaled ){
 					case 'undefined':
-							case 'undefined': 
-					case 'undefined':
 					case 'boolean':
 					case 'bigint':
 					case 'symbol':
 						evaled = String( evaled )
-						return __printerr
+						if( !__printerr && !tags.cb && code === evaled )
+							return
+						break
 
 					case 'number':
 						if( !__printerr && !tags.cb && code === String( evaled ) )

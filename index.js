@@ -781,7 +781,13 @@ unshiftMessageHandler( 'eval', async ( msg, edited ) => {
 						break
 						
 					case 'function':
-						evaled = '```JS\n' + String( evaled ) + '```'
+						let funcbody = String( evaled )
+						let indent = funcbody.matchFirst( /\n(\s+)[^\n]+$/ )?.length
+						
+						if( indent )
+							funcbody = funcbody.replace( new RegExp( `\\n\\s{${indent}}`, 'g' ), '\n' )
+
+						evaled = '```JS\n' + funcbody + '```'
 						tags.cb = false
 						break
 						

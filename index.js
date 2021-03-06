@@ -132,7 +132,7 @@ if( !fs.existsSync( './tokens.json' ) ){
 }
 
 const _tkns = JSON.parse( read( './tokens.json' )
-	.replace( /\/\/.+?\n/g, '' )	// removes comments from the file 'cuz JSON.parse can't ignore them. baka.
+	//.replace( /\/\/.+?\n/g, '' )	// removes comments from the file 'cuz JSON.parse can't ignore them. baka.
 	.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas
 )
 
@@ -184,7 +184,7 @@ const Yandere = new Booru({
 	url: 'https://aoki.000webhostapp.com/yndr/',
 	// page_offset is 1 by default
 	qs: {
-		// tags keyword is "tags" be default
+		// tags keyword is "tags" by default
 		// page keyword is "page" by default
 		// limit keyword is "limit" by default
 	},

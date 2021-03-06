@@ -22,7 +22,7 @@ module.exports = {
 			insult  = new RegExp( `^(mao|мао|<@!?${client.user.id}>)([~_-\\s]((ch|s)an|чан|сан|тян))?\\s*((stupid|shit)\\s+bot|baka|бака|дура|дурында)\\s*[.?!~]*$`, 'i' )
 		})
 		
-		addMessageHandler( 'mention response', msg => {
+		addMessageHandler( 'mention_response', false, msg => {
 			if( msg.author.id == client.user.id || msg.author.bot ) return
 			
 			let match = msg.content.match( mention )

@@ -385,33 +385,37 @@ client.once( 'ready2', () => {
 	/// Here goes custom shit after bot fully initialized ///
 	
 	// Handling waitFor
-	unshiftMessageHandler( 'waitFor', waitFor.handler )
+	unshiftMessageHandler( 'waitFor', false, waitFor.handler )
 })
 
 //////////  Message handlers  //////////
 messageHandlers = []
 
-function addMessageHandler( description, callback ){
-	if( callback ) callback.description = description
-	else callback = description
+function addMessageHandler( name, markMessagesAsCommand, callback ){
+	callback.name = name
+	callback.isCommandHandler = !!markMessagesAsCommand
 	messageHandlers.push( callback )
 }
 
-function unshiftMessageHandler( description, callback ){
-	if( callback ) callback.description = description
-	else callback = description
+function unshiftMessageHandler( name, markMessagesAsCommand, callback ){
+	callback.name = name
+	callback.isCommandHandler = !!markMessagesAsCommand
 	messageHandlers.unshift( callback )
 }
 
 async function handleMessage( msg, edited ){
 	msg._answers = []
+	msg.isCommand = false
+
 	for( let i = 0; i < messageHandlers.length; ++i ){
-		let stop = await messageHandlers[i]( msg, edited || false )
-		
-		// Debugger
-		//log( String( messageHandlers[i].description ) + ' :: ' + String( !!stop ) )
-		
-		if( stop ) break
+		const handler = messageHandlers[i]
+
+		if( await handler( msg, edited ?? false ) ){
+			if( handler.isCommandHandler )
+				msg.isCommand = true
+
+			break
+		}
 	}
 }
 
@@ -566,7 +570,7 @@ function parseArgs( string_args, args, args_pos ){
 }
 
 // Command handler
-unshiftMessageHandler( 'commands', ( msg, edited ) => {
+unshiftMessageHandler( 'commands', true, ( msg, edited ) => {
 	if( msg.author.id == client.user.id || msg.author.bot ) return
 	let prefix = msg.content.matchFirst( cmddata.prefix )
 
@@ -656,7 +660,7 @@ const evalTags = new EvalTags([
 	'iom',
 ])
 
-unshiftMessageHandler( 'eval', async ( msg, edited ) => {
+unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 	let ismaster = msg.author instanceof discord.User && msg.author.isMaster()
 
 	if( ismaster ){

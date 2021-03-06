@@ -32,7 +32,7 @@ module.exports = {
 			}
 		}, 5e3 )
 		
-		addMessageHandler( async msg => {
+		addMessageHandler( 'temp_messages', false, async msg => {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
 			

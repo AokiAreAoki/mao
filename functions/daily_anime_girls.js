@@ -118,14 +118,17 @@ module.exports = {
 					return
 				}
 				
-				const pics = res.pics.filter( pic => Date.now() - ( new Date( pic.created_at ).getTime() ) < 86400e3 )
+				let pics = res.pics.filter( pic => Date.now() - ( new Date( pic.created_at ).getTime() ) < 86400e3 )
 
 				if( pics.length === 0 ){
+					pisc = res.pics
+					/*
 					message.edit( embed()
 						.setDescription( `Nothing new has been posted today :(` )
 						.setColor( 0xFF8000 )
 					)
 					return
+					*/
 				}
 
 				// Choose a pic with the best score or else the first one

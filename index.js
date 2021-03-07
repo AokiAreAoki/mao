@@ -231,7 +231,9 @@ function cb( text ){
 let __duplicates,
 	tabstr = amount => ' '.repeat( amount * 4 )
 
-function tts( table, maxtab=4, tab=0 ){
+function tts( table, maxtab = 4, tab = 0 ){
+	maxtab = maxtab ?? 4
+
 	if( table === null )
 		return 'null\n'
 
@@ -626,7 +628,7 @@ class EvalTags {
 		let tag = null,
 			value = null
 
-		code.matchFirst( /^\s*([A-Za-z]+)/, matched => {
+		code.matchFirst( /^\s*([A-Za-z]+)(?:[^A-Za-z])/, matched => {
 			if( this.tags[matched] ){
 				tag = matched
 				code = code.trimLeft().substring( tag.length )
@@ -729,7 +731,7 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 			let printEvaled = !!( () => {
 				if( tags.tts ){
 					evaled = typeof evaled === 'object'
-						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled )}`
+						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled, tags.tts.value )}`
 						: evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
 
 					return true

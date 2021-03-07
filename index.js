@@ -34,11 +34,15 @@ let list_of_flags = [
 list_of_flags.forEach( f => flags[f] = f.replace( /^-+/, '' ) )
 
 process.argv.slice(2).forEach( flag => {
-	flag = flags[flag].toLowerCase()
-	if( flag ){
-		__flags[flag] = true
+	let flagname = flags[flag]?.toLowerCase()
+
+	if( flagname ){
+		__flags[flagname] = true
 		noflags = false
+		return
 	}
+	
+	throw new Error( `Unknown flag "${flag}". Run Mao with "--flags" flag to see all flags` )
 })
 
 if( noflags )

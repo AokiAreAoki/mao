@@ -154,7 +154,7 @@ module.exports = {
 							let result = JSON.parse( body )
 							
 							message.edit( message.content + '\n' // `\n${result.Stats}\n`
-								+ ( `Outout:${result.Result ? cb( result.Result ) : ' nothing\n'}` )
+								+ ( `Output:${result.Result ? cb( result.Result ) : ' nothing\n'}` )
 								+ ( result.Warnings !== null ? 'Warnings:' + cb( result.Warnings ) : '' )
 								+ ( result.Errors !== null ? 'Error:' + cb( result.Errors ) : '' )
 							)

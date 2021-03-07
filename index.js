@@ -628,7 +628,7 @@ class EvalTags {
 		let tag = null,
 			value = null
 
-		code.matchFirst( /^\s*([A-Za-z]+)(?:[^A-Za-z])/, matched => {
+		code.matchFirst( /^\s*([A-Za-z]+)(?:[\s:])/, matched => {
 			if( this.tags[matched] ){
 				tag = matched
 				code = code.trimLeft().substring( tag.length )

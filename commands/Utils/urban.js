@@ -5,7 +5,7 @@ module.exports = {
 		
 		let months = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ]
 		
-		addCmd( 'urban', { short: 'Searches for word difination on https://www.urbandictionary.com/', full: 'Using: `urban smth`' }, ( msg, args, get_string_args ) => {
+		addCmd( 'urban', { short: 'searches for word difination on https://www.urbandictionary.com/', full: 'Using: `urban smth`' }, ( msg, args, get_string_args ) => {
 			let q = get_string_args()
 			
 			if( !q ){

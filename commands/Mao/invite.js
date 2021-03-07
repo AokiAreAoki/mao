@@ -17,7 +17,7 @@ module.exports = {
 			types = '\n\twait there\'s no types wtf'
 		
 		addCmd( 'invite', {
-			short: 'Sends the invite link',
+			short: 'sends the invite link',
 			full: ''
 		}, ( msg, args ) => {
 			if( args[0] ){

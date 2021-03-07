@@ -3,7 +3,7 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
-		addCmd( 'help h', { short: 'Sends this message', full: 'nothing will help you' }, ( msg, args ) => {
+		addCmd( 'help h', { short: 'sends this message', full: 'nothing will help you' }, ( msg, args ) => {
 			if( args[0] ){
 				let k = args[0].toLowerCase()
 

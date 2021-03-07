@@ -87,7 +87,7 @@ module.exports = {
 		langs.CPP = 'C++'
 		
 		addCmd( 'rextester rex', {
-			short: 'Runs code',
+			short: 'runs code',
 			full: 'todo',
 		}, async ( msg, args, get_string_args ) => {
 			if( args.length === 0 )

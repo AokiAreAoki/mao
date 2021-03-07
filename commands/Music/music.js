@@ -488,7 +488,7 @@ module.exports = {
 
 		/// Main music command ///
 		let full = '*TODO*'
-		addCmd( 'music m', { short: 'Plays music from youtube', full: full }, ( msg, args, get_string_args ) => {
+		addCmd( 'music m', { short: 'plays music from youtube', full: full }, ( msg, args, get_string_args ) => {
 			let option = args[0]
 
 			if( m[option] ){

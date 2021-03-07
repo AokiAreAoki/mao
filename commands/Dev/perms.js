@@ -148,7 +148,7 @@ module.exports = {
 			},
 		}
 
-		addCmd( 'perm perms', { short: 'Manages bot permissions', full: '// TODO' }, ( msg, args ) => {
+		addCmd( 'perm perms', { short: 'manages bot permissions', full: '// TODO' }, ( msg, args ) => {
 			let action = args.shift()
 
 			if( action ){

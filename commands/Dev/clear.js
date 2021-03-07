@@ -3,7 +3,7 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
-		addCmd( 'clear clean purge', { short: 'Removes messages', full: 'Usage: `clear <number messages (max 50)>`' }, async ( msg, args ) => {
+		addCmd( 'clear clean purge', { short: 'removes messages', full: 'Usage: `clear <number messages (max 50)>`' }, async ( msg, args ) => {
 			let cnt = args[0] ? Math.floor( Math.min( Number( args[0] ), 50 ) ) : 1
 			
 			if( isNaN( cnt ) || cnt <= 0 ){

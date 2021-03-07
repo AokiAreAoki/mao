@@ -115,28 +115,28 @@ module.exports = {
 
 		function postfix( number ){
 			number = String( number )
-			if( number[number.length - 2] == '1' ) return 'th'
-			switch( number[number.length - 1] ){
-				case '1':
-					return 'st'
-					break
-				
-				case '2':
-					return 'nd'
-					break
+			
+			if( number[number.length - 2] === '1' )
+				return 'th'
 
-				case '3':
-					return 'rd'
-					break
-				
-				default:
-					return 'th'
-					break
+			switch( number[number.length - 1] ){
+				case '1':	return 'st'
+				case '2':	return 'nd'
+				case '3':	return 'rd'
+				default:	return 'th'
 			}
 		}
 
 		function parseSong( vid, callback, errcallback ){
+			ytdl.getInfo( vid )
+				.then( ( { player_response: { videoDetails: vd } } ) => {
+					callback?.( new Song( vd.videoId, vd.author, vd.title ) )
+				})
+				.catch( err => errcallback?.( err ) )
+			
+			/*
 			let url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${vid}&key=${ytapikey}`
+			
 			httpGet( url, body => {
 				let song = JSON.parse( body ).items[0]
 				callback( new Song(
@@ -145,10 +145,12 @@ module.exports = {
 					song.snippet.title.replace( '`', "'" )
 				))
 			}, errcallback )
+			*/
 		}
 
-		function parseSongs( vids, callback, errcallback ){
+		/*function parseSongs( vids, callback, errcallback ){
 			let url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${vids.join( ',' )}&key=${ytapikey}`
+			
 			httpGet( url, body => {
 				let songs = []
 
@@ -162,11 +164,11 @@ module.exports = {
 
 				callback( songs )
 			}, errcallback )
-		}
+		}*/
 
 		function sendQueuedMessage( channel, song, requester ){
 			let pos = mdata[channel.guild.id].queue.length,
-				isMember = requester.constructor.name == 'GuildMember'
+				isMember = requester.constructor.name === 'GuildMember'
 			
 			channel.send( embed()
 				.addField( 'Song queued', `Your song \`${song.author}\` - \`${song.title}\` is \`${pos + postfix(pos)}\` in the queue list.` )
@@ -175,15 +177,17 @@ module.exports = {
 		}
 
 		function queueSong( guildID, songOrVID, callback ){
-			if( songOrVID.constructor === Song ){
+			if( songOrVID instanceof Song ){
 				mdata[guildID].queue.push( songOrVID )
+log( 'Queued: ' + songOrVID )
 				return true
 			}
 			
 			parseSong( songOrVID, song => {
 				mdata[guildID].queue.push( song )
-				callback( null, song )
-			}, err => callback( err ) )
+log( 'Queued: ' + song )
+				callback?.( null, song )
+			}, err => callback?.( err ) )
 
 			return false
 		}
@@ -283,8 +287,34 @@ module.exports = {
 		const maxResCnt = 10
 
 		function searchOnYT( q, callback, errcallback, maxResCntOverride ){
-			maxResCntOverride = typeof maxResCntOverride == 'number' ? maxResCntOverride : maxResCnt
+			ytdl.search(q)
+				.then( data => {
+					if( !data || !data.items || !data.items[0] ){
+						callback?.( null )
+						return
+					}
+
+					let songs = []
+
+					data.items.forEach( song => {
+						if( !song.id )
+							return
+							
+						songs.push( new Song(
+							song.id.videoId ?? song.id,
+							song.author.name.replace( '`', "'" ), //song.snippet.channelTitle.replace( '`', "'" ),
+							song.title.replace( '`', "'" ) //song.snippet.title.replace( '`', "'" )
+						))
+					})
+
+					callback?.( songs )
+				})
+				.catch( err => errcallback?.( err ) )
+
+			/*
+			maxResCntOverride = typeof maxResCntOverride === 'number' ? maxResCntOverride : maxResCnt
 			let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${maxResCntOverride}&q=${encodeURI(q)}&key=${ytapikey}`
+			
 			httpGet( url, body => {
 				body = JSON.parse( body )
 
@@ -305,9 +335,10 @@ module.exports = {
 
 				callback( songs )
 			}, errcallback )
+			*/
 		}
 
-		async function join( voiceChannel, textChannel, callback, message=null ){
+		async function join( voiceChannel, textChannel, callback, message = null ){
 			if( typeof textChannel == 'function' ){
 				callback = textChannel
 				textChannel = null
@@ -332,7 +363,7 @@ module.exports = {
 		}
 
 		async function leave( guild, callback ){
-			callback = callback || ( () => {} )
+			callback = callback ?? ( () => {} )
 
 			try {
 				if( guild.voice && guild.voice.channel ){
@@ -356,7 +387,7 @@ module.exports = {
 			if( song instanceof Song )
 				song = song.vid
 			
-			if( typeof song == 'string' ){
+			if( typeof song === 'string' ){
 				if( /^[\w_-]{11}$/.test( song ) )
 					song = await ytdl( 'https://youtu.be/' + song ) // { filter: 'audioonly' }
 				else if( /^https?:\/\/(\w+\.)youtu\.?be(\w+)\/.{11,}$/.test( song ) )
@@ -365,22 +396,21 @@ module.exports = {
 					return false
 			}
 			
-			let disp = mdata[guild.id].disp
+			mdata[guild.id].disp?.broadcast.end()
 
-			if( disp && disp.broadcast )
-				disp.broadcast.end()
-
-			if( guild.voice && guild.voice.connection ){
+			if( guild?.voice.connection ){
 				mdata[guild.id].disp = guild.voice.connection.play( song, { type: 'opus' } )
 					.on( 'start', () => {
 						sendNowPlaying( mdata[guild.id].tc, mdata[guild.id].queue[0] )
 						mdata[guild.id].playing = true
 					})
 					.on( 'finish', () => {
-						if( mdata[guild.id].playing && mdata[guild.id].queue.shift() )
-							play( guild )
-						else
-							mdata[guild.id].playing = false
+						if( mdata[guild.id].playing ){
+							if( mdata[guild.id].queue.shift() && mdata[guild.id].queue[0] )
+								play( guild )
+							else
+								mdata[guild.id].playing = false
+						}
 					})
 					.on( 'error', err => {
 						mdata[guild.id].playing = false
@@ -389,8 +419,7 @@ module.exports = {
 						console.error( err )
 						console.log()
 
-						if( mdata[guild.id].tc )
-							mdata[guild.id].tc.send( 'An error occurred :(' )
+						mdata[guild.id].tc?.send( 'An error occurred :(' )
 					})
 				
 				mdata[guild.id].playing = true
@@ -405,25 +434,26 @@ module.exports = {
 				if( message.member.voice && message.member.voice.channel )
 					await join( message.member.voice.channel, message.channel, null, message )
 		
-			if( !mdata[message.guild.id].playing )
+			if( !mdata[message.guild.id].playing || !mdata[message.guild.id]?.disp.broadcast )
 				play( message.guild )
 		}
 
 		function skip( guild ){
-			let skipped_song = mdata[guild.id].queue[ mdata[guild.id].queue.length - 1 ]
+			const data = mdata[guild.id]
 
-			if( mdata[guild.id].disp && mdata[guild.id].disp.broadcast )
+			if( data?.disp.broadcast ){
+				const skipped_song = data.queue[data.queue.length - 1]
 				mdata[guild.id].disp.broadcast.end()
-			else
-				mdata[guild.id].queue.shift()
+				return skipped_song
+			}
 
-			return skipped_song
+			return data.queue.shift()
 		}
 
 		function stop( guild ){
-			if( mdata[guild.id].disp && mdata[guild.id].disp.broadcast )
-				mdata[guild.id].disp.broadcast.end()
 			mdata[guild.id].playing = false
+			if( mdata[guild.id]?.disp.broadcast )
+				mdata[guild.id].disp.broadcast.end()
 		}
 
 		/// Music commands ///

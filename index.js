@@ -23,7 +23,6 @@ Number.prototype.char = function(){
 }
 
 //////////  Simple flag parser  //////////
-
 let flags = {}
 let noflags = true
 let list_of_flags = [
@@ -100,7 +99,8 @@ const https = requireAndLog( 'https' )
 const join = requireAndLog( 'path', 'join' )
 const cp = requireAndLog( 'child_process' )
 const discord = requireAndLog( 'discord.js' )
-const ytdl = requireAndLog( 'discord-ytdl-core' )
+const ytdl = requireAndLog( 'ytdl-core-discord' )
+	  ytdl.search = requireAndLog( 'ytsr' )
 const jimp = requireAndLog( 'jimp' )
 //const tgb = requireAndLog( 'node-telegram-bot-api' )
 const req = requireAndLog( 'request' )

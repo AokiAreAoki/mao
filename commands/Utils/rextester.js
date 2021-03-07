@@ -3,11 +3,9 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
-		class Language {
-			constructor( id, compiler_args ){
-				this.id = id
-				this.compiler_args = compiler_args
-			}
+		function Language( id, compiler_args ){
+			this.id = id
+			this.compiler_args = compiler_args
 		}
 
 		let langs = {
@@ -62,25 +60,27 @@ module.exports = {
 			'VB.NET':		new Language( 2 )
 		}
 		let langList = []
+	
+		{
+			for( let lang in langs ){
+				let compilers = langs[lang]
 
-		for( let lang in langs ){
-			let compilers = langs[lang]
+				lang = {
+					lang: lang,
+					compilers: [],
+				}
+				
+				if( instanceOf( compilers, 'Object' ) )
+					for( let compiler in compilers )
+						lang.compilers.push( compiler )
 
-			lang = {
-				lang: lang,
-				compilers: [],
+				langList.push( lang )
 			}
-			
-			if( instanceOf( compilers, 'Object' ) )
-				for( let compiler in compilers )
-					lang.compilers.push( compiler )
 
-			langList.push( lang )
+			langList = langList
+				.map( l => l.lang + ( l.compilers.length > 0 ? ` (${l.compilers.join( '/' )})` : '' ) )
+				.join( ', ' )
 		}
-
-		langList = langList
-			.map( l => l.lang + ( l.compilers.length > 0 ? ` (${l.compilers.join( '/' )})` : '' ) )
-			.join( ', ' )
 
 		// Aliases
 		langs.JS = 'JavaScript'

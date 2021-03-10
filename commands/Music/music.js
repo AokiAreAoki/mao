@@ -95,7 +95,7 @@ module.exports = {
 			}
 		
 			if( aliases.length > 0 )
-				aliases.forEach( alias => m[alias] = cmd )
+				aliases.forEach( alias => m[alias] = m[cmd] )
 		}
 		
 		// Some functions
@@ -515,16 +515,13 @@ module.exports = {
 		})
 
 		/// Main music command ///
-		let full = '*TODO*'
-		addCmd( 'music m', { short: 'plays music from youtube', full: full }, ( msg, args, get_string_args ) => {
+		addCmd( 'music m', {
+			short: 'plays music from youtube',
+			full: '*TODO*',
+		}, ( msg, args, get_string_args ) => {
 			let option = args[0]
 
 			if( m[option] ){
-				// Aliases Redirection
-				if( typeof m[option] == 'string' )
-					option = m[option]
-				option = m[option]
-				
 				// Args2
 				let args_pos2 = get_string_args.args_pos.slice(1),
 					string_args2 = get_string_args()

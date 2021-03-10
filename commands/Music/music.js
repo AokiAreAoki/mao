@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'log embed maoclr httpGet waitFor ytdl _tkns instanceOf',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		var mdata = {},
+		let mdata = {},
 			m = {}
 		
 		function defineMData( guildID ){
@@ -128,13 +128,14 @@ module.exports = {
 		}
 
 		function parseSong( vid, callback, errcallback ){
+			/*
 			ytdl.getInfo( vid )
 				.then( ( { player_response: { videoDetails: vd } } ) => {
 					callback?.( new Song( vd.videoId, vd.author, vd.title ) )
 				})
 				.catch( err => errcallback?.( err ) )
-			
-			/*
+			*/
+
 			let url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${vid}&key=${ytapikey}`
 			
 			httpGet( url, body => {
@@ -145,10 +146,9 @@ module.exports = {
 					song.snippet.title.replace( '`', "'" )
 				))
 			}, errcallback )
-			*/
 		}
 
-		/*function parseSongs( vids, callback, errcallback ){
+		function parseSongs( vids, callback, errcallback ){
 			let url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${vids.join( ',' )}&key=${ytapikey}`
 			
 			httpGet( url, body => {
@@ -164,7 +164,7 @@ module.exports = {
 
 				callback( songs )
 			}, errcallback )
-		}*/
+		}
 
 		function sendQueuedMessage( channel, song, requester ){
 			let pos = mdata[channel.guild.id].queue.length,
@@ -179,13 +179,11 @@ module.exports = {
 		function queueSong( guildID, songOrVID, callback ){
 			if( songOrVID instanceof Song ){
 				mdata[guildID].queue.push( songOrVID )
-log( 'Queued: ' + songOrVID )
 				return true
 			}
 			
 			parseSong( songOrVID, song => {
 				mdata[guildID].queue.push( song )
-log( 'Queued: ' + song )
 				callback?.( null, song )
 			}, err => callback?.( err ) )
 
@@ -287,6 +285,7 @@ log( 'Queued: ' + song )
 		const maxResCnt = 10
 
 		function searchOnYT( q, callback, errcallback, maxResCntOverride ){
+			/*
 			ytdl.search(q)
 				.then( data => {
 					if( !data || !data.items || !data.items[0] ){
@@ -310,8 +309,8 @@ log( 'Queued: ' + song )
 					callback?.( songs )
 				})
 				.catch( err => errcallback?.( err ) )
+			*/
 
-			/*
 			maxResCntOverride = typeof maxResCntOverride === 'number' ? maxResCntOverride : maxResCnt
 			let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${maxResCntOverride}&q=${encodeURI(q)}&key=${ytapikey}`
 			
@@ -335,7 +334,6 @@ log( 'Queued: ' + song )
 
 				callback( songs )
 			}, errcallback )
-			*/
 		}
 
 		async function join( voiceChannel, textChannel, callback, message = null ){

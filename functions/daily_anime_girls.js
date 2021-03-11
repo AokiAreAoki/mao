@@ -108,20 +108,6 @@ module.exports = {
 				message_id: message.id,
 				date: today,
 			})
-			
-			Booru.q( tags ).then( res => {
-				if( res.pics.length === 0 ){
-					message.edit( embed()
-						.setDescription( `Tag(s) \`${tags}\` not found :(` )
-						.setColor( 0xFF0000 )
-					)
-					return
-				}
-				
-				let pics = res.pics.filter( pic => Date.now() - ( new Date( pic.created_at ).getTime() ) < 86400e3 )
-
-				if( pics.length === 0 ){
-					pisc = res.pics
 					/*
 					message.edit( embed()
 						.setDescription( `Nothing new has been posted today :(` )
@@ -129,10 +115,23 @@ module.exports = {
 					)
 					return
 					*/
-				}
+			
+			Booru.q( tags ).then( res => {
+				let pics = res.pics.filter( pic => Date.now() - new Date( pic.created_at ).getTime() < 86400e3 )
 
+				if( pics.length === 0 )
+					pics = res.pics
+
+				if( pics.length === 0 ){
+					message.edit( embed()
+						.setDescription( `Tag(s) \`${tags}\` not found :(` )
+						.setColor( 0xFF0000 )
+					)
+					return
+				}
+				
 				// Choose a pic with the best score or else the first one
-				const pic = pics.reduce( ( final_pic, cur_pic ) => final_pic.score < cur_pic.score ? cur_pic : final_pic, pics[0] )
+				const pic = pics.reduce( ( final_pic, cur_pic ) => final_pic.score < cur_pic.score ? cur_pic : final_pic, pics[0] ) ?? pics[0]
 				
 				let tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ), // ?tags= param remover
 					title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),

@@ -4,6 +4,8 @@ module.exports = {
 		requirements.define( global )
 		
 		addCmd( 'undo', 'Removes edited message', async msg => {
+			msg.isCommand = false
+			
 			if( msg.edits.length > 1 ){
 				await msg.react( client.emojis.cache.get( '717363212638748732' ) ?? '👌' )
 				await msg.delete( 1337 )
@@ -20,8 +22,10 @@ module.exports = {
 					await msg.react( client.emojis.cache.get( '717363212638748732' ) ?? '👌' )
 					await message.channel.bulkDelete( message._answers )
 					setTimeout( () => message.channel.bulkDelete( [msg, message] ), 1337 )
-				} else
+				} else {
+					msg.isCommand = true
 					msg.send( 'No commands found' )
+				}
 			}).catch( console.log )
 		})
 	}

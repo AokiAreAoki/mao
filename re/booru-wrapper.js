@@ -157,7 +157,6 @@ module.exports = request_module => {
 				s: 'post',
 				q: 'index',
 				json: '1',
-				_token: _tkns.booru_proxy,
 			},
 			limit: 250,
 			keys: {
@@ -192,9 +191,7 @@ module.exports = request_module => {
 				// page keyword is "page" by default
 				// limit keyword is "limit" by default
 			},
-			const_qs: {
-				_token: _tkns.booru_proxy,
-			},
+			// no const qs
 			limit: 100,
 			keys: {
 				id: ( post, pic ) => {

@@ -320,26 +320,32 @@ function findMem( guild, name ){
 	return null
 }
 
-function httpGet( url, callback, errfunc ){
-	if( !errfunc ) errfunc = () => {}
-	let protocol
-	
-	if( url.startsWith( 'http' ) ) protocol = http
-	if( url.startsWith( 'https' ) ) protocol = https
-	if( !protocol ) return 'Wrong protocol'
-	
-	protocol.get( url, resp => {
-		let data = ''
-		resp.on( 'data', chunk => data += chunk )
-		resp.on( 'end', () => {
-			if( typeof callback == 'function' )
-				try {
-					callback( data )
-				} catch( err ){
-					errfunc( err )
-				}
+function httpGet( url, callback, errcallback ){
+	const promise = new Promise( ( resolve, reject ) => {
+		let protocol
+		
+		if( url.startsWith( 'http' ) )
+			protocol = http
+		else if( url.startsWith( 'https' ) )
+			protocol = https
+		else
+			return reject( 'Wrong protocol' )
+		
+		protocol.get( url, resp => {
+			let data = ''
+			resp.on( 'data', chunk => data += chunk )
+			resp.on( 'end', () => resolve( data ) )
+			resp.on( 'error', reject )
 		})
-	}).on( 'error', errfunc )
+	})
+
+	if( typeof callback === 'function' )
+		promise.then( callback )
+
+	if( typeof errcallback === 'function' )
+		promise.catch( errcallback )
+
+	return promise
 }
 
 //////////  Initializing BakaDB  //////////

@@ -54,12 +54,7 @@ module.exports = {
 				usedPics[msg.guild.id] = {}
 			
 			let used = usedPics[msg.guild.id],
-				unused = []
-			
-			pics.forEach( pic => {
-				if( !used[pic.id] || Date.now() - used[pic.id] < 3600e3 )
-					unused.push( pic )
-			})
+				unused = pics.filter( pic => !used[pic.id] || Date.now() - used[pic.id] < 3600e3 )
 			
 			for( let i = 0, r; i < amount; ++i ){
 				r = Math.floor( Math.random() * unused.length )
@@ -82,30 +77,33 @@ module.exports = {
 		}
 
 		function postPictures( result, x, user_msg, bot_msg ){
-			if( result.pics.length === 0 )
-				return bot_msg.edit( embed()
-					.setDescription( `Tag(s) \`${result.tags}\` not found :(` )
-					.setColor( 0xFF0000 )
-				).then( m => m.edit( '' ) )
+			if( result.pics.length === 0 ){
+				bot_msg.edit({
+					content: '',
+					embed: embed()
+						.setDescription( `Tag(s) \`${result.tags}\` not found :(` )
+						.setColor( 0xFF0000 )
+				})
+				return
+			}
 			
 			let tags = /\S/.test( result.tags ) ? result.tags : 'no tags'
 			
 			getNewPics( tags, result.pics, x, user_msg, pic => {
-				let post = embed()
-					.setFooter( 'Powered by ' + ( result.booru.name || 'unknown website' ) )
+				let embed = embed()
+					.setFooter( 'Powered by ' + ( result.booru.name ?? 'unknown website' ) )
 				
 				if( pic.unsupportedExtention )
-					post.setDescription( `[${tags}](${pic.post_url})\n\`${pic.unsupportedExtention}\` extention is not supported by Discord AFAIK. So open the [link](${pic.post_url}) to post manually to view it's *content*`)
+					embed.setDescription( `[${tags}](${pic.post_url})\n\`${pic.unsupportedExtention}\` extention is not supported by Discord AFAIK. So open the [link](${pic.post_url}) to post manually to view it's *content*`)
 				else {
-					post.setDescription( `[${tags}](${pic.post_url})` )
-					post.setImage( pic.sample )
+					embed.setDescription( `[${tags}](${pic.post_url})` )
+					embed.setImage( pic.sample )
 				}
 				
 				if( x !== 1 )
-					user_msg.send( post )
+					user_msg.send( embed )
 				else
-					bot_msg.edit( post )
-						.then( m => m.edit( '' ) )
+					bot_msg.edit( { embed, content: '' } )
 			})
 
 			if( x !== 1 )
@@ -165,7 +163,7 @@ module.exports = {
 			Gelbooru.q( tags )
 				.then( res => postPictures( res, x, msg, message ) )
 				.catch( err => {
-					message.edit( cb( err ) )
+					message.edit( { content: cb( err ), embed: null } )
 					console.error( err )
 				})
 		})
@@ -219,7 +217,7 @@ module.exports = {
 			Yandere.q( tags )
 				.then( res => postPictures( res, x, msg, message ) )
 				.catch( err => {
-					message.edit( cb( err ) )
+					message.edit( { content: cb( err ), embed: null } )
 					console.error( err )
 				})
 		})

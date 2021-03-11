@@ -108,6 +108,11 @@ module.exports = {
 				message_id: message.id,
 				date: today,
 			})
+			Booru.q( tags ).then( res => {
+				let pics = res.pics.filter( pic => Date.now() - new Date( pic.created_at ).getTime() < 86400e3 )
+
+				if( pics.length === 0 ){
+					pics = res.pics
 					/*
 					message.edit( embed()
 						.setDescription( `Nothing new has been posted today :(` )
@@ -115,12 +120,7 @@ module.exports = {
 					)
 					return
 					*/
-			
-			Booru.q( tags ).then( res => {
-				let pics = res.pics.filter( pic => Date.now() - new Date( pic.created_at ).getTime() < 86400e3 )
-
-				if( pics.length === 0 )
-					pics = res.pics
+				}
 
 				if( pics.length === 0 ){
 					message.edit( embed()
@@ -143,7 +143,7 @@ module.exports = {
 					.setFooter( 'Powered by ' + Booru.name )
 				)
 			}).catch( err => {
-				message.edit( cb( err ) )
+				message.edit( { content: cb( err ), embed: null } )
 			})
 		}
 

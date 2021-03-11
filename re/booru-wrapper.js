@@ -1,9 +1,8 @@
 module.exports = request_module => {
-	const log = console.log
 	const req = request_module
 
 	const all_options = {
-		name: 'unknown booru', // Just a name of booru
+		name: 'unknown booru', // Just a name of a booru
 		url: '', // API request URL
 		limit: 100, // Posts limit per request
 		page_offset: 1, // page offset
@@ -63,22 +62,22 @@ module.exports = request_module => {
 		}
 		
 		q( tags, page, limit ){
-			return new Promise( async ( succes, error ) => {
+			return new Promise( async ( resolve, reject ) => {
 				let qs = {}
 				
 				for( let k in this.const_qs )
 					qs[k] = this.const_qs[k]
 				
 				qs[this.qs.tags] = tags
-				qs[this.qs.page] = ( page || 0 ) + this.page_offset
-				qs[this.qs.limit] = limit || this.limit
+				qs[this.qs.page] = ( page ?? 0 ) + this.page_offset
+				qs[this.qs.limit] = limit ?? this.limit
 				
 				req({
 					uri: this.url,
 					qs: qs,
 				}, ( err, res, body ) => {
 					if( err )
-						return error( err )
+						return reject( err )
 
 					try {
 						body = JSON.parse( body )
@@ -87,11 +86,10 @@ module.exports = request_module => {
 					    body = []
 					}
 					
-					succes( new BooruResults( body, {
+					resolve( new BooruResults( body, {
 						keys: this.keys,
 						remove_other_keys: this.remove_other_keys,
-						tags: tags,
-						page: page,
+						tags, page,
 						booru: this,
 					}))
 				})
@@ -104,14 +102,13 @@ module.exports = request_module => {
 		    if( !( array_pics instanceof Array ) )
 		        array_pics = []
 		    
-			let keys = options.keys
-			let remove_other_keys = options.remove_other_keys
-			
-			this.tags = typeof options.tags !== 'undefined' ? options.tags : ''
-			this.page = typeof options.page !== 'undefined' ? options.page : 1
+			let { keys, remove_other_keys } = options
+
+			this.tags = options.tags ?? ''
+			this.page = options.page ?? 1
 			this.booru = options.booru
 			
-			if( keys && keys instanceof Object ){
+			if( keys instanceof Object ){
 				this.pics = []
 				
 				array_pics.forEach( ( old_pic, k ) => {
@@ -132,11 +129,11 @@ module.exports = request_module => {
 				this.pics = array_pics
 		}
 		
-		async parseNextPage( limit=this.booru.limit ){
+		async parseNextPage( limit = this.booru.limit ){
 			if( this.booru ){
-				let res = await this.booru.q( this.tags, ++this.page, limit || this.booru.limit )
+				let res = await this.booru.q( this.tags, ++this.page, limit ?? this.booru.limit )
 				res.pics.forEach( this.pics.push )
-				return true
+				return res.pics.length !== 0
 			}
 			
 			return false
@@ -160,8 +157,9 @@ module.exports = request_module => {
 				s: 'post',
 				q: 'index',
 				json: '1',
+				_token: _tkns.booru_proxy,
 			},
-			limit: 100,
+			limit: 250,
 			keys: {
 				id: ( post, pic, tags ) => {
 					tags = tags.replace( /\s+/g, '+' )
@@ -183,23 +181,32 @@ module.exports = request_module => {
 						pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
 				}
 			},
-			remove_other_keys: true,
+			remove_other_keys: false,
 		}),
 		Yandere: new Booru({
+			name: 'yande.re',
 			url: 'https://yande.re/post.json',
+			// page_offset is 1 by default
 			qs: {
 				// tags keyword is "tags" by default
 				// page keyword is "page" by default
 				// limit keyword is "limit" by default
 			},
+			const_qs: {
+				_token: _tkns.booru_proxy,
+			},
 			limit: 100,
 			keys: {
-				id: '',
+				id: ( post, pic ) => {
+					pic.id = post.id
+					pic.post_url = 'https://yande.re/post/show/' + pic.id
+				},
 				score: '',
 				file_url: 'full',
 				sample_url: 'sample',
+				created_at: ( post, pic ) => pic.created_at = post.created_at * 1000
 			},
-			remove_other_keys: true,
+			remove_other_keys: false,
 		}),
 	}
 }

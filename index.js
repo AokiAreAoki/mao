@@ -324,10 +324,10 @@ function httpGet( url, callback, errcallback ){
 	const promise = new Promise( ( resolve, reject ) => {
 		let protocol
 		
-		if( url.startsWith( 'http' ) )
-			protocol = http
-		else if( url.startsWith( 'https' ) )
+		if( url.startsWith( 'https' ) )
 			protocol = https
+		else if( url.startsWith( 'http' ) )
+			protocol = http
 		else
 			return reject( 'Wrong protocol' )
 		

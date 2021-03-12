@@ -90,20 +90,20 @@ module.exports = {
 			let tags = /\S/.test( result.tags ) ? result.tags : 'no tags'
 			
 			getNewPics( tags, result.pics, x, user_msg, pic => {
-				let embed = embed()
+				let post = embed()
 					.setFooter( 'Powered by ' + ( result.booru.name ?? 'unknown website' ) )
 				
 				if( pic.unsupportedExtention )
-					embed.setDescription( `[${tags}](${pic.post_url})\n\`${pic.unsupportedExtention}\` extention is not supported by Discord AFAIK. So open the [link](${pic.post_url}) to post manually to view it's *content*`)
+					post.setDescription( `[${tags}](${pic.post_url})\n\`${pic.unsupportedExtention}\` extention is not supported by Discord AFAIK. So open the [link](${pic.post_url}) to post manually to view it's *content*`)
 				else {
-					embed.setDescription( `[${tags}](${pic.post_url})` )
-					embed.setImage( pic.sample )
+					post.setDescription( `[${tags}](${pic.post_url})` )
+					post.setImage( pic.sample )
 				}
 				
 				if( x !== 1 )
-					user_msg.send( embed )
+					user_msg.send( post )
 				else
-					bot_msg.edit( { embed, content: '' } )
+					bot_msg.edit( { embed: post, content: '' } )
 			})
 
 			if( x !== 1 )

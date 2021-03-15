@@ -336,7 +336,7 @@ function httpGet( url, callback, errcallback ){
 			resp.on( 'data', chunk => data += chunk )
 			resp.on( 'end', () => resolve( data ) )
 			resp.on( 'error', reject )
-		})
+		}).on( 'error', reject )
 	})
 
 	if( typeof callback === 'function' )

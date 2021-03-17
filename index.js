@@ -320,9 +320,9 @@ function findMem( guild, name ){
 	return null
 }
 
-function httpGet( url, callback, errcallback ){
+function httpGet( options, callback, errcallback ){
 	const promise = new Promise( ( resolve, reject ) => {
-		let protocol
+		let protocol, url = options.path ?? options
 		
 		if( url.startsWith( 'https' ) )
 			protocol = https
@@ -331,7 +331,7 @@ function httpGet( url, callback, errcallback ){
 		else
 			return reject( 'Wrong protocol' )
 		
-		protocol.get( url, resp => {
+		protocol.get( options, resp => {
 			let data = ''
 			resp.on( 'data', chunk => data += chunk )
 			resp.on( 'end', () => resolve( data ) )

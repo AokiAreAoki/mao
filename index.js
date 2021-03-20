@@ -832,8 +832,8 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 						
 						switch( evaled.constructor.name ){
 							case 'MessageEmbed':
-								tags.cb = false
-								break
+								msg.send( evaled )
+								return
 
 							case 'Jimp':
 								evaled.getBuffer( jimp.AUTO, ( err, buffer ) => {

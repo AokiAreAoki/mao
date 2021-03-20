@@ -1,3 +1,4 @@
+const startedAt = Date.now()
 const log = console.log
 const __flags = {}
 
@@ -851,11 +852,13 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 })
 
 //////////  Finish  //////////
+const initializationTime = numsplit( Math.round( Date.now() - startedAt ) )
+
 if( isOnlineOrInitialized ){
 	delete isOnlineOrInitialized
-	log( "I'm already online and finished initialization!" )
+	log( `Initialization finished in ${initializationTime}ms and I'm already online.` )
 	client.emit( 'ready2' )
 } else {
 	isOnlineOrInitialized = true
-	log( "Initialization finished, logging in..." )
+	log( `Initialization finished in ${initializationTime}ms, logging in...` )
 }

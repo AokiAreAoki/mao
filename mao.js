@@ -16,7 +16,11 @@ function start(){
 			return console.log( `Full exit code received. Mao won't be restarted. Exit.` )
 		
 		console.log( `Restarting Mao...\n` )
-		setTimeout( start, code === 0 ? 228 : 7331 )
+		
+		if( code === 0 )
+			start()
+		else
+			setTimeout( start, 7331 )
 	})
 }
 

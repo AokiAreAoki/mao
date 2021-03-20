@@ -15,7 +15,7 @@ function start(){
 		if( code == 228 ) // full exit code (will not restart)
 			return console.log( `Full exit code received. Mao won't be restarted. Exit.` )
 		
-		console.log( `Restarting Mao...\n` )
+		console.log( `Restarting Mao...` )
 		
 		if( code === 0 )
 			start()
@@ -24,5 +24,4 @@ function start(){
 	})
 }
 
-console.log()
 start()

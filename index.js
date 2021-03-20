@@ -2,6 +2,10 @@ const startedAt = Date.now()
 const log = console.log
 const __flags = {}
 
+function logw( text ){
+	return process.stdout.write( text )
+}
+
 /// Some custom methods
 String.prototype.matchFirst = function( re, cb ){
 	let matched = this.match( re )
@@ -59,7 +63,7 @@ else {
 	for( let k in __flags )
 		flags_array.push(k)
 
-	log( `Running Mao with next flags:\n    ${flags_array.join( '\n    ' )}` )
+	log( `Running Mao with next flags: ${flags_array.join( ', ' )}` )
 }
 
 log()
@@ -70,30 +74,26 @@ let requireAndLog = ( module, submodule ) => {
 	let mod
 
 	if( submodule ){
-		log( `    Requiring "${submodule}" from "${module}" module...` )
-		
 		if( mod = require( module ) ){
 			if( mod = mod[submodule] )
 				return mod
 			
-			log( `        Failed to require "${submodule}" from "${module}" module.` )
-			return null
+			log( `\n    Failed to require "${submodule}" from "${module}" module.` )
+			process.exit(1)
 		}
 		
-		log( `        Failed to require "${module}" module.` )
-		return null
+		log( `\n    Failed to require "${module}" module.` )
+		process.exit(1)
 	}
-
-	log( `    Requiring "${module}" module...` )
 
 	if( mod = require( module ) )
 		return mod
 
-	log( `        Failed to require "${module}" module.` )
-	return null
+	log( `\n    Failed to require "${module}" module.` )
+	process.exit(1)
 }
 
-log( 'Requiring modules:' )
+logw( 'Requiring modules...' )
 const fs = requireAndLog( 'fs' )
 const http = requireAndLog( 'http' )
 const https = requireAndLog( 'https' )
@@ -105,25 +105,31 @@ const ytdl = requireAndLog( 'ytdl-core-discord' )
 const jimp = requireAndLog( 'jimp' )
 //const tgb = requireAndLog( 'node-telegram-bot-api' )
 const req = requireAndLog( 'request' )
-log()
+log( 'OK' )
 
 // Including my modules
-function re( module ){
-	log( `    Requiring "${module}" module...` )
-	return require( `./re/${module}.js` )
+function requireCustomModule( moduleName ){
+	const module = require( `./re/${moduleName}.js` )
+	
+	if( !module ){
+		log( `\n    Failed to require "${moduleName}" module...` )
+		process.exit(1)
+	}
+
+	return module
 }
 
-log( 'Requiring custom modules:' )
-const bakadb = re( 'bakadb' )
-const { Booru, BooruResults } = re( 'booru-wrapper' )( req )
-const TimeSplitter = re( 'time-splitter' )
-const List = re( 'List' )
+logw( 'Requiring custom modules...' )
+const bakadb = requireCustomModule( 'bakadb' )
+const { Booru, BooruResults } = requireCustomModule( 'booru-wrapper' )( req )
+const TimeSplitter = requireCustomModule( 'time-splitter' )
+const List = requireCustomModule( 'List' )
 //const MyLang = re( 'MyLang' )
-const timer = re( 'timer' )
-const tree = re( 'tree-printer' )
-const vec = re( 'vector' )
-const waitFor = re( 'waitFor' )
-log()
+const timer = requireCustomModule( 'timer' )
+const tree = requireCustomModule( 'tree-printer' )
+const vec = requireCustomModule( 'vector' )
+const waitFor = requireCustomModule( 'waitFor' )
+log( 'OK' )
 
 // Defining some shit
 const maoclr = 0xF2B066
@@ -491,14 +497,20 @@ function include( path, overwrites ){
 	delete requirements
 }
 
-log( 'Including functions:' )
+logw( 'Including functions...' )
 readdir( './functions' ).forEach( file => {
 	if( file.endsWith( '.js' ) ){
-		log( `    Including "${file}"...` )
-		include( './' + join( './functions', file ) )
+		const path = './' + join( 'functions', file )
+
+		try {
+			include( path )
+		} catch( err ){
+			log( `\n    Failed to include "${path}" file` )
+			throw err
+		}
 	}	
 })
-log()
+log( 'OK' )
 
 //////////  Command manager  //////////
 _prefix = /^(-|(mao|мао)\s+)/i
@@ -545,6 +557,7 @@ function addCmd( module, command, description, callback ){
 }
 
 // Including commands
+/* old includer
 tree( 'Including commands:', ( print, fork ) => {
 	readdir( './commands' ).forEach( module => {
 		fork( `Module "${module}":`, print => {
@@ -560,6 +573,26 @@ tree( 'Including commands:', ( print, fork ) => {
 	})
 	log()
 })
+*/
+
+logw( 'Including commands...' )
+readdir( './commands' ).forEach( module => {
+	readdir( './' + join( 'commands', module ) ).forEach( file => {
+		if( file.endsWith( '.js' ) ){
+			const path = './' + join( 'commands', module, file )
+
+			try {
+				include( path, {
+					addCmd: ( aliases, description, callback ) => addCmd( module, aliases, description, callback )
+				})
+			} catch( err ){
+				log( `\n    Failed to include "${path}" file...` )
+				throw err
+			}
+		}
+	})
+})
+log( 'OK' )
 
 function parseArgs( string_args, args, args_pos ){
 	let arg = '', pos = 0, quotes = ''
@@ -876,10 +909,10 @@ initializationTime = numsplit( Math.round( Date.now() - startedAt ) )
 if( isOnlineOrInitialized ){
 	delete isOnlineOrInitialized
 	loginTime = -1
-	log( `Initialization finished in ${initializationTime}ms and I'm already online.` )
+	log( `\nInitialization finished in ${initializationTime}ms and I'm already online.` )
 	client.emit( 'ready2' )
 } else {
 	isOnlineOrInitialized = true
 	loginTime = Date.now()
-	log( `Initialization finished in ${initializationTime}ms, logging in...` )
+	log( `\nInitialization finished in ${initializationTime}ms, logging in...` )
 }

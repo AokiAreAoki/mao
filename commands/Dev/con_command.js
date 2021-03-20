@@ -2,10 +2,11 @@ module.exports = {
 	requirements: 'cp',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		const deleteMessage = m => m.delete( delete_delay * 1e3 )
 		
 		function exec( channel, command, delete_delay ){
 			cp.exec( command, { timeout: 15e3 }, ( error, stdout, stderr ) => {
+				const deleteMessage = m => m.delete( delete_delay * 1e3 )
+
 				if( error ){
 					let m = channel.send( 'Error:' + cb( error.toString()
 						.replace( /error:\s*/i, '' )
@@ -13,7 +14,7 @@ module.exports = {
 					))
 
 					if( typeof delete_delay === 'number' )
-						m.then( m => m.delete( delete_delay * 1e3 ) )
+						m.then( deleteMessage )
 				} else {
 					stdout = stdout
 						? cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) )
@@ -27,7 +28,7 @@ module.exports = {
 					
 					if( typeof delete_delay === 'number' ){
 						m1.then( deleteMessage )
-						m2?.then( deleteMessage )
+						if( m2 ) m2.then( deleteMessage )
 					}
 				}
 			})

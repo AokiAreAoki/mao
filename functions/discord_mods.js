@@ -25,9 +25,9 @@ module.exports = {
 		discord.Message.prototype.original_delete = discord.Message.prototype.delete
 		discord.Message.prototype.delete = function( timeOrOptions ){
 			if( typeof timeOrOptions == 'number' )
-				this.original_delete( { timeout: timeOrOptions } )
-			else
-				this.original_delete( timeOrOptions )
+				return this.original_delete( { timeout: timeOrOptions } )
+			
+			return this.original_delete( timeOrOptions )
 		}
 
 		// send and bind to `this` message

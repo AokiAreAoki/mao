@@ -214,7 +214,7 @@ const Yandere = new Booru({
 
 function numsplit( num ){
 	return String( num ).replace( /(\.|,)?\d+/g, ( match, comma, i, num ) =>
-		match.replace( /\B/g, ( _, i ) => ( match.match( /^\d/ ) ? match.length - i : i - 1 ) % 3 === 0 ? ' ' : '' ) )
+		match.replace( /\B/g, ( _, i ) => ( match.match( /^\d/ ) ? match.length - i : i - 1 ) % 3 === 0 ? ',' : '' ) )
 }
 
 function read( path ){

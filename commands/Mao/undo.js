@@ -7,7 +7,7 @@ module.exports = {
 			msg.isCommand = false
 			
 			if( msg.edits.length > 1 ){
-				await msg.react( client.emojis.cache.get( '717363212638748732' ) ?? '👌' )
+				await msg.react( client.emojis.cache.get( '822881934484832267' ) ?? '👌' )
 				await msg.delete( 1337 )
 				return
 			}
@@ -19,7 +19,7 @@ module.exports = {
 				const message = messages?.find( m => m.author.id === msg.author.id && m.isCommand )
 			
 				if( message ){
-					await msg.react( client.emojis.cache.get( '717363212638748732' ) ?? '👌' )
+					await msg.react( client.emojis.cache.get( '822881934484832267' ) ?? '👌' )
 					await message.channel.bulkDelete( message._answers )
 					setTimeout( () => message.channel.bulkDelete( [msg, message] ), 1337 )
 				} else {

@@ -108,6 +108,7 @@ module.exports = {
 				message_id: message.id,
 				date: today,
 			})
+
 			Booru.q( tags ).then( res => {
 				let pics = res.pics.filter( pic => Date.now() - new Date( pic.created_at ).getTime() < 86400e3 )
 
@@ -136,11 +137,9 @@ module.exports = {
 				let tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ), // ?tags= param remover
 					title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
 					url = pic.post_url.replace( tagsParam, '' )
-					
-				message.edit( embed()
+				
+				message.edit( res.embed( pic )
 					.setDescription( `[${title}](${url})` )
-					.setImage( pic.sample )
-					.setFooter( 'Powered by ' + Booru.name )
 				)
 			}).catch( err => {
 				message.edit( { content: cb( err ), embed: null } )

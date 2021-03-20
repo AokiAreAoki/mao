@@ -115,7 +115,7 @@ function re( module ){
 
 log( 'Requiring custom modules:' )
 const bakadb = re( 'bakadb' )
-const { Booru } = re( 'booru-wrapper' )( req )
+const { Booru, BooruResults } = re( 'booru-wrapper' )( req )
 const TimeSplitter = re( 'time-splitter' )
 const List = re( 'List' )
 //const MyLang = re( 'MyLang' )
@@ -140,6 +140,24 @@ const _tkns = JSON.parse( read( './tokens.json' )
 	//.replace( /\/\/.+?\n/g, '' )	// removes comments from the file 'cuz JSON.parse can't ignore them. baka.
 	.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas
 )
+
+BooruResults.prototype.embed = function( pic ){
+	if( typeof pic === 'number' )
+		pic = this.pics[pic]
+
+	let tags = this.tags || 'no tags'
+	let post = embed()
+		.setFooter( 'Powered by ' + ( this.booru.name ?? 'unknown website' ) )
+
+	if( pic.unsupportedExtention )
+		post.setDescription( `[${tags}](${pic.post_url})\n\`${pic.unsupportedExtention}\` extention is not supported by Discord (AFAIK). So open the [link](${pic.post_url}) to post manually to view it's *content*` )
+	else {
+		post.setDescription( `[${tags}](${pic.post_url})` )
+		post.setImage( pic.sample )
+	}
+
+	return post
+}
 
 const Gelbooru = new Booru({
 	name: 'gelbooru.com',
@@ -380,6 +398,7 @@ let isOnlineOrInitialized = false
 client.once( 'ready', () => {
 	if( isOnlineOrInitialized ){
 		delete isOnlineOrInitialized
+		loginTime = Date.now() - loginTime
 		client.emit( 'ready2' )
 	} else
 		isOnlineOrInitialized = true
@@ -852,13 +871,15 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 })
 
 //////////  Finish  //////////
-const initializationTime = numsplit( Math.round( Date.now() - startedAt ) )
+initializationTime = numsplit( Math.round( Date.now() - startedAt ) )
 
 if( isOnlineOrInitialized ){
 	delete isOnlineOrInitialized
+	loginTime = -1
 	log( `Initialization finished in ${initializationTime}ms and I'm already online.` )
 	client.emit( 'ready2' )
 } else {
 	isOnlineOrInitialized = true
+	loginTime = Date.now()
 	log( `Initialization finished in ${initializationTime}ms, logging in...` )
 }

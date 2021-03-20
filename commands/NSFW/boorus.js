@@ -49,7 +49,9 @@ module.exports = {
 			return cooldown[id] || 0
 		}
 		
-		function getNewPics( tags, pics, amount, msg, callback ){
+		function getNewPics( tags, result, amount, msg, callback ){
+			const { pics } = result
+			
 			if( !usedPics[msg.guild.id] )
 				usedPics[msg.guild.id] = {}
 			
@@ -60,7 +62,7 @@ module.exports = {
 				r = Math.floor( Math.random() * unused.length )
 				
 				if( unused[r] ){
-					callback( unused[r] )
+					callback( result.embed( unused[r] ) )
 					used[unused[r].id] = Date.now()
 					unused.splice( r, 1 )
 					continue
@@ -69,7 +71,7 @@ module.exports = {
 				r = Math.floor( Math.random() * pics.length )
 				
 				if( pics[r] ){
-					callback( pics[r] )
+					callback( result.embed( pics[r] ) )
 					used[pics[r].id] = Date.now()
 					pics.splice( r, 1 )
 				}
@@ -89,17 +91,7 @@ module.exports = {
 			
 			let tags = /\S/.test( result.tags ) ? result.tags : 'no tags'
 			
-			getNewPics( tags, result.pics, x, user_msg, pic => {
-				let post = embed()
-					.setFooter( 'Powered by ' + ( result.booru.name ?? 'unknown website' ) )
-				
-				if( pic.unsupportedExtention )
-					post.setDescription( `[${tags}](${pic.post_url})\n\`${pic.unsupportedExtention}\` extention is not supported by Discord AFAIK. So open the [link](${pic.post_url}) to post manually to view it's *content*`)
-				else {
-					post.setDescription( `[${tags}](${pic.post_url})` )
-					post.setImage( pic.sample )
-				}
-				
+			getNewPics( tags, result, x, user_msg, post => {
 				if( x !== 1 )
 					user_msg.send( post )
 				else

@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'bakadb db client',
+	requirements: 'bakadb db client numsplit',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -9,16 +9,22 @@ module.exports = {
 				let channel = client.channels.cache.get( db.restart.channel )
 
 				if( channel && timeleft < 60e3 ){
-					channel.send( `I'm back! Restart took \`${timeleft < 1000 ? timeleft + 'ms' : timeleft / 1000 + ' seconds.'}\`` )
-						.then( m => m.delete( 8000 ) )
-						.catch( () => {} )
+					channel.send( embed()
+						.setTitle( "🚀 Yay, I'm back again!" )
+						.addField( "🏗️ Init",`\`${numsplit( mao.initializationTime )}ms\``, true )
+						.addField( "📡 Login", `\`${numsplit( mao.loginTime )}ms\``, true )
+						.addField( "🛠️ Overall", `\`${numsplit( timeleft )}ms\``, true )
+						.setTimestamp( Date.now() )
+					).then( async m => {
+						await m.delete( 8000 )
+						delete db.restart
+						bakadb.save()
+					}).catch( () => {} )
 					
 					channel.messages.fetch( db.restart.message )
 						.then( m => m.delete( 1337 ) )
 						.catch( () => {} )
 				}
-					
-				delete db.restart
 			}
 		})
 

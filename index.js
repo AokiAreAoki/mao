@@ -904,15 +904,15 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 })
 
 //////////  Finish  //////////
-initializationTime = numsplit( Math.round( Date.now() - startedAt ) )
+initializationTime = Math.round( Date.now() - startedAt )
 
 if( isOnlineOrInitialized ){
 	delete isOnlineOrInitialized
 	loginTime = -1
-	log( `\nInitialization finished in ${initializationTime}ms and I'm already online.` )
+	log( `\nInitialization finished in ${numsplit( initializationTime )}ms and I'm already online.` )
 	client.emit( 'ready2' )
 } else {
 	isOnlineOrInitialized = true
 	loginTime = Date.now()
-	log( `\nInitialization finished in ${initializationTime}ms, logging in...` )
+	log( `\nInitialization finished in ${numsplit( initializationTime )}ms, logging in...` )
 }

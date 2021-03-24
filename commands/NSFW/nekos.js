@@ -29,7 +29,7 @@ module.exports = {
 					let m = body.match( /(?:'\w+?').*(?=>)/ )[0]
 
 					msg.send( embed()
-						.addField( 'Tags:', m.match( /\w+/g ).join( ', ' ) )
+						.addField( 'Tags:', m.match( /\w+/g ).sort().join( ', ' ) )
 						.setFooter( 'Powered by nekos.life' )
 					)
 				}, msg.sendcb )

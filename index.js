@@ -236,6 +236,14 @@ const Yandere = new Booru({
 
 //////////  Some Functions  //////////
 
+function max( a, b ){
+	return a > b ? a : b
+}
+
+function min( a, b ){
+	return a < b ? a : b
+}
+
 function numsplit( num ){
 	return String( num ).replace( /(\.|,)?\d+/g, ( match, comma, i, num ) =>
 		match.replace( /\B/g, ( _, i ) => ( match.match( /^\d/ ) ? match.length - i : i - 1 ) % 3 === 0 ? ',' : '' ) )

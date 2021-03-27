@@ -236,6 +236,20 @@ const Yandere = new Booru({
 
 //////////  Some Functions  //////////
 
+async function _exit( code ){
+	if( typeof code !== 'number' && code != null )
+		return false
+
+	if( code == null )
+		code = 0
+	
+	bakadb.save()
+	await client.destroy()
+
+	code = isFinite( code ) ? Math.floor( code ) : NaN
+	process.exit( isNaN( code ) ? 0 : code )
+}
+
 function max( a, b ){
 	return a > b ? a : b
 }

@@ -16,8 +16,8 @@ module.exports = {
 				}
 			}
 
-			let min = Number( args[0] ),
-				max = Number( args[1] )
+			let min = Number( args[0] )
+			let max = Number( args[1] )
 			
 			if( isNaN( min ) ){
 				min = 0
@@ -40,30 +40,23 @@ module.exports = {
 				return msg.send( 'Gimme something to choose, baka' )
 
 			let r = Math.floor( Math.random() * args.length )
-			msg.send( `I ${args[-1]} **${args[r]}**` )
+			msg.send( `I ${args[-1]} **${args[r].replace( /\\*@/g, '\\@' )}**` )
 		})
+		
+		const rps = ['rock', 'paper', 'scissors']
 
-		addCmd( 'rpc', "No, this isn't Remote Procedure Call. This is Rock Paper Scissors!", ( msg, args ) => {
-			let rpc = [ 'rock', 'paper', 'scissors' ],
-				mao = Math.floor( Math.random() * 3 ),
-				user = -1
-			
-			if( args[0] ){
-				args[0] = args[0].toLowerCase()
-				
-				for( let i = 0; i < 3; i++ )
-					if( rpc[i].startsWith( args[0] ) ){
-						user = i
-						break
-					}
-			}
-
-			if( user == -1 )
-				user = Math.floor( Math.random() * 3 )
+		addCmd( 'rps', 'rock paper scissors', ( msg, args ) => {
+			let mao = Math.floor( Math.random() * 3 )
+			let user = args[0]
+				? rps.findIndex( v => v.startsWith( args[0].toLowerCase() ) )
+				: Math.floor( Math.random() * 3 )
 			
 			let result = ( mao - user + 4 ) % 3 - 1
-			msg.send( `**You**: __${rpc[user]}__!\n**Mao**: __${rpc[mao]}__!` )
-			msg.send( result == 0 ? 'DRAW' : ( result == 1 ? 'You lose 😭' : 'You WON! 😎' ) )
+			
+			msg.send(
+				`**You**: ${rps[user]}!\n**Mao**: ${rps[mao]}!\n` +
+				( result === 0 ? 'DRAW' : ( result === 1 ? 'You lose 😭' : '**You WON! 😎**' ) )
+			)
 		})
 	}
 }

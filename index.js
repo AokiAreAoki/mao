@@ -400,11 +400,11 @@ function httpGet( options, callback, errcallback ){
 bakadb.init( __flags.testmode ? './test/bdb' : './bdb', {
 	List: List,
 })
-bakadb.autoSave( 3600 / 2 )
+bakadb.autoSave( 5*60 )
 db = bakadb.db
 
-bakadb.on( 'missing-encoder', encoder => log( `[WARNING] Missing "${encoder}" encoder` ) ) 
-bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" decoder` ) ) 
+bakadb.on( 'missing-encoder', encoder => log( `[WARNING] Missing "${encoder}" encoder` ) )
+bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" decoder` ) )
 
 //////////  Creating client  //////////
 

@@ -891,26 +891,20 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 				return true
 			})()
 
-			try {
-				if( typeof evaled !== 'string' )
-					return
+			if( typeof evaled !== 'string' )
+				return
 
-				if( __output ){
-					if( printEvaled )
-						__output += '\n' + String( evaled )
+			if( __output ){
+				if( printEvaled )
+					__output += '\n' + String( evaled )
 
-					msg.sendcb( __output )
-				} else if( printEvaled ){
-					if( !tags.cb && !msg.member.hasPermission( discord.Permissions.FLAGS.EMBED_LINKS ) )
-						evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
+				msg.sendcb( __output )
+			} else if( printEvaled ){
+				if( !tags.cb && !msg.member.hasPermission( discord.Permissions.FLAGS.EMBED_LINKS ) )
+					evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
 
-					msg.send( tags.cb ? cb( evaled ) : evaled )
-						.catch( err => msg.sendcb( err ) )
-
-					return abortHQ()
-				}
-			} catch( err ){
-				msg.sendcb( err )
+				await msg.send( tags.cb ? cb( evaled ) : evaled )
+				return abortHQ()
 			}
 			
 			return abortHQ()

@@ -910,7 +910,7 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 			return abortHQ()
 		} catch( err ){
 			if( __printerr ){
-				msg.sendcb( err )
+				msg.sendcb( err.stack ?? err )
 				return abortHQ()
 			}
 		}

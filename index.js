@@ -400,11 +400,11 @@ function httpGet( options, callback, errcallback ){
 bakadb.init( __flags.testmode ? './test/bdb' : './bdb', {
 	List: List,
 })
-bakadb.autoSave( 3600 / 2 )
+bakadb.autoSave( 5*60 )
 db = bakadb.db
 
-bakadb.on( 'missing-encoder', encoder => log( `[WARNING] Missing "${encoder}" encoder` ) ) 
-bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" decoder` ) ) 
+bakadb.on( 'missing-encoder', encoder => log( `[WARNING] Missing "${encoder}" encoder` ) )
+bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" decoder` ) )
 
 //////////  Creating client  //////////
 
@@ -480,13 +480,23 @@ async function handleMessage( msg, edited ){
 }
 
 client.on( 'message', handleMessage )
+
 client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
-	if( typeof oldMsg._answers === 'object' && oldMsg._answers.constructor === Array && oldMsg.content !== newMsg.content ){
+	if( oldMsg._answers instanceof Array && oldMsg.content !== newMsg.content ){
 		let waiter = waitFor.waiters[oldMsg.member.id]
 		if( waiter ) waiter.cancel()
-		
+
 		oldMsg.channel.bulkDelete( oldMsg._answers )
 		handleMessage( newMsg, true )
+	}
+})
+
+client.on( 'messageDelete', msg => {
+	if( msg._answers instanceof Array && msg._answers.length > 0 ){
+		let waiter = waitFor.waiters[msg.member.id]
+		if( waiter ) waiter.cancel()
+
+		msg.channel.bulkDelete( msg._answers )
 	}
 })
 

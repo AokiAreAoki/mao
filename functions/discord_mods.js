@@ -34,7 +34,7 @@ module.exports = {
 		discord.Message.prototype.send = async function( content, options ){
 			let promise = this.channel.send( content, options )
 			
-			if( typeof this._answers === 'object' && this._answers.constructor === Array )
+			if( typeof this._answers instanceof Array )
 				promise.then( m => this._answers.push(m) )
 			
 			return promise
@@ -44,7 +44,7 @@ module.exports = {
 		discord.Message.prototype.sendcb = async function( content, options ){
 			let promise = this.channel.sendcb( content, options )
 			
-			if( typeof this._answers === 'object' && this._answers.constructor === Array )
+			if( typeof this._answers instanceof Array )
 				promise.then( m => this._answers.push(m) )
 			
 			return promise
@@ -55,7 +55,7 @@ module.exports = {
 		discord.Message.prototype.reply = function( content, options ){
 			let promise = this.original_reply( content, options )
 			
-			if( typeof this._answers === 'object' && this._answers.constructor === Array )
+			if( typeof this._answers instanceof Array )
 				promise.then( m => this._answers.push(m) )
 			
 			return promise

@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'embed findMem instanceOf',
+	requirements: 'embed instanceOf',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -21,7 +21,7 @@ module.exports = {
 				+ "\n`avatar` - your avatar"
 				+ "\n`avatar @someuser#1337` - `@someuser#1337`'s avatar"
 				+ "\n`avatar server` - server icon"
-		}, ( msg, args, get_string_args ) => {
+		}, async ( msg, args, get_string_args ) => {
 			// Author's avatar
 			if( !args[0] )
 				return sendAvatar( msg, msg.author )
@@ -42,14 +42,14 @@ module.exports = {
 			if( msg.mentions.everyone )
 				return msg.send( "Are You Baka?" )
 			
-			let memes = msg.mentions.members.array()
+			const mentionedMembers = msg.mentions.members.array()
 			
 			// Search for user by name
-			if( memes.length === 0 && typeof findMem === 'function' ){
-				let meme = findMem( msg.guild, get_string_args() )
+			if( mentionedMembers.length === 0 ){
+				const member = await msg.guild.members.find( get_string_args() )
 				
-				if( meme )
-					sendAvatar( msg, meme.user )
+				if( member )
+					sendAvatar( msg, member.user )
 				else
 					msg.send( 'User not found :(' )
 				
@@ -57,8 +57,8 @@ module.exports = {
 			}
 			
 			// Mentioned member avatar
-			if( memes[0] )
-				sendAvatar( msg, memes[0].user )
+			if( mentionedMembers[0] )
+				sendAvatar( msg, mentionedMembers[0].user )
 			else
 				msg.send( "Woops... Sry, something went wrong :(" )
 		})

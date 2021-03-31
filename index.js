@@ -352,21 +352,6 @@ function instanceOf( object, constructorName ){
 	return typeof object === 'object' && object !== null && object.constructor.name === constructorName
 }
 
-function findMem( guild, name ){
-	guild = guild.guild || guild
-	const members = guild.members.cache.array()
-	name = name.toLowerCase()
-
-	for( let i = 0; i < members.length; ++i ){
-		let m = members[i]
-
-		if( m.nickname && m.nickname.toLowerCase().indexOf( name ) !== -1 || m.user.username.toLowerCase().indexOf( name ) !== -1 )
-			return m
-	}
-
-	return null
-}
-
 function httpGet( options, callback, errcallback ){
 	const promise = new Promise( ( resolve, reject ) => {
 		let protocol, url = options.path ?? options

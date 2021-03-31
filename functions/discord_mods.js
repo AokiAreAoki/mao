@@ -61,6 +61,11 @@ module.exports = {
 			return promise
 		}
 
+		// find single member
+		discord.GuildMemberManager.prototype.find = async function( name ){
+			return ( await this.fetch({ query: name }) ).first()
+		}
+
 		// advanced setActivity
 		let repeat,
 			quota = 0,

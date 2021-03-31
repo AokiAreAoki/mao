@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'discord bakadb db List maoclr findMem',
+	requirements: 'discord bakadb db List maoclr',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -73,26 +73,23 @@ module.exports = {
 			return this.user.isMaster()
 		}
 
-		function findMem2( guild, username ){
-			let ping = /^<@!?(\d+)>$/i.exec( username )
+		async function findMemberID( guild, username ){
+			const id = username.matchFirst( /^<@!?(\d+)>$/i )
 
-			if( ping )
-				return ping[1]
-			else {
-				let member = findMem( guild, username )
-				if( member ) return member.id
-			}
-
-			return null
+			if( id )
+				return id
+			
+			const member = await guild.members.find( username )
+			return member ? member.id : null
 		}
 
 		// Commands
 		let actions = {
-			get: ( msg, args ) => {
+			get: async ( msg, args ) => {
 				let username = args.shift()
 				
 				if( username ){
-					let id = findMem2( msg, username )
+					let id = await findMemberID( msg, username )
 
 					if( id ){
 						let list = '',
@@ -116,11 +113,11 @@ module.exports = {
 
 				msg.send( 'User not found' )
 			},
-			set: ( msg, args ) => {
+			set: async ( msg, args ) => {
 				let username = args.shift()
 
 				if( args.length > 0 ){
-					let id = findMem2( msg, username )
+					let id = await findMemberID( msg, username )
 
 					if( id ){
 						if( db.perms[id] ) db.perms[id].add( args )
@@ -131,11 +128,11 @@ module.exports = {
 				} else
 					msg.send( 'You did not provide permissions' )
 			},
-			remove: ( msg, args ) => {
+			remove: async ( msg, args ) => {
 				let username = args.shift()
 
 				if( args.length > 0 ){
-					let id = findMem2( msg, username )
+					let id = await findMemberID( msg, username )
 
 					if( id ){
 						if( db.perms[id] ) db.perms[id].remove( args )
@@ -153,8 +150,11 @@ module.exports = {
 
 			if( action ){
 				action = action.toLowerCase()
-				if( actions[action] ) actions[action]( msg, args )
-				else msg.send( 'Unknown action' )
+
+				if( actions[action] )
+					actions[action]( msg, args )
+				else
+					msg.send( 'Unknown action' )
 			} else {
 				let list = ''
 

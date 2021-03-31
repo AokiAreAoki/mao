@@ -819,7 +819,7 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 			if( tags.silent )
 				return abortHQ()
 
-			let printEvaled = !!( () => {
+			const printEvaled = !!( () => {
 				if( tags.tts ){
 					evaled = typeof evaled === 'object'
 						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled, tags.tts.value )}`

@@ -167,8 +167,8 @@ BooruResults.prototype.embed = function( pic ){
 
 const Gelbooru = new Booru({
 	name: 'gelbooru.com',
-	//url: 'https://gelbooru.com/index.php',
-	url: 'https://aoki.000webhostapp.com/glbr/',
+	url: 'https://gelbooru.com/index.php',
+	//url: 'https://aoki.000webhostapp.com/glbr/',
 	page_offset: 0,
 	qs: {
 		// tags keyword is "tags" by default
@@ -209,8 +209,8 @@ const Gelbooru = new Booru({
 
 const Yandere = new Booru({
 	name: 'yande.re',
-	//url: 'https://yande.re/post.json',
-	url: 'https://aoki.000webhostapp.com/yndr/',
+	url: 'https://yande.re/post.json',
+	//url: 'https://aoki.000webhostapp.com/yndr/',
 	// page_offset is 1 by default
 	qs: {
 		// tags keyword is "tags" by default

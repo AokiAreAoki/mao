@@ -62,7 +62,7 @@ module.exports = {
 		// console.log( `https://img3.gelbooru.com/images/8b/40/8b40135999a39fb10d90881d28581bc4.jpg`.matchFirst( imageRE ) )
 
 		addCmd( 'gelbooru-translate glbr-tr', {
-			short: 'parser translation from gelbooru and draws it on the picture',
+			short: 'parses translation from gelbooru and draws it on the picture',
 			full: 'Usage: `gelbooru-translate <ID of a post/link to post/link to image on gelbooru CDN>`\n*may not work correctly',
 		}, async ( msg, args ) => {
 			const emoji = client.emojis.resolve( '822881934484832267' )

@@ -102,7 +102,7 @@ const cp = requireAndLog( 'child_process' )
 const discord = requireAndLog( 'discord.js' )
 const ytdl = requireAndLog( 'ytdl-core-discord' )
 	  ytdl.search = requireAndLog( 'ytsr' )
-const jimp = requireAndLog( 'jimp' )
+const Jimp = requireAndLog( 'jimp' )
 //const tgb = requireAndLog( 'node-telegram-bot-api' )
 const req = requireAndLog( 'request' )
 log( 'OK' )
@@ -853,7 +853,7 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 								return
 
 							case 'Jimp':
-								evaled.getBuffer( jimp.AUTO, ( err, buffer ) => {
+								evaled.getBuffer( Jimp.AUTO, ( err, buffer ) => {
 									if( err ) msg.sendcb( err )
 									else msg.send( { files: [buffer] } )
 								})

@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'vec jimp maoclr',
+	requirements: 'vec Jimp maoclr',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -73,13 +73,13 @@ module.exports = {
 			let color = colorSystems[system]( args, get_string_args() )
 			
 			if( typeof color == 'number' ){
-				new jimp( 64, 64, color * 0x100 + 0xFF, ( err, img ) => {
+				new Jimp( 64, 64, color * 0x100 + 0xFF, ( err, img ) => {
 					if( err )
 						return msg.sendcb( err )
 
 					img.rgba( false )
 
-					img.getBuffer( jimp.MIME_JPEG, ( err, buffer ) => {
+					img.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
 						delete img
 						if( err ) msg.sendcb( err )
 						else msg.send({ files: [buffer] })

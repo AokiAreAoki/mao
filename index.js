@@ -180,7 +180,7 @@ const Gelbooru = new Booru({
 		s: 'post',
 		q: 'index',
 		json: '1',
-		_token: _tkns.booru_proxy,
+		//_token: _tkns.booru_proxy,
 	},
 	limit: 250,
 	keys: {
@@ -218,7 +218,7 @@ const Yandere = new Booru({
 		// limit keyword is "limit" by default
 	},
 	const_qs: {
-		_token: _tkns.booru_proxy,
+		//_token: _tkns.booru_proxy,
 	},
 	limit: 100,
 	keys: {

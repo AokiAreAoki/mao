@@ -36,9 +36,12 @@ module.exports = {
 						translations.push( translate )
 					})
 			} catch( err ){
-				console.error( err )
-				return err
+				//console.error( err )
+				return null
 			}
+
+			if( translations.length === 0 )
+				return null
 
 			return translations
 		}
@@ -106,7 +109,7 @@ module.exports = {
 			httpGet( pic.post_url ).then( async body => {
 				const translations = parseTranslation( body )
 
-				if( !translations || translations.length === 0 ){
+				if( !translations ){
 					message.edit( `No translations found for this picture` )
 					return
 				}

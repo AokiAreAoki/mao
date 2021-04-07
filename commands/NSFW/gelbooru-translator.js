@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'join httpGet decodeHTMLEntities Jimp Gelbooru',
+	requirements: 'join httpGet decodeHTMLEntities Jimp Gelbooru clamp',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -55,11 +55,40 @@ module.exports = {
 			})
 		}
 
-		let font
 		const solidBlack = 0x000000FF
 		const postRE = /https?\:\/\/(?:\w+\.)?gelbooru\.com\/index\.php.+?[?&]id=(\d+)/
 		const imageRE = /https?\:\/\/(?:\w+\.)?gelbooru\.com\/+(?:sampl|imag)es\/\w+\/\w+\/(?:sample_)?(\w+)\.\w+\b/
+		let fonts = {}
+		
+		function roundByBits( number ){
+			let n = number
+			let bits = 0
+		
+			while( n > 1 ){
+				n >>= 1
+				++bits
+			}
+		
+			let min = 1 << bits
+			let max = min << 1
+			let diff = max - min
+			return Math.round( ( number - min ) / diff ) * diff + min
+		}
 
+		function getAddaptiveFont( imageHeight ){
+			const fontHeight = clamp( roundByBits( imageHeight / 64 ), 8, 128 )
+			return `FONT_SANS_${fontHeight}_WHITE`
+		}
+
+		async function loadAddaptiveFont( imageHeight ){
+			const font = getAddaptiveFont( imageHeight )
+
+			if( !fonts[font] )
+				fonts[font] = await Jimp.loadFont( Jimp[font] )
+
+			return fonts[font]
+		}
+		
 		// console.log( `https://gelbooru.com/index.php?page=post&s=view&id=6004682&tags=translated`.matchFirst( postRE ) )
 		// console.log( `https://img3.gelbooru.com//samples/8b/40/sample_8b40135999a39fb10d90881d28581bc4.jpg`.matchFirst( imageRE ) )
 		// console.log( `https://img3.gelbooru.com/images/8b/40/8b40135999a39fb10d90881d28581bc4.jpg`.matchFirst( imageRE ) )
@@ -70,9 +99,6 @@ module.exports = {
 		}, async ( msg, args ) => {
 			const emoji = client.emojis.resolve( '822881934484832267' )
 			const message = await msg.send( emoji ? emoji.toString() : '👌' )
-
-			if( !font )
-				font = await Jimp.loadFont( Jimp.FONT_SANS_32_WHITE )
 
 			let tags = ''
 			
@@ -109,7 +135,7 @@ module.exports = {
 				return
 			}
 			
-			httpGet( pic.post_url ).then( async body => {
+			httpGet( pic.post_url ).then( body => {
 				const translations = parseTranslation( body )
 
 				if( !translations ){
@@ -117,30 +143,35 @@ module.exports = {
 					return
 				}
 				
-				Jimp.read( pic.full ?? pic.sample ).then( image => {
-					translations.forEach( ( { x, y, width, height, body }, index ) => {
-						const textWidth = body.split( /\s+/g ).reduce( ( maxWidth, word ) => {
+				Jimp.read( pic.full ?? pic.sample ).then( async image => {
+					const font = await loadAddaptiveFont( image.bitmap.height )
+
+					translations.forEach( async ({ x, y, width, height, body: text }) => {
+						const textWidth = text.split( /\s+/g ).reduce( ( maxWidth, word ) => {
 							const wordWidth = Jimp.measureText( font, word )
 							return wordWidth > maxWidth ? wordWidth : maxWidth
 						}, width )
-						const textHeight = Jimp.measureTextHeight( font, body, textWidth )
+						const textHeight = Jimp.measureTextHeight( font, text, textWidth )
+						
+						x += ( width - textWidth ) / 2
+						y += ( height - textHeight ) / 2
 
-						drawRect( image, solidBlack, x + ( width - textWidth ) / 2, y + ( height - textHeight ) / 2, textWidth, textHeight )
-
-						image.print( font, x + ( width - textWidth ) / 2, y + ( height - textHeight ) / 2, {
-							text: body,
+						drawRect( image, solidBlack, x, y, textWidth, textHeight )
+						image.print( font, x, y, {
+							text,
 							alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
 							alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
 						}, textWidth, textHeight )
 					})
 					
 					image.getBuffer( Jimp.AUTO, async ( err, buffer ) => {
-						if( err )
+						if( err ){
 							message.edit( cb( err ) )
-						else {
-							await msg.send( { files: [buffer] } )
-							message.delete()
+							return
 						}
+						
+						await msg.send({ files: [buffer] })
+						message.delete()
 					})
 				}) // Jimp.read
 			}) // Promise.all

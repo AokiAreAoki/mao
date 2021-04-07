@@ -46,9 +46,12 @@ module.exports = {
 			return translations
 		}
 
-		function drawRect( pic, clr, x, y, w, h ){
-			pic.scan( x, y, w, h, function( x, y, offset ){
-				this.bitmap.data.writeUInt32BE( clr, offset, true )
+		function drawRect( image, color, x, y, w, h ){
+			image.scan( x, y, w, h, function( x, y, offset ){
+				if( offset < 0 || offset >= this.bitmap.data.length )
+					return
+
+				this.bitmap.data.writeUInt32BE( color, offset, true )
 			})
 		}
 

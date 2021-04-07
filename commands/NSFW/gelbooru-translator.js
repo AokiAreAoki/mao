@@ -147,6 +147,8 @@ module.exports = {
 					const font = await loadAddaptiveFont( image.bitmap.height )
 
 					translations.forEach( async ({ x, y, width, height, body: text }) => {
+						text = text.replace( /\s*<br\s*\/>\s*/gi, ' ' )
+
 						const textWidth = text.split( /\s+/g ).reduce( ( maxWidth, word ) => {
 							const wordWidth = Jimp.measureText( font, word )
 							return wordWidth > maxWidth ? wordWidth : maxWidth

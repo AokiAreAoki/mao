@@ -70,7 +70,7 @@ module.exports = request_module => {
 				
 				qs[this.qs.tags] = tags
 				qs[this.qs.page] = ( page ?? 0 ) + this.page_offset
-				qs[this.qs.limit] = limit ?? this.limit
+				qs[this.qs.limit] = limit = limit ?? this.limit
 				
 				req({
 					uri: this.url,
@@ -89,7 +89,9 @@ module.exports = request_module => {
 					resolve( new BooruResults( body, {
 						keys: this.keys,
 						remove_other_keys: this.remove_other_keys,
-						tags, page,
+						tags,
+						page,
+						limit,
 						booru: this,
 					}))
 				})
@@ -104,9 +106,14 @@ module.exports = request_module => {
 		    
 			let { keys, remove_other_keys } = options
 
-			this.tags = options.tags ?? ''
-			this.page = options.page ?? 1
 			this.booru = options.booru
+
+			if( !this.booru )
+				throw Error( 'No booru specified in options' )
+
+			this.tags = options.tags ?? ''
+			this.page = options.page ?? this.booru.page_offset
+			this.limit = options.limit ?? this.booru.limit
 			
 			if( keys instanceof Object ){
 				this.pics = []
@@ -129,14 +136,16 @@ module.exports = request_module => {
 				this.pics = array_pics
 		}
 		
-		async parseNextPage( limit = this.booru.limit ){
-			if( this.booru ){
-				let res = await this.booru.q( this.tags, ++this.page, limit ?? this.booru.limit )
-				res.pics.forEach( this.pics.push )
-				return res.pics.length !== 0
-			}
-			
-			return false
+		async parseNextPage( limit ){
+			if( !this.booru )
+				throw Error( 'no booru ref' )
+
+			let res = await this.booru.q( this.tags, ++this.page, limit ?? this.limit )
+			if( res.pics.length === 0 )
+				return false
+
+			this.pics.push( ...res.pics )
+			return true
 		}
 	}
 

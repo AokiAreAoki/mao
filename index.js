@@ -841,7 +841,7 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 						break
 
 					case 'number':
-						if( !__printerr && !tags.cb && code === String( evaled ) )
+						if( !__printerr && !tags.cb && ( code === String( evaled ) || /^\+\w+$/.test( code ) ) )
 							return
 						evaled = numsplit( evaled )
 						break

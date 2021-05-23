@@ -25,7 +25,7 @@ module.exports = {
 			}
 
 			if( isNaN( from = parseInt( from ) ) )
-				return msg.send( '`-help resin` for help' )
+				return msg.send( 'Usage: `-help resin`' )
 
 			if( to === 'max' || to === 'full' )
 				to = maxResin

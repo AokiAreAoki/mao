@@ -299,33 +299,35 @@ function tts( table, maxtab = 4, tab = 0 ){
 	
 	++tab
 	
-	for( var k in table ){
-		if( typeof table[k] == 'object' ){
+	for( let k in table ){
+		const value = table[k]
+		
+		if( typeof value == 'object' ){
 			str += tabstr(tab)
 			
-			if( table[k] !== null ){
-				if( __duplicates.includes( table[k] ) ){
-					str += `Duplicate of ${table[k].constructor.name}\n`
+			if( value !== null ){
+				if( __duplicates.includes( value ) ){
+					str += `Duplicate of ${value.constructor.name}\n`
 					continue
 				} else
-					__duplicates.push( table[k] )
+					__duplicates.push( value )
 			}
 			
-			str += `${k}: ${tts( table[k], maxtab, tab )}`
+			str += `${k}: ${tts( value, maxtab, tab )}`
 		} else {
 			if( isarray && !k.match( /^[0-9]*$/ ) )
 				continue
 			
 			let val
 
-			switch( typeof table[k] ){
+			switch( typeof value ){
 				case 'string':
-					val = `"${table[k]}"`
+					val = `"${value}"`
 					break
 				
 				case 'function':
-					//val = String( table[k] ).split( '{' )[0] + '{ ... }'
-					val = String( table[k] ).replace( /^((async\s+)?(.+?=>\s*|function\s*[\w_]*\(.*?\)\s*))\{.*\}$/, '$1{ ... }' )
+					//val = String( value ).split( '{' )[0] + '{ ... }'
+					val = String( value ).replace( /^((async\s+)?(.+?=>\s*|function\s*[\w_]*\(.*?\)\s*))\{.*\}$/, '$1{ ... }' )
 					break
 
 				default:

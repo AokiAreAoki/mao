@@ -12,8 +12,10 @@ module.exports = {
 			return text[0].toUpperCase() + text.substring(1)
 		}
 		
-		function stringDayMonth( date ){
-			return date.getDate().toString() + '/' + ( date.getMonth() + 1 ).toString()
+		function getDate( date = Date.now() ){
+			const GMT = db.GMT ?? 0
+			date = new Date( Number( date ) + GMT * 3600e3 )
+			return `${date.getDate()}/${date.getMonth() + 1}`
 		}
 
 		function parseXML( xml ){
@@ -88,7 +90,7 @@ module.exports = {
 			let { src, tags } = dailies
 			tags = tags ?? ''
 			const Booru = sources[src]
-			const today = stringDayMonth( new Date() )
+			const today = getDate()
 			
 			if( !Booru )
 				throw new Error( `ERROR: Unknown source "${src}"` )
@@ -143,7 +145,7 @@ module.exports = {
 		}
 
 		// Undo function
-		function undoAnimeGirls( channel, date = stringDayMonth( new Date() ) ){
+		function undoAnimeGirls( channel, date = getDate() ){
 			// "*" passed
 			if( channel === '*' ){
 				const guilds = bakadb.get( 'daily_girls' )
@@ -226,7 +228,7 @@ module.exports = {
 		
 		// Poster
 		async function check(){
-			const today = stringDayMonth( new Date() )
+			const today = getDate()
 			
 			if( db.last_daily_girls === today )
 				return

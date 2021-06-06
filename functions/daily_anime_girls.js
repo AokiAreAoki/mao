@@ -14,8 +14,7 @@ module.exports = {
 		
 		function getDate( date = Date.now() ){
 			const GMT = db.GMT ?? 0
-			date = new Date( Number( date ) + GMT * 3600e3 )
-			return `${date.getDate()}/${date.getMonth() + 1}`
+			return Math.floor( ( Number( date ) + GMT * 3600e3 ) / 86400e3 )
 		}
 
 		function parseXML( xml ){

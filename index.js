@@ -706,7 +706,6 @@ unshiftMessageHandler( 'commands', true, ( msg, edited ) => {
 })
 
 //////////  Eval  //////////
-let smarteval = true
 let eval_prefix = /^>>+\s*/i
 
 client.on( 'ready', () => eval_prefix = new RegExp( `^(>>+|<@!?${client.user.id}>)\\s*`, 'i' ) )
@@ -778,7 +777,7 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 
 		if( tags.dev )
 			tags.iom = { value: 'dev' }
-			
+
 		if( tags.iom && tags.iom.value !== null ){
 			if( tags.iom.value !== db.token )
 				return

@@ -756,6 +756,7 @@ const evalTags = new EvalTags([
 	'silent',
 	'noparse',
 	'iom',
+	'dev',
 ])
 
 unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
@@ -775,7 +776,13 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 
 		let [code, tags] = evalTags.parseAndCut( said )
 
-		if( tags.iom && tags.iom.value !== null && tags.iom.value !== db.token )
+		if( tags.dev )
+			tags.iom = { value: 'dev' }
+			
+		if( tags.iom && tags.iom.value !== null ){
+			if( tags.iom.value !== db.token )
+				return
+		} else if( __flags.testmode )
 			return
 
 		if( tags.del )

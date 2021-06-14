@@ -30,7 +30,7 @@ Number.prototype.char = function(){
 //////////  Simple flag parser  //////////
 let flags = {}
 let noflags = true
-let list_of_flags = [
+const list_of_flags = [
 	'--testmode',
 	'--flags',
 ]
@@ -70,7 +70,7 @@ log()
 
 //////////  Including modules  //////////
 
-let requireAndLog = ( module, submodule ) => {
+function requireAndLog( module, submodule ){
 	let mod
 
 	if( submodule ){
@@ -94,22 +94,23 @@ let requireAndLog = ( module, submodule ) => {
 }
 
 logw( 'Requiring modules...' )
-const fs = requireAndLog( 'fs' )
-const http = requireAndLog( 'http' )
-const https = requireAndLog( 'https' )
-const join = requireAndLog( 'path', 'join' )
-const cp = requireAndLog( 'child_process' )
-const discord = requireAndLog( 'discord.js' )
-const ytdl = requireAndLog( 'ytdl-core-discord' )
-	  ytdl.search = requireAndLog( 'ytsr' )
-const Jimp = requireAndLog( 'jimp' )
-//const tgb = requireAndLog( 'node-telegram-bot-api' )
-const req = requireAndLog( 'request' )
+	const fs = requireAndLog( 'fs' )
+	const http = requireAndLog( 'http' )
+	const https = requireAndLog( 'https' )
+	const join = requireAndLog( 'path', 'join' )
+	const cp = requireAndLog( 'child_process' )
+	const discord = requireAndLog( 'discord.js' )
+	const Collection = discord.Collection
+	const ytdl = requireAndLog( 'ytdl-core-discord' )
+		  ytdl.search = requireAndLog( 'ytsr' )
+	const Jimp = requireAndLog( 'jimp' )
+	//const tgb = requireAndLog( 'node-telegram-bot-api' )
+	const req = requireAndLog( 'request' )
 log( 'OK' )
 
 // Including my modules
 function requireCustomModule( moduleName ){
-	const module = require( `./re/${moduleName}.js` )
+	const module = require( `./re/${moduleName}` )
 	
 	if( !module ){
 		log( `\n    Failed to require "${moduleName}" module...` )
@@ -120,15 +121,17 @@ function requireCustomModule( moduleName ){
 }
 
 logw( 'Requiring custom modules...' )
-const bakadb = requireCustomModule( 'bakadb' )
-const { Booru, BooruResults } = requireCustomModule( 'booru-wrapper' )( req )
-const TimeSplitter = requireCustomModule( 'time-splitter' )
-const List = requireCustomModule( 'List' )
-//const MyLang = re( 'MyLang' )
-const timer = requireCustomModule( 'timer' )
-const tree = requireCustomModule( 'tree-printer' )
-const vec = requireCustomModule( 'vector' )
-const waitFor = requireCustomModule( 'waitFor' )
+	const bakadb = requireCustomModule( 'bakadb' )
+	const CommandManager = requireCustomModule( 'command-manager' )
+	const { Booru, BooruResults } = requireCustomModule( 'booru-wrapper' )( req )
+	const TimeSplitter = requireCustomModule( 'time-splitter' )
+	const List = requireCustomModule( 'List' )
+	const MessageManager = requireCustomModule( 'message-manager' )
+	//const MyLang = re( 'MyLang' )
+	const timer = requireCustomModule( 'timer' )
+	const tree = requireCustomModule( 'tree-printer' )
+	const vec = requireCustomModule( 'vector' )
+	const waitFor = requireCustomModule( 'waitFor' )
 log( 'OK' )
 
 // Defining some shit
@@ -531,18 +534,18 @@ function include( path, overwrites ){
 }
 
 logw( 'Including functions...' )
-readdir( './functions' ).forEach( file => {
-	if( file.endsWith( '.js' ) ){
-		const path = './' + join( 'functions', file )
+	readdir( './functions' ).forEach( file => {
+		if( file.endsWith( '.js' ) ){
+			const path = './' + join( 'functions', file )
 
-		try {
-			include( path )
-		} catch( err ){
-			log( `\n    Failed to include "${path}" file` )
-			throw err
-		}
-	}	
-})
+			try {
+				include( path )
+			} catch( err ){
+				log( `\n    Failed to include "${path}" file` )
+				throw err
+			}
+		}	
+	})
 log( 'OK' )
 
 //////////  Command manager  //////////
@@ -553,7 +556,7 @@ cmddata = {
 	cmds: {},
 }
 
-// Custom prefix if logged in as MaoDev#2638
+// Special prefix if logged in as MaoDev#2638
 client.on( 'ready', () => {
 	if( client.user.id == '598593004088983688' )
 		cmddata.prefix = /^(--\s*)/i
@@ -893,7 +896,7 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 						let indent = funcbody.matchFirst( /\n(\s+)[^\n]+$/ )?.length
 						
 						if( indent )
-							funcbody = funcbody.replace( new RegExp( `\\n\\s{${indent}}`, 'g' ), '\n' )
+							funcbody = funcbody.replace( new RegExp( `^\\s{${indent}}`, 'gm' ), '' )
 
 						evaled = '```JS\n' + funcbody + '```'
 						tags.cb = false

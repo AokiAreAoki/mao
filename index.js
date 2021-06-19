@@ -31,7 +31,7 @@ Number.prototype.char = function(){
 let flags = {}
 let noflags = true
 const list_of_flags = [
-	'--testmode',
+	'--dev',
 	'--flags',
 ]
 	
@@ -401,7 +401,7 @@ function httpGet( options, callback, errcallback ){
 
 //////////  Initializing BakaDB  //////////
 
-bakadb.init( __flags.testmode ? './test/bdb' : './bdb', {
+bakadb.init( __flags.dev ? './test/bdb' : './bdb', {
 	List: List,
 })
 bakadb.autoSave( 5*60 )
@@ -417,13 +417,7 @@ const client = new discord.Client({
 	messageSweepInterval: 72,
 })
 
-if( !db.token || !_tkns.discord[db.token] )
-	for( let k in _tkns.discord ){
-		db.token = k
-		break
-	}
-
-client.login( _tkns.discord[db.token] )
+client.login( _tkns.discord[__flags.dev ? 'dev' : 'mao'] )
 
 let isOnlineOrInitialized = false
 
@@ -728,7 +722,7 @@ class EvalTags {
 				code = code.trimLeft().substring( tag.length )
 
 				if( code[0] === ':' ){
-					value = code.matchFirst( /^.(\w+)/ ) ?? ''
+					value = code.matchFirst( /^.([\w\*]+)/ ) ?? ''
 					code = code.substring( value.length + 1 )
 				}
 			}
@@ -782,9 +776,9 @@ unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
 			tags.iom = { value: 'dev' }
 
 		if( tags.iom && tags.iom.value !== null ){
-			if( tags.iom.value !== db.token )
+			if( tags.iom.value !== db.token && tags.iom.value !== '*' )
 				return
-		} else if( __flags.testmode )
+		} else if( __flags.dev )
 			return
 
 		if( tags.del )

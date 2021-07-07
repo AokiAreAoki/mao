@@ -89,94 +89,100 @@ module.exports = {
 			return fonts[font]
 		}
 		
-		// console.log( `https://gelbooru.com/index.php?page=post&s=view&id=6004682&tags=translated`.matchFirst( postRE ) )
-		// console.log( `https://img3.gelbooru.com//samples/8b/40/sample_8b40135999a39fb10d90881d28581bc4.jpg`.matchFirst( imageRE ) )
-		// console.log( `https://img3.gelbooru.com/images/8b/40/8b40135999a39fb10d90881d28581bc4.jpg`.matchFirst( imageRE ) )
+		addCmd({
+			aliases: 'gelbooru-translate glbr-tr',
+			description: {
+				short: 'translates pics from gelbooru',
+				full: [
+					'Parses translation from gelbooru and draws it on the picture',
+					'* may not work correctly',
+				],
+				usages: [
+					[`<ID of a post/link to post/link to image from gelbooru CDN>`, 'searches for translation on gelbooru and draws the translation on a pic'],
+				],
+			},
+			callback: async ( msg, args ) => {
+				const emoji = client.emojis.resolve( '822881934484832267' )
+				const message = await msg.send( emoji ? emoji.toString() : '👌' )
 
-		addCmd( 'gelbooru-translate glbr-tr', {
-			short: 'parses translation from gelbooru and draws it on the picture',
-			full: 'Usage: `gelbooru-translate <ID of a post/link to post/link to image on gelbooru CDN>`\n*may not work correctly',
-		}, async ( msg, args ) => {
-			const emoji = client.emojis.resolve( '822881934484832267' )
-			const message = await msg.send( emoji ? emoji.toString() : '👌' )
+				let tags = ''
+				
+				if( !args[0] ){
+					message.edit( `Please provide a link to a gelbooru post or a link to a picture stored on gelbooru CDN` )
+					return
+				}
 
-			let tags = ''
-			
-			if( !args[0] ){
-				message.edit( `Please provide a link to a gelbooru post or a link to a picture stored on gelbooru CDN` )
-				return
-			}
+				let id = args[0].matchFirst( /^\d+$/ )
+				
+				if( !id )
+					id = args[0].matchFirst( postRE )
+				
+				if( id )
+					tags = `id:${id}`
+				else {
+					const md5 = args[0].matchFirst( imageRE )
+					if( md5 ) tags = `md5:${md5}`
+				}
 
-			let id = args[0].matchFirst( /^\d+$/ )
-			
-			if( !id )
-				id = args[0].matchFirst( postRE )
-			
-			if( id )
-				tags = `id:${id}`
-			else {
-				const md5 = args[0].matchFirst( imageRE )
-				if( md5 ) tags = `md5:${md5}`
-			}
+				if( !tags ){
+					message.edit( `Post ID or image MD not found` )
+					return
+				}
 
-			if( !tags ){
-				message.edit( `Post ID or image MD not found` )
-				return
-			}
+				let pic
 
-			let pic
+				await Gelbooru.q( tags ).then( ({ pics }) => {
+					pic = pics[0]
+				})
 
-			await Gelbooru.q( tags ).then( ({ pics }) => {
-				pic = pics[0]
-			})
-
-			if( !pic ){
-				message.edit( `Failed to parse picture` )
-				return
-			}
-			
-			httpGet( pic.post_url ).then( body => {
-				const translations = parseTranslation( body )
-
-				if( !translations ){
-					message.edit( `No translations found for this picture` )
+				if( !pic ){
+					message.edit( `Failed to parse picture` )
 					return
 				}
 				
-				Jimp.read( pic.full ?? pic.sample ).then( async image => {
-					const font = await loadAddaptiveFont( image.bitmap.height )
+				httpGet( pic.post_url ).then( body => {
+					const translations = parseTranslation( body )
 
-					translations.forEach( async ({ x, y, width, height, body: text }) => {
-						text = text.replace( /\s*<br\s*\/>\s*/gi, ' ' )
-
-						const textWidth = text.split( /\s+/g ).reduce( ( maxWidth, word ) => {
-							const wordWidth = Jimp.measureText( font, word )
-							return wordWidth > maxWidth ? wordWidth : maxWidth
-						}, width )
-						const textHeight = Jimp.measureTextHeight( font, text, textWidth )
-						
-						x += ( width - textWidth ) / 2
-						y += ( height - textHeight ) / 2
-
-						drawRect( image, solidBlack, x, y, textWidth, textHeight )
-						image.print( font, x, y, {
-							text,
-							alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-							alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
-						}, textWidth, textHeight )
-					})
+					if( !translations ){
+						message.edit( `No translations found for this picture` )
+						return
+					}
 					
-					image.getBuffer( Jimp.AUTO, async ( err, buffer ) => {
-						if( err ){
-							message.edit( cb( err ) )
-							return
-						}
+					Jimp.read( pic.full ?? pic.sample ).then( async image => {
+						const font = await loadAddaptiveFont( image.bitmap.height )
+
+						translations.forEach( async ({ x, y, width, height, body: text }) => {
+							text = text.replace( /\s*<br\s*\/>\s*/gi, ' ' )
+
+							const textWidth = text.split( /\s+/g ).reduce( ( maxWidth, word ) => {
+								const wordWidth = Jimp.measureText( font, word )
+								return wordWidth > maxWidth ? wordWidth : maxWidth
+							}, width )
+							const textHeight = Jimp.measureTextHeight( font, text, textWidth )
+							
+							x += ( width - textWidth ) / 2
+							y += ( height - textHeight ) / 2
+
+							drawRect( image, solidBlack, x, y, textWidth, textHeight )
+							image.print( font, x, y, {
+								text,
+								alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+								alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
+							}, textWidth, textHeight )
+						})
 						
-						await msg.send({ files: [buffer] })
-						message.delete()
-					})
-				}) // Jimp.read
-			}) // Promise.all
+						image.getBuffer( Jimp.AUTO, async ( err, buffer ) => {
+							if( err ){
+								message.edit( cb( err ) )
+								return
+							}
+							
+							await msg.send({ files: [buffer] })
+							message.delete()
+						})
+					}) // Jimp.read
+				}) // httpGet
+			},
 		}) // addCmd
 	}
 }

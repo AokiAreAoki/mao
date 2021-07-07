@@ -3,30 +3,34 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
-		addCmd( 'undo', 'Removes edited message', async msg => {
-			msg.isCommand = false
-			
-			if( msg.edits.length > 1 ){
-				await msg.react( client.emojis.cache.get( '822881934484832267' ) ?? '👌' )
-				await msg.delete( 1337 )
-				return
-			}
-
-			msg.channel.messages.fetch({
-				before: msg.id,
-				limit: 100,
-			}).then( async messages => {
-				const message = messages?.find( m => m.author.id === msg.author.id && m.isCommand )
-			
-				if( message ){
+		addCmd({
+			aliases: 'undo',
+			description: 'removes last command or edited message',
+			callback: async msg => {
+				msg.isCommand = false
+				
+				if( msg.edits.length > 1 ){
 					await msg.react( client.emojis.cache.get( '822881934484832267' ) ?? '👌' )
-					await message.channel.bulkDelete( message._answers )
-					setTimeout( () => message.channel.bulkDelete( [msg, message] ), 1337 )
-				} else {
-					msg.isCommand = true
-					msg.send( 'No commands found' )
+					await msg.delete( 1337 )
+					return
 				}
-			}).catch( console.log )
+
+				msg.channel.messages.fetch({
+					before: msg.id,
+					limit: 100,
+				}).then( async messages => {
+					const message = messages?.find( m => m.author.id === msg.author.id && m.isCommand )
+				
+					if( message ){
+						await msg.react( client.emojis.cache.get( '822881934484832267' ) ?? '👌' )
+						await message.channel.bulkDelete( message._answers )
+						await message.channel.bulkDelete( [msg, message] )
+					} else {
+						msg.isCommand = true
+						msg.send( 'No commands found' )
+					}
+				}).catch( console.log )
+			},
 		})
 	}
 }

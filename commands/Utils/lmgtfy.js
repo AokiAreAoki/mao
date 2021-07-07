@@ -2,29 +2,40 @@ module.exports = {
 	requirements: 'embed',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
-		addCmd( 'lmgtfy lmg whatis whats', { short: 'googles that for you or someone else', full: `Usage: \`lmgtfy <search request> [--iie]\`\n• \`--iie\` - includes internet expainer` }, ( msg, args, get_string_args ) => {
-			let url = 'https://lmgtfy.com/?q=',
-				q = get_string_args().trim(),
-				iie = '',
-				whatis = args[-1].toLowerCase().startsWith( 'what' ) ? 'What is ' : '',
-				timeout = 1337 + Math.random() * 3e3
-			
-			if( !q )
-				return msg.send( 'Usage: `-help lmgtfy`' )
 
-			if( q.matchFirst( /(^|[\s\n]+)-+iie\b/i ) ){
-				q = q.replace( /(^|[\s\n]+)-+iie\b/i, '' )
-				iie = '&iie=1'
-			}
+		addCmd({
+			aliases: 'lmgtfy lmg whatis whats',
+			description: {
+				short: 'lemme googles that for ya (or someone else)',
+				full: 'Googles stuff for you (or someone else)',
+				usages: [
+					[`<search request>`, 'googles $1'],
+					[`<search request>`, `--iie`, 'googles $1 and includes internet expainer'],
+				],
+			},
+			callback: ( msg, args ) => {
+				let url = 'https://lmgtfy.com/?q=',
+					q = args.get_string(),
+					iie = '',
+					whatis = args[-1].toLowerCase().startsWith( 'what' ) ? 'What is ' : '',
+					timeout = 1337 + Math.random() * 3e3
+				
+				if( !q )
+					return msg.send( 'Usage: `-help lmgtfy`' )
 
-			url += encodeURI( ( whatis + q ).replace( /\s+/g, '+' ) ) + iie
+				if( q.matchFirst( /(^|[\s\n]+)-+iie\b/i ) ){
+					q = q.replace( /(^|[\s\n]+)-+iie\b/i, '' )
+					iie = '&iie=1'
+				}
 
-			msg.send( embed()
-				.addField( `OK 👌. Googling \`${whatis + q}\`...`, 'Please wait a bit :^)' )
-			).then( m => {
-				setTimeout( () => m.edit( embed().addField( 'Found!', `Click here to find out ${whatis.toLowerCase()}[${q}](${url})` ) ), timeout )
-			})
+				url += encodeURI( ( whatis + q ).replace( /\s+/g, '+' ) ) + iie
+
+				msg.send( embed()
+					.addField( `OK 👌. Googling \`${whatis + q}\`...`, 'Please wait a bit :^)' )
+				).then( m => {
+					setTimeout( () => m.edit( embed().addField( 'Found!', `Click here to find out ${whatis.toLowerCase()}[${q}](${url})` ) ), timeout )
+				})
+			},
 		})
 	}
 }

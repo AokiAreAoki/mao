@@ -12,7 +12,7 @@ module.exports = {
 			return min <= num && num <= max
 		}
 		
-		let colorSystems = {
+		const colorSystems = {
 			rgb: args => vec( toByte( args[0] ), toByte( args[1] ), toByte( args[2] ) ).toHex(),
 			hex: args => {
 				if( args[0].length !== 6 )
@@ -43,51 +43,64 @@ module.exports = {
 			mao: () => maoclr,
 		}
 		
-		addCmd( 'color clr', {
-			short: 'displays color',
-			full: "Usage: `color [type] <color>`"
-			+ "\nColor types:"
-			+ "\n• RGB: `color (0-255) (0-255) (0-255)`, `color rgb 255 0 127`"
-			+ "\n• HEX: `color 0x80FF00`, `color hex #Ff0000`, `color #08F`"
-			+ "\n• HSL/HSV: `color hsl 30 1 0.5`, `color hsl 160 50% 100%`"
-			+ "\n* `HSL/HSV` isn't optional! You should specify `hsl/hsv` type to use it."
-		}, ( msg, args, get_string_args ) => {
-			if( !args[0] )
-				return msg.send( 'Usage: `-help color`' )
-			
-			let system = args[0].toLowerCase()
+		addCmd({
+			aliases: 'color clr',
+			description: {
+				short: 'displays color',
+				full: [
+					`Gets color`,
+					`Supported color types: RGB, HEX and HSL/HSV`,
+					`* \`HSL/HSV\` doesn't autodetects. You have to specify \`hsl\`/\`hsv\` as a color type to use it.`,
+				],
+				usages: [
+					[`[type]`, `<color data...>`, '']
+				],
+				examples: [
+					['rgb', '255', '0', '127', 'RGB color system with \`rgb\` type specified'],
+					['hex', '#Ff0000', 'HEX color system with \`hex\` type specified'],
+					['#08F', 'short HEX without \`hex\` type specified'],
+					['hsl', '160', '50%', '100%', 'HSL color system with \`hsl\` type specified (required)'],
+					['hsl', '30', '1', '0.5', `same as previous but there's coefficients(\`[0; 1]\`) instead of percentages`],
+				],
+			},
+			callback: ( msg, args ) => {
+				if( !args[0] )
+					return msg.send( 'Usage: `-help color`' )
+				
+				let system = args[0].toLowerCase()
 
-			if( colorSystems[system] )
-				args.shift()
-			else {
-				if( /^\d{1,3}(\s+\d{1,3}){2}/.test( get_string_args() ) )
-					system = 'rgb'
-				else if( /^(#|0x)[\da-f]{3,6}$/i.test( system ) )
-					system = 'hex'
-				else
-					return msg.send( 'Invalid color specifying' )
-			}
+				if( colorSystems[system] )
+					args.shift()
+				else {
+					if( /^\d{1,3}(\s+\d{1,3}){2}/.test( args.get_string() ) )
+						system = 'rgb'
+					else if( /^(#|0x)[\da-f]{3,6}$/i.test( system ) )
+						system = 'hex'
+					else
+						return msg.send( 'Invalid color specifying' )
+				}
 
-			if( typeof colorSystems[system] === 'string' )
-				system = colorSystems[system]
-			let color = colorSystems[system]( args, get_string_args() )
-			
-			if( typeof color == 'number' ){
-				new Jimp( 64, 64, color * 0x100 + 0xFF, ( err, img ) => {
-					if( err )
-						return msg.sendcb( err )
+				if( typeof colorSystems[system] === 'string' )
+					system = colorSystems[system]
+				let color = colorSystems[system]( args, args.get_string() )
+				
+				if( typeof color == 'number' ){
+					new Jimp( 64, 64, color * 0x100 + 0xFF, ( err, img ) => {
+						if( err )
+							return msg.sendcb( err )
 
-					img.rgba( false )
+						img.rgba( false )
 
-					img.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
-						delete img
-						if( err ) msg.sendcb( err )
-						else msg.send({ files: [buffer] })
-							.catch( err => msg.sendcb( err ) )
+						img.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
+							delete img
+							if( err ) msg.sendcb( err )
+							else msg.send({ files: [buffer] })
+								.catch( err => msg.sendcb( err ) )
+						})
 					})
-				})
-			} else
-				msg.send( 'Woops... Failed to parse the color :(((' )
+				} else
+					msg.send( 'Woops... Failed to parse the color :(((' )
+			}
 		})
 	}
 }

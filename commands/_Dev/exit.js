@@ -28,15 +28,22 @@ module.exports = {
 			}
 		})
 
-		addCmd( 'exit die', { short: 'guess what', full: 'r u srsly?' }, async ( msg, args ) => {
-			db.restart = {
-				message: msg.id,
-				channel: msg.channel.id,
-				timestamp: Date.now(),
-			}
-			
-			await msg.react( '717396565114880020' )
-			_exit( parseInt( args[0] ) )
+		addCmd({
+			aliases: 'exit die',
+			description: {
+				short: 'guess what',
+				full: 'r u srsly?'
+			},
+			callback: async ( msg, args ) => {
+				db.restart = {
+					message: msg.id,
+					channel: msg.channel.id,
+					timestamp: Date.now(),
+				}
+				
+				await msg.react( '717396565114880020' )
+				_exit( parseInt( args[0] ) )
+			},
 		})
 	}
 }

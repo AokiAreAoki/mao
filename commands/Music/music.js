@@ -1,14 +1,15 @@
 module.exports = {
-	requirements: 'log embed maoclr httpGet waitFor ytdl _tkns instanceOf',
+	requirements: 'log embed maoclr httpGet ytdl _tkns instanceOf',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
+
 		let mdata = {},
 			m = {}
 		
 		function defineMData( guildID ){
 			mdata[guildID] = {
 				playing: false,
-				queue: [],	// queue :think_about:
+				queue: [],	// song queue
 				disp: null,	// dispatcher
 				tc: null,	// text channel
 				idlingStarted: -1,
@@ -209,25 +210,25 @@ module.exports = {
 			else if( /^https?:\/\/(\w+\.)?youtu\.be\/\w+/.test( query ) )
 				vid = query.matchFirst( /youtu\.be\/([\w-_]{11})/ )
 
-			return new Promise( async res => {
-				if( vid )
+			return new Promise( async resolve => {
+				if( vid ){
 					queueSong( msg.guild.id, vid, ( err, song ) => {
 						if( err ){
 							msg.send( 'Failed adding song to the queue :(' )
 							console.error( err )
-							res( false )
+							resolve( false )
 						} else {
 							sendQueuedMessage( msg, song, msg.member )
-							res( true )
+							resolve( true )
 						}
 					})
-				else {
-					let m = await msg.send( `Searching for \`${query}\`...` )
+				} else {
+					let displayMessage = await msg.send( `Searching for \`${query}\`...` )
 					
 					searchOnYT( query, async songs => {
 						if( songs == null || songs.length == 0 ){
-							( await m.edit( 'Nothing found :(' ) ).delete( 2280 )
-							res( false )
+							( await displayMessage.edit( 'Nothing found :(' ) ).delete( 2280 )
+							resolve( false )
 						} else {
 							let results = '```'
 
@@ -238,40 +239,33 @@ module.exports = {
 								else break
 							}
 
-							m.edit( results + '```' )
+							displayMessage.edit( results + '```' )
 
-							waitFor({
-								memberID: msg.member.id,
-								timeout: 30,
-								message: m,
-								messageDeleteDelay: 22880,
-								onMessage: ( msg, stopWaiting ) => {
-									let n = msg.content.matchFirst( /^\d\d?$/ )
-									if(n){
-										n = Number(n)
-										
-										if( n <= songs.length ){
-											if( n == 0 )
-												m.edit( 'Canceled' ).then( m => m.delete( 2280 ) )
-											else {
-												if( queueSong( msg.guild.id, songs[n - 1] ) ){
-													sendQueuedMessage( msg.channel, songs[n - 1], msg.member )
-													res( true )
-												} else {
-													msg.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
-													res( false )
-												}
++							msg.awaitResponse({ timeout: 30, displayMessage })
+								.if( msg => /^\d\d?$/.test( msg.content ) )
+								.then( ( msg, waiter ) => {
+									const n = parseInt( msg.content )
+									
+									if( n <= songs.length ){
+										if( n === 0 )
+											displayMessage.edit( 'Canceled' ).then( m => m.delete( 2280 ) )
+										else {
+											if( queueSong( msg.guild.id, songs[n - 1] ) ){
+												sendQueuedMessage( msg.channel, songs[n - 1], msg.member )
+												resolve( true )
+											} else {
+												msg.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
+												resolve( false )
 											}
-
-											m.delete( 1337 )
-											msg.delete( 1337 )
-											stopWaiting()
 										}
+
+										waiter.stop()
+										msg.delete( 1337 )
+										displayMessage.delete( 1337 )
 									}
-								},
-								onOverwrite: () => res( false ),
-								onTimeout: () => res( false ),
-							})
+								})
+								.onTimeout( () => resolve( false ) )
+								.onCancel( () => resolve( false ) )
 						}
 					}, console.error )
 				}
@@ -475,9 +469,9 @@ module.exports = {
 			+ '\n`music qp` - Shows queue'
 			+ '\n`music qp <song>` - Searching for a song on the youtube'
 			+ '\n`music qp <yt video url>` - Adds a video to the queue',
-		async ( msg, args, get_string_args ) => {
+		async ( msg, args ) => {
 			if( args[0] ){
-				queue( get_string_args(), msg )
+				queue( args.get_string(), msg )
 			} else
 				sendQueue( msg )
 		})
@@ -493,9 +487,9 @@ module.exports = {
 			+ '\n`music qp` - Shows queue'
 			+ '\n`music qp <song>` - Searching for a song on the youtube'
 			+ '\n`music qp <yt video url>` - Adds a video to the queue',
-		async ( msg, args, get_string_args ) => {
+		async ( msg, args ) => {
 			if( args[0] ){
-				queue( get_string_args(), msg ).then( succes => {
+				queue( args.get_string(), msg ).then( succes => {
 					if( !succes ) return
 					let queue = mdata[msg.guild.id].queue
 					if( queue && queue[0] ) play2( msg )
@@ -504,7 +498,7 @@ module.exports = {
 				sendQueue( msg )
 		})
 
-		addMCommand( 'skip s', `Skips song (doesn't work ¯\\_(ツ)_/¯)`, async ( msg, args, get_string_args ) => {
+		addMCommand( 'skip s', `Skips song (doesn't work ¯\\_(ツ)_/¯)`, async ( msg, args ) => {
 			let skipped_song = skip( msg.guild )
 			msg.send( embed().addField( 'Skipped:', `\`${skipped_song.author}\` - \`${skipped_song.title}\`` ) )
 		})
@@ -515,40 +509,42 @@ module.exports = {
 		})
 
 		/// Main music command ///
-		let full = '*TODO*'
-		addCmd( 'music m', { short: 'plays music from youtube', full: full }, ( msg, args, get_string_args ) => {
-			let option = args[0]
+		addCmd({
+			aliases: 'music m',
+			description: {
+				short: 'plays music from youtube [currently broken]',
+				full: [
+					'*TODO*',
+				],
+			},
+			callback: ( msg, args ) => {
+				let option = args[0]
 
-			if( m[option] ){
-				// Aliases Redirection
-				if( typeof m[option] == 'string' )
+				if( m[option] ){
+					// Aliases Redirection
+					if( typeof m[option] == 'string' )
+						option = m[option]
 					option = m[option]
-				option = m[option]
-				
-				// Args2
-				let args_pos2 = get_string_args.args_pos.slice(1),
-					string_args2 = get_string_args()
 
-				function get_string_args2( number=0 ){
-					return typeof args_pos2[number] == 'number' ? string_args2.substring( args_pos2[number] ) : ''
-				}
-				
-				if( typeof option.func == 'function' )
-					option.func( msg, args.slice(1), get_string_args2 )
-				else
-					log( `Error: m.${option}.func is a ${typeof option.func}, function expected` )
-			} else {
-				let emb = embed()
-					.setAuthor( msg.member.displayName, msg.author.avatarURL )
-				
-				for( let cmd in m ){
-					let data = m[cmd]
-					if( typeof data === 'object' )
-						emb.addField( `**${cmd}${data.aliases.length > 0 ? ', ' + data.aliases.join( ', ' ) : ''}**`, data.description || 'no description :(' )
-				}
+					args.shift()
+					
+					if( typeof option.func == 'function' )
+						option.func( msg, args )
+					else
+						log( `Error: m.${option}.func is a ${typeof option.func}, function expected` )
+				} else {
+					let emb = embed()
+						.setAuthor( msg.member.displayName, msg.author.avatarURL )
+					
+					for( let cmd in m ){
+						let data = m[cmd]
+						if( typeof data === 'object' )
+							emb.addField( `**${cmd}${data.aliases.length > 0 ? ', ' + data.aliases.join( ', ' ) : ''}**`, data.description || 'no description :(' )
+					}
 
-				msg.send( emb )
-			}
+					msg.send( emb )
+				}
+			},
 		})
 	}
 }

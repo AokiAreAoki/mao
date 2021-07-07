@@ -83,9 +83,22 @@ module.exports = {
 			return member ? member.id : null
 		}
 
+		const cmd = addCmd({
+			aliases: 'perm perms',
+			description: 'manages bot permissions',
+		})
+
 		// Commands
-		let actions = {
-			get: async ( msg, args ) => {
+		
+		cmd.addSubcommand({
+			aliases: 'get',
+			description: {
+				single: 'displays all permissions',
+				usages: [
+					['<@@>', 'displays all permissions $1 has'],
+				]
+			},
+			callback: async ( msg, args ) => {
 				let username = args.shift()
 				
 				if( username ){
@@ -113,7 +126,17 @@ module.exports = {
 
 				msg.send( 'User not found' )
 			},
-			set: async ( msg, args ) => {
+		})
+		
+		cmd.addSubcommand({
+			aliases: 'set',
+			description: {
+				single: 'sets permissions for users',
+				usages: [
+					['<@@>', '<permissions...>', 'sets $2 permissions for $1']
+				]
+			},
+			callback: async ( msg, args ) => {
 				let username = args.shift()
 
 				if( args.length > 0 ){
@@ -128,7 +151,17 @@ module.exports = {
 				} else
 					msg.send( 'You did not provide permissions' )
 			},
-			remove: async ( msg, args ) => {
+		})
+		
+		cmd.addSubcommand({
+			aliases: 'remove',
+			description: {
+				single: 'removes permissions from users',
+				usages: [
+					['<@@>', '<permissions...>', 'removes $2 permissions from $1']
+				]
+			},
+			callback: async ( msg, args ) => {
 				let username = args.shift()
 
 				if( args.length > 0 ){
@@ -143,28 +176,6 @@ module.exports = {
 				} else
 					msg.send( 'You did not provide permissions' )
 			},
-		}
-
-		addCmd( 'perm perms', { short: 'manages bot permissions', full: '// TODO' }, ( msg, args ) => {
-			let action = args.shift()
-
-			if( action ){
-				action = action.toLowerCase()
-
-				if( actions[action] )
-					actions[action]( msg, args )
-				else
-					msg.send( 'Unknown action' )
-			} else {
-				let list = ''
-
-				for( let k in actions ){
-					if( list ) list += ', '
-					list += `\`${k}\``
-				}
-
-				msg.send( embed().addField( 'Actions:', list ) )
-			}
 		})
 	}
 }

@@ -60,7 +60,7 @@ module.exports = {
 			'VB.NET':		new Language( 2 )
 		}
 		let langList = []
-	
+
 		{
 			for( let lang in langs ){
 				let compilers = langs[lang]
@@ -86,85 +86,92 @@ module.exports = {
 		langs.JS = 'JavaScript'
 		langs.CPP = 'C++'
 		
-		addCmd( 'rextester rex', {
-			short: 'runs code',
-			full: 'todo',
-		}, async ( msg, args, get_string_args ) => {
-			if( args.length === 0 )
-				return msg.send( `Usage: \`-help ${args[-1]}\`` )
+		addCmd({
+			aliases: 'rextester rex',
+			description: {
+				short: 'runs code on rextester.com (dead)',
+				full: [
+					'Runs code on rextester.com',
+					`* doesn't work anymore`
+				],
+			},
+			callback: async ( msg, args ) => {
+				if( args.length === 0 )
+					return msg.send( `Usage: \`-help ${args[-1]}\`` )
 
-			let arg0 = args[0].toLowerCase()
+				let arg0 = args[0].toLowerCase()
 
-			if( arg0 === 'list' )
-				msg.send( `List of supported languages:\n\`\`\`${langList}\`\`\`` )
-			else {
-				let language, lang, requestedLang, compiler
+				if( arg0 === 'list' )
+					msg.send( `List of supported languages:\n\`\`\`${langList}\`\`\`` )
+				else {
+					let language, lang, requestedLang, compiler
 
-				if( arg0.indexOf( '/' ) + 1 )
-					[requestedLang, compiler] = arg0.toLowerCase().split( '/' )
-				else
-					requestedLang = arg0.toLowerCase()
-					
-				for( let l in langs ){
-					if( l.toLowerCase().startsWith( requestedLang ) ){
-						lang = langs[l]
+					if( arg0.indexOf( '/' ) + 1 )
+						[requestedLang, compiler] = arg0.toLowerCase().split( '/' )
+					else
+						requestedLang = arg0.toLowerCase()
 						
-						if( typeof lang === 'string' )
-							lang = langs[( l = lang )]
-						
-						language = l
-						
-						if( instanceOf( lang, 'Object' ) ){
-							compiler = compiler || Object.keys( lang )[0]
-							language += ` (${compiler.toUpperCase()})`
-							lang = lang[compiler]
-						}
-
-						break
-					}
-				}
-				
-				if( lang ){
-					let code = get_string_args(1)
-					
-					if( code.startsWith( '```' ) )
-						code = code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s )
-					
-					if( !code ){
-						msg.send( 'Gimme code, baka~!' )
-						return
-					}
-					
-					let message = await msg.send( `Running your \`${language}\` code...` )
-
-					req({
-						method: 'POST',
-						uri: "https://rextester.com/rundotnet/api",
-						qs: {
-							LanguageChoice: lang.id,
-							Program: code,
-							Input: '',
-							CompilerArgs : lang.compiler_args || '',
-						}
-					}, ( err, req, body ) => {
-						if( err )
-							return message.edit( cb( err ) )
-
-						try {
-							let result = JSON.parse( body )
+					for( let l in langs ){
+						if( l.toLowerCase().startsWith( requestedLang ) ){
+							lang = langs[l]
 							
-							message.edit( message.content + '\n' // `\n${result.Stats}\n`
-								+ ( `Output:${result.Result ? cb( result.Result ) : ' nothing\n'}` )
-								+ ( result.Warnings !== null ? 'Warnings:' + cb( result.Warnings ) : '' )
-								+ ( result.Errors !== null ? 'Error:' + cb( result.Errors ) : '' )
-							)
-						} catch( err ){
-							message.edit( cb( err ) )
+							if( typeof lang === 'string' )
+								lang = langs[( l = lang )]
+							
+							language = l
+							
+							if( instanceOf( lang, 'Object' ) ){
+								compiler = compiler || Object.keys( lang )[0]
+								language += ` (${compiler.toUpperCase()})`
+								lang = lang[compiler]
+							}
+
+							break
 						}
-					})
-				} else
-					msg.send( `Unknown language \`${requestedLang}\`. \`-rextester list\` - list of languages` )
-			}
+					}
+					
+					if( lang ){
+						let code = args.get_string(1)
+						
+						if( code.startsWith( '```' ) )
+							code = code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s )
+						
+						if( !code ){
+							msg.send( 'Gimme code, baka~!' )
+							return
+						}
+						
+						let message = await msg.send( `Running your \`${language}\` code...` )
+
+						req({
+							method: 'POST',
+							uri: "https://rextester.com/rundotnet/api",
+							qs: {
+								LanguageChoice: lang.id,
+								Program: code,
+								Input: '',
+								CompilerArgs : lang.compiler_args || '',
+							}
+						}, ( err, req, body ) => {
+							if( err )
+								return message.edit( cb( err ) )
+
+							try {
+								let result = JSON.parse( body )
+								
+								message.edit( message.content + '\n' // `\n${result.Stats}\n`
+									+ ( `Output:${result.Result ? cb( result.Result ) : ' nothing\n'}` )
+									+ ( result.Warnings !== null ? 'Warnings:' + cb( result.Warnings ) : '' )
+									+ ( result.Errors !== null ? 'Error:' + cb( result.Errors ) : '' )
+								)
+							} catch( err ){
+								message.edit( cb( err ) )
+							}
+						})
+					} else
+						msg.send( `Unknown language \`${requestedLang}\`. \`-rextester list\` - list of languages` )
+				}
+			},
 		})
 	}
 }

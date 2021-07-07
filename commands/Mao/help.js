@@ -1,58 +1,103 @@
 module.exports = {
-	requirements: 'cmddata embed maoclr',
+	requirements: 'CM embed maoclr __flags',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
-		addCmd( 'help h', { short: 'sends this message', full: 'nothing will help you' }, ( msg, args ) => {
+	const help = addCmd({
+		aliases: 'help h',
+		description: {
+			short: 'sends this message',
+			full: 'Displays information about commands and modules',
+			usages: [
+				['sends a list of all modules and commands'],
+				['<command>', 'sends full description of `<commands>`'],
+				['<module>', 'sends list of commands of `<module>` with short descriptions'],
+			],
+			examples: [
+				['sends a list of all modules and commands'],
+				['help', 'sends this message'],
+				['mao', 'sends list of commands of `Mao` module with short descriptions'],
+			],
+		},
+		callback: ( msg, args ) => {
 			if( args[0] ){
-				let k = args[0].toLowerCase()
+				const command = CM.findCommand( args.get_string() )
 
-				if( cmddata.cmds[k] ){
-					if( typeof cmddata.cmds[k] == 'string' )
-						k = cmddata.cmds[k]
-					msg.send( cmddata.cmds[k].description.full )
-				} else if( cmddata.modules[k] && ( k !== 'dev' || msg.author.isMaster() ) ){
-					let module = cmddata.modules[k],
-						commands = ''
-					
-					for( let k in module.cmds ){
-						let command = module.cmds[k]
-						let cmd = cmddata.cmds[command]
-
-						if( commands ) commands += '\n'
-						cmd.aliases.forEach( alias => command += '**, **' + alias )
-						commands += `• **${command}** - ${cmd.description.short}`
-					}
-					
-					msg.send( embed().addField( module.printname + ':', commands ) )
-				} else
-					msg.send( `Unknown command \`${k}\`.` )
+				if( command )
+					return msg.send( String( command.description ) )
 				
-				return
+				const module = CM.modules.get( args[0].toLowerCase() ) 
+
+				if( module && module.isAccessibleFor( msg.author ) )
+					//return msg.send( `${module.printname}:${cb( module.listCommands(), 'asciidoc' )}` )
+					return msg.send( cb( `== ${module.printname} ==\n${module.listCommands()}`, 'asciidoc' ) )
+				
+				return msg.send( `No module or command named \`${arg}\` has been found.` )
 			}
 
-			let emb = embed()
-				.setDescription( `Prefix: \`${cmddata.prefix}\`\nFor more information use \`help <command>\`` )
+			const emb = embed().setDescription([
+				`Prefix: \`${CM.prefix}\``,
+				`Flag prefix: \`${CM.constructor.ArgumentParser.flagPrefix}\``,
+				`For more information use \`help <command/module>\``,
+			].join( '\n' ) )
 			
-			for( let k in cmddata.modules ){
-				if( k == 'dev' ) continue
+			CM.modules.forEach( module => {
+				if( module.commands.size !== 0 && !module.isHidden ){
+					const commands = module.commands.map( c => {
+						let command = `\`${c.name}\`` 
 
-				let module = cmddata.modules[k],
-					commands = ''
-				
-				for( let k in module.cmds ){
-					let command = module.cmds[k]
-					let cmd = cmddata.cmds[command]
+						if( c.subcommands.length !== 0 )
+							command += `(${c.subcommands.length})`
 
-					if( commands ) commands += '\n'
-					cmd.aliases.forEach( alias => command += '**, **' + alias )
-					commands += `• **${command}** - ` + cmd.description.short
+						return command
+					}).join( ', ' )
+
+					emb.addField( module.printname + ':', commands )
 				}
-
-				emb.addField( module.printname + ':', commands )
-			}
+			})
 
 			msg.send( emb )
-		})
+		},
+	})
+
+	// Sub-commands tester
+	if( !__flags.dev )
+		return
+
+	const description = 'test command'
+	const callback = ( msg, args ) => {
+		msg.send([
+			'```',
+			'    -3 :: ' + args[-3],
+			'    -2 :: ' + args[-2],
+			'    -1 :: ' + args[-1],
+			args.map( ( v, k ) => `${' '.repeat( 6 - k.toString().length )}${k} :: ${v}` ).join( '\n' ),
+			'string :: ' + args.get_string(),
+			'```',
+		].join( '\n' ) )
 	}
-}
+
+	const sub1 = help.addSubcommand({
+		aliases: 'sub-command1 sc1',
+		description,
+		callback,
+	})
+
+	const sub2 = help.addSubcommand({
+		aliases: 'sub-command2 sc2',
+		description,
+		callback,
+	})
+
+	sub1.addSubcommand({
+		aliases: 'sub-sub-command1 ssc1',
+		description,
+		callback,
+	})
+
+	sub2.addSubcommand({
+		aliases: 'sub-sub-command2 ssc2',
+		description,
+		callback,
+	})
+}}

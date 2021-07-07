@@ -35,13 +35,31 @@ module.exports = {
 		}
 		mao.exec = exec
 		
-		addCmd( 'con', { short: 'executes console command', full: "what didn't u get?" }, ( msg, args, get_string_args ) => {
-			exec( msg, get_string_args() )
+		addCmd({
+			aliases: 'con',
+			description: {
+				single: 'executes console command',
+				usages: [
+					['<console command...>', "executes $1. As if you'd type it in a real console."],
+				],
+			},
+			callback: ( msg, args ) => {
+				exec( msg, args.get_string() )
+			},
 		})
 		
-		addCmd( 'cond', { short: 'executes console command and removes the message', full: "what didn't u get?" }, ( msg, args, get_string_args ) => {
-			msg.delete()
-			exec( msg, get_string_args(), 11 )
+		addCmd({
+			aliases: 'cond',
+			description: {
+				single: 'executes console command and removes the message',
+				usages: [
+					['<console command...>', "executes $1. As if you'd type it in a real console."],
+				],
+			},
+			callback: ( msg, args ) => {
+				msg.delete()
+				exec( msg, args.get_string(), 11 )
+			},
 		})
 	}
 }

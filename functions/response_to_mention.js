@@ -5,8 +5,8 @@ module.exports = {
 		
 		const responses = [
 			`%user`,
-			//`(Hi|Yes), (%user|cutie)`,
-			//`no u`,
+			`(Hi|Yes), (%user|cutie)`,
+			`no u`,
 		]
 		
 		function getRandomResponse( member ){
@@ -39,7 +39,7 @@ module.exports = {
 
 				if( postfix.length > 10 )
 					postfix = ''
-					
+
 				msg.send( getRandomResponse( msg.member ) + postfix )
 			}
 		})

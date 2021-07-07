@@ -1,5 +1,5 @@
 
-module.exports = exports = function matchBalancedBrackets( text, bracketsType='()' ){
+function matchBalancedBrackets( text, bracketsType = '()' ){
 	let brackets = 0
 	let arraystrings = ['']
 	let id = 0
@@ -24,6 +24,8 @@ module.exports = exports = function matchBalancedBrackets( text, bracketsType='(
 
 	return arraystrings
 }
+
+module.exports = matchBalancedBrackets
 
 /*
 var m = test( "this won't be matched(this will(and this also will)and this too :/)but this won't" )

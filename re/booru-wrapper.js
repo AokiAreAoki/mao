@@ -3,16 +3,16 @@ module.exports = request_module => {
 
 	const all_options = {
 		name: 'unknown booru', // Just a name of a booru
-		url: '', // API request URL
-		limit: 100, // Posts limit per request
+		url: '', // API URL
+		limit: 100, // limit of posts per request
 		page_offset: 1, // page offset
-		qs: [ // API keywords
-			'tags', // here goes your tags
-			'page', // page keyword
-			'limit', // how many pics/posts should be requested
-			// * if some keys are not specified default keys will be used
+		qs: [ // query params
+			'tags',
+			'page',
+			'limit',
+			// * if some params are not specified default param name will be used
 		],
-		const_qs: {}, // Table of constant keys
+		const_qs: {}, // constant query params
 		keys: {}, // Response keys
 		remove_other_keys: false,
 	}
@@ -43,11 +43,12 @@ module.exports = request_module => {
 
 				switch( typeof options[key] ){
 					case 'string':
-						this[key] = options[key].trim()
-						if( this[key] ) break
+						if( this[key] = options[key].trim() )
+							break
 					
 					case 'undefined':
 						this[key] = defaultValue
+						break
 
 					default:
 						this[key] = options[key]
@@ -58,7 +59,7 @@ module.exports = request_module => {
 			if( this.url )
 				this.url = this.url.replace( /\/*$/, '' )
 			else
-				throw new Error( 'No URL specified' )
+				throw Error( 'No URL specified' )
 		}
 		
 		q( tags, page, limit ){
@@ -68,6 +69,9 @@ module.exports = request_module => {
 				for( let k in this.const_qs )
 					qs[k] = this.const_qs[k]
 				
+				if( tags instanceof Array )
+					tags = tags.join( ' ' )
+					
 				qs[this.qs.tags] = tags
 				qs[this.qs.page] = ( page ?? 0 ) + this.page_offset
 				qs[this.qs.limit] = limit = limit ?? this.limit
@@ -87,8 +91,6 @@ module.exports = request_module => {
 					}
 					
 					resolve( new BooruResults( body, {
-						keys: this.keys,
-						remove_other_keys: this.remove_other_keys,
 						tags,
 						page,
 						limit,
@@ -104,12 +106,11 @@ module.exports = request_module => {
 		    if( !( array_pics instanceof Array ) )
 		        array_pics = []
 		    
-			let { keys, remove_other_keys } = options
-
-			this.booru = options.booru
-
-			if( !this.booru )
+			if( !( this.booru = options.booru ) )
 				throw Error( 'No booru specified in options' )
+
+			const keys = options.keys ?? this.booru.keys
+			const remove_other_keys = options.remove_other_keys ?? this.booru.remove_other_keys
 
 			this.tags = options.tags ?? ''
 			this.page = options.page ?? this.booru.page_offset
@@ -119,7 +120,7 @@ module.exports = request_module => {
 				this.pics = []
 				
 				array_pics.forEach( ( old_pic, k ) => {
-					let new_pic = {}
+					const new_pic = {}
 					
 					for( let k in old_pic ){
 						if( typeof keys[k] === 'string' )

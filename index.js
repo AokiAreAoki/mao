@@ -69,69 +69,34 @@ else {
 log()
 
 //////////  Including modules  //////////
-
-function requireAndLog( module, submodule ){
-	let mod
-
-	if( submodule ){
-		if( mod = require( module ) ){
-			if( mod = mod[submodule] )
-				return mod
-			
-			log( `\n    Failed to require "${submodule}" from "${module}" module.` )
-			process.exit(1)
-		}
-		
-		log( `\n    Failed to require "${module}" module.` )
-		process.exit(1)
-	}
-
-	if( mod = require( module ) )
-		return mod
-
-	log( `\n    Failed to require "${module}" module.` )
-	process.exit(1)
-}
-
 logw( 'Requiring modules...' )
-	const fs = requireAndLog( 'fs' )
-	const http = requireAndLog( 'http' )
-	const https = requireAndLog( 'https' )
-	const join = requireAndLog( 'path', 'join' )
-	const cp = requireAndLog( 'child_process' )
-	const discord = requireAndLog( 'discord.js' )
+	const fs = require( 'fs' )
+	const http = require( 'http' )
+	const https = require( 'https' )
+	const { join } = require( 'path' )
+	const cp = require( 'child_process' )
+	const discord = require( 'discord.js' )
 	const Collection = discord.Collection
-	const ytdl = requireAndLog( 'ytdl-core-discord' )
-		  ytdl.search = requireAndLog( 'ytsr' )
-	const Jimp = requireAndLog( 'jimp' )
-	//const tgb = requireAndLog( 'node-telegram-bot-api' )
-	const req = requireAndLog( 'request' )
+	const ytdl = require( 'ytdl-core-discord' )
+		  ytdl.search = require( 'ytsr' )
+	const Jimp = require( 'jimp' )
+	//const tgb = require( 'node-telegram-bot-api' )
+	const req = require( 'request' )
 log( 'OK' )
 
 // Including my modules
-function requireCustomModule( moduleName ){
-	const module = require( `./re/${moduleName}` )
-	
-	if( !module ){
-		log( `\n    Failed to require "${moduleName}" module...` )
-		process.exit(1)
-	}
-
-	return module
-}
-
 logw( 'Requiring custom modules...' )
-	const bakadb = requireCustomModule( 'bakadb' )
-	const CommandManager = requireCustomModule( 'command-manager' )
-	const { Booru, BooruResults } = requireCustomModule( 'booru-wrapper' )( req )
-	const TimeSplitter = requireCustomModule( 'time-splitter' )
-	const List = requireCustomModule( 'List' )
-	const MessageManager = requireCustomModule( 'message-manager' )
-	//const MyLang = re( 'MyLang' )
-	const timer = requireCustomModule( 'timer' )
-	const tree = requireCustomModule( 'tree-printer' )
-	const vec = requireCustomModule( 'vector' )
-	const waitFor = requireCustomModule( 'waitFor' )
+	const bakadb = require( './re/bakadb' )
+	const CommandManager = require( './re/command-manager' )
+	const Booru = require( './re/booru-wrapper' )( req )
+	const TimeSplitter = require( './re/time-splitter' )
+	const List = require( './re/List' )
+	const MessageManager = require( './re/message-manager' )
+	//const MyLang = require( './re/MyLang' )
+	const Paginator = require( './re/paginator' )
+	const timer = require( './re/timer' )
+	const tree = require( './re/tree-printer' )
+	const vec = require( './re/vector' )
 log( 'OK' )
 
 // Defining some shit
@@ -156,15 +121,14 @@ BooruResults.prototype.embed = function( pic ){
 
 	let tags = this.tags || 'no tags'
 	let post = embed()
+		.setImage( pic.sample )
 		.setFooter( 'Powered by ' + ( this.booru.name ?? 'unknown website' ) )
 
 	if( pic.unsupportedExtention )
 		post.setDescription( `[${tags}](${pic.post_url})\n\`${pic.unsupportedExtention}\` extention is not supported by Discord (AFAIK). So open the [link](${pic.post_url}) to post manually to view it's *content*` )
-	else {
+	else
 		post.setDescription( `[${tags}](${pic.post_url})` )
-		post.setImage( pic.sample )
-	}
-
+	
 	return post
 }
 
@@ -193,13 +157,12 @@ const Gelbooru = new Booru({
 			pic.post_url = `https://gelbooru.com/index.php?page=post&s=view&id=${pic.id}&tags=${tags}`
 		},
 		score: '',
-		// sample_url: 'sample',
-		// file_url: 'full',
 		file_url: ( post, pic ) => {
+			pic.hasSample = post.sample == 1
+			pic.sample = post.file_url
 			pic.full = post.file_url
 			
 			if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
-				pic.hasSample = post.sample == 1
 				pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
 					? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
 					: pic.full
@@ -274,8 +237,8 @@ function embed(){
 	return new discord.MessageEmbed().setColor( maoclr )
 }
 
-function cb( text ){
-	return '```\n' + text + '```'
+function cb( text, lang = '' ){
+	return '```' + lang + '\n' + text + '```'
 }
 
 let __duplicates,
@@ -438,76 +401,31 @@ client.once( 'ready', () => {
 })
 
 client.once( 'ready2', () => {
+	/// Here the bot is fully initialized ///
+	
 	log( 'Logged in as ' + client.user.tag )
-	
-	/// Here goes custom shit after bot fully initialized ///
-	
-	// Handling waitFor
-	unshiftMessageHandler( 'waitFor', false, waitFor.handler )
 })
+
+//////////  Initializing Paginator  //////////
+Paginator.init( discord, client )
 
 //////////  Message handlers  //////////
-messageHandlers = []
-
-function addMessageHandler( name, markMessagesAsCommand, callback ){
-	callback.name = name
-	callback.isCommandHandler = !!markMessagesAsCommand
-	messageHandlers.push( callback )
-}
-
-function unshiftMessageHandler( name, markMessagesAsCommand, callback ){
-	callback.name = name
-	callback.isCommandHandler = !!markMessagesAsCommand
-	messageHandlers.unshift( callback )
-}
-
-async function handleMessage( msg, edited ){
-	msg._answers = []
-	msg.isCommand = false
-
-	for( let i = 0; i < messageHandlers.length; ++i ){
-		const handler = messageHandlers[i]
-
-		if( await handler( msg, edited ?? false ) ){
-			if( handler.isCommandHandler )
-				msg.isCommand = true
-
-			break
-		}
-	}
-}
-
-client.on( 'message', handleMessage )
-
-client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
-	if( oldMsg._answers instanceof Array && oldMsg.content !== newMsg.content ){
-		let waiter = waitFor.waiters[oldMsg.member.id]
-		if( waiter ) waiter.cancel()
-
-		oldMsg.channel.bulkDelete( oldMsg._answers )
-		handleMessage( newMsg, true )
-	}
+const MM = new MessageManager({
+	discord,
+	client,
+	handleEdits: true,
+	handleDeletion: true,
 })
 
-client.on( 'messageDelete', msg => {
-	if( msg._answers instanceof Array && msg._answers.length > 0 ){
-		let waiter = waitFor.waiters[msg.member.id]
-		if( waiter ) waiter.cancel()
-
-		msg.channel.bulkDelete( msg._answers )
-	}
-})
-
-//////////  Including functions  /////
+//////////  Include function  //////////
 function include( path, overwrites ){
 	let inclusion = require( path )
 	let requirements = {}
 
-	if( inclusion.requirements )
-		inclusion.requirements.split( /\s+/ ).forEach( variable => {
-			if( variable )
-				requirements[variable.replace( /\./g, '_' )] = eval( variable )
-		})
+	inclusion.requirements?.split( /\s+/ ).forEach( variable => {
+		if( variable != null )
+			requirements[variable.replace( /\./g, '_' )] = eval( variable )
+	})
 
 	if( inclusion.evaluations )
 		for( let k in inclusion.evaluations )
@@ -522,11 +440,16 @@ function include( path, overwrites ){
 			local_global[k] = requirements[k]
 	}
 
-	inclusion.init( requirements, global )
+	if( typeof inclusion.init === 'function' )
+		inclusion.init( requirements, global )
+	else
+		console.warn( `Failed to include "${path}". Init function isn't a function or doesn't exist` )
+
 	delete inclusion
 	delete requirements
 }
 
+//////////  Including functions  /////
 logw( 'Including functions...' )
 	readdir( './functions' ).forEach( file => {
 		if( file.endsWith( '.js' ) ){
@@ -543,164 +466,46 @@ logw( 'Including functions...' )
 log( 'OK' )
 
 //////////  Command manager  //////////
-_prefix = /^(-|(mao|мао)\s+)/i
-cmddata = {
-	prefix: _prefix,
-	modules: {},
-	cmds: {},
-}
+const CM = new CommandManager( client, /^(-|(mao|мао)\s+)/i, true )
+CM.setModuleAccessor( ( user, module ) => !module.isHidden || user.isMaster() )
+MM.unshiftHandler( 'commands', true, ( ...args ) => CM.handleMessage( ...args ) )
 
 // Special prefix if logged in as MaoDev#2638
 client.on( 'ready', () => {
 	if( client.user.id == '598593004088983688' )
-		cmddata.prefix = /^(--\s*)/i
-	else
-		cmddata.prefix = new RegExp( `^(-|(mao|мао|<@!?${client.user.id}>)\\s+)`, 'i' )
+		CM.prefix = /^(--\s*)/i
 })
-
-function addCmd( module, command, description, callback ){
-	module = module.replace( /\s+/g, ' ' )
-	let m = module.toLowerCase().replace( /\s/g, '_' )
-	let aliases = command.split( /\s+/ )
-	let cmd = aliases.shift()
-	
-	cmddata.cmds[cmd] = {
-		module: m,
-		aliases: aliases,
-		description: typeof description === 'string'
-			? { short: description, full: description }
-			: description,
-		func: callback,
-	}
-
-	if( aliases.length > 0 )
-		aliases.forEach( alias => cmddata.cmds[alias] = cmddata.cmds[cmd] )
-
-	if( cmddata.modules[m] )
-		cmddata.modules[m].cmds.push( cmd )
-	else {
-		cmddata.modules[m] = {
-			printname: module,
-			cmds: [cmd]
-		}
-	}
-}
 
 // Including commands
-/* old includer
-tree( 'Including commands:', ( print, fork ) => {
-	readdir( './commands' ).forEach( module => {
-		fork( `Module "${module}":`, print => {
-			readdir( './' + join( 'commands', module ) ).forEach( file => {
-				if( file.endsWith( '.js' ) ){
-					print( `File "${file}"...` )
-					include( './' + join( 'commands', module, file ), {
-						addCmd: ( aliases, description, callback ) => addCmd( module, aliases, description, callback )
+logw( 'Including commands...' )
+	readdir( './commands' ).forEach( module_folder => {
+		const moduleIsHidden = module_folder[0] === '_'
+		const module = CM.addModule( module_folder.substr( moduleIsHidden ? 1 : 0 ), moduleIsHidden )
+
+		readdir( './' + join( 'commands', module_folder ) ).forEach( file => {
+			if( file.endsWith( '.js' ) ){
+				const path = './' + join( 'commands', module_folder, file )
+
+				try {
+					include( path, {
+						addCmd: ( aliases, description, callback ) => {
+							if( typeof aliases !== 'string' && aliases instanceof Object ){
+								let options = aliases
+								options.module = module
+								return CM.addCommand( options )
+							}
+
+							return CM.addCommand({ module, aliases, description, callback })
+						},
 					})
+				} catch( err ){
+					log( `\n    Failed to include "${path}" file...` )
+					throw err
 				}
-			})
+			}
 		})
 	})
-	log()
-})
-*/
-
-logw( 'Including commands...' )
-readdir( './commands' ).forEach( module => {
-	readdir( './' + join( 'commands', module ) ).forEach( file => {
-		if( file.endsWith( '.js' ) ){
-			const path = './' + join( 'commands', module, file )
-
-			try {
-				include( path, {
-					addCmd: ( aliases, description, callback ) => addCmd( module, aliases, description, callback )
-				})
-			} catch( err ){
-				log( `\n    Failed to include "${path}" file...` )
-				throw err
-			}
-		}
-	})
-})
 log( 'OK' )
-
-function parseArgs( string_args, args, args_pos ){
-	let arg = '', pos = 0, quotes = ''
-
-	for( let i = 0; i < string_args.length; ++i ){
-		let char = string_args[i]
-
-		if( !quotes && /\s/.test( char ) ){
-			if( arg ){
-				args.push( arg )
-				args_pos.push( pos )
-				arg = ''
-			}
-		} else {
-			if( quotes ){
-				if( char == quotes ){
-					args.push( arg )
-					args_pos.push( pos )
-					arg = ''
-					quotes = ''
-					continue
-				}
-			} else {
-				if( char == '"' || char == "'" ){
-					quotes = char
-					pos = i
-					continue
-				}
-			}
-
-			if( !arg && !quotes ) pos = i
-			arg += char
-		}
-	}
-	
-	if( arg ){
-		args.push( arg )
-		args_pos.push( pos )
-	}
-}
-
-// Command handler
-unshiftMessageHandler( 'commands', true, ( msg, edited ) => {
-	if( msg.author.id == client.user.id || msg.author.bot ) return
-	let prefix = msg.content.matchFirst( cmddata.prefix )
-
-	if( prefix ){
-		let string_args = msg.content.substring( prefix.length ),
-			cmd = string_args.matchFirst( /^\S+/i )
-		
-		if( cmd ) cmd = cmd.toLowerCase()
-		else return
-
-		if( cmddata.cmds[cmd] ){
-			string_args = string_args.substring( cmd.length ).trim()
-			let cmd_name = cmd
-			cmd = cmddata.cmds[cmd]
-			
-			if( cmd.module === 'dev' && !msg.author.isMaster() )
-				return
-
-			// Parsing arguments
-			let args = [], args_pos = []
-			parseArgs( string_args, args, args_pos )
-			args[-1] = cmd_name
-
-			let get_string_args = ( number = 0 ) => typeof args_pos[number] === 'number' ? string_args.substring( args_pos[number] ) : null
-			get_string_args.args_pos = args_pos
-
-			if( cmd.func instanceof Function )
-				cmd.func( msg, args, get_string_args )
-			else
-				log( `Error: cmddata.cmds.${cmd}.func is a ${typeof cmd.func}, function expected` )
-			
-			return true
-		}
-	}
-})
 
 //////////  Eval  //////////
 let eval_prefix = /^>>+\s*/i
@@ -755,7 +560,7 @@ const evalTags = new EvalTags([
 	'dev',
 ])
 
-unshiftMessageHandler( 'eval', true, async ( msg, edited ) => {
+MM.unshiftHandler( 'eval', true, async ( msg, edited ) => {
 	let ismaster = msg.author instanceof discord.User && msg.author.isMaster()
 
 	if( ismaster ){

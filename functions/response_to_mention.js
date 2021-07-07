@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'addMessageHandler',
+	requirements: 'MM',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -22,7 +22,7 @@ module.exports = {
 			insult  = new RegExp( `^(mao|мао|<@!?${client.user.id}>)([~_-\\s]((ch|s)an|чан|сан|тян))?\\s*((stupid|shit)\\s+bot|baka|бака|дура|дурында)\\s*[.?!~]*$`, 'i' )
 		})
 		
-		addMessageHandler( 'mention_response', false, msg => {
+		MM.pushHandler( 'mention_response', false, msg => {
 			if( msg.author.id == client.user.id || msg.author.bot ) return
 			
 			let match = msg.content.match( mention )

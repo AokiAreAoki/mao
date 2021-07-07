@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'client embed bakadb db waitFor addMessageHandler',
+	requirements: 'client embed bakadb db MM',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -32,7 +32,7 @@ module.exports = {
 			}
 		}, 5e3 )
 		
-		addMessageHandler( 'temp_messages', false, async msg => {
+		MM.pushHandler( 'temp_messages', false, async msg => {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
 			
@@ -50,9 +50,11 @@ module.exports = {
 					.setFooter( 'Timeout: 60s' )
 				)
 				
-				waitFor({
-					memberID: msg.author.id,
-					onMessage: ( msg2, stop ) => {
+				msg.awaitResponse({
+					timeout: 60,
+					displayMessage: message,
+				})
+					.then( ( msg2, waiter ) => {
 						let match = msg2.content.match( /((\d+)d)?\s*((\d+)h)?\s*((\d+)m)?\s*((\d+)s)?/i )
 						if( match == null ) return
 						
@@ -91,11 +93,8 @@ module.exports = {
 							msg2.delete( 4e3 )
 						})
 						
-						stop()
-					},
-					timeout: 60,
-					message: message,
-				})
+						waiter.stop()
+					})
 			}
 		})
 	}

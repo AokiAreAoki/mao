@@ -33,7 +33,7 @@ module.exports = {
 			
 			return result
 		}
-	
+
 		// Main function
 		async function postAnimeGirls( channel ){
 			// "*" passed
@@ -98,7 +98,7 @@ module.exports = {
 				.addField( 'Parsing daily anime girls...', `Tags: ${tags ? `\`${tags}\`` : 'no tags'}` )
 				.setFooter( 'Powered by ' + Booru.name )
 			)
-	
+
 			if( channel.last_posts )
 				undoAnimeGirls( channel, today )
 			else
@@ -110,15 +110,15 @@ module.exports = {
 				date: today,
 			})
 
-			Booru.q( tags ).then( res => {
+			Booru.q( tags ).then( response => {
 				let pic
-				let pics = res.pics.filter( pic => Date.now() - new Date( pic.created_at ).getTime() < 86400e3 )
+				let pics = response.pics.filter( pic => Date.now() - new Date( pic.created_at ).getTime() < 86400e3 )
 
 				if( pics.length !== 0 )
 					// Choose a pic with the best score or else the first one
 					pic = pics.reduce( ( final_pic, cur_pic ) => final_pic.score < cur_pic.score ? cur_pic : final_pic, pics[0] )
 				else {
-					pics = res.pics
+					pics = response.pics
 
 					if( pics.length === 0 ){
 						message.edit( embed()
@@ -135,9 +135,10 @@ module.exports = {
 					title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
 					url = pic.post_url.replace( tagsParam, '' )
 				
-				message.edit( res.embed( pic )
-					.setDescription( `[${title}](${url})` )
-				)
+				message.edit({
+					content: pic.unsupportedExtenstion ? pic.full : '',
+					embed: response.embed( pic ).setDescription( `[${title}](${url})` ),
+				})
 			}).catch( err => {
 				message.edit( { content: cb( err ), embed: null } )
 			})

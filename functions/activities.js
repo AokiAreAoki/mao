@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'client timer db',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-	
+
 		const activityTypes = {
 			PLAYING: true,
 			LISTENING: true,
@@ -127,6 +127,6 @@ module.exports = {
 				msgrate.shift()
 		}, 1337 )
 		
-		ActivityManager.pushActivity( 'PLAYING', () => msgrate.length + ' msgs/min' )
+		ActivityManager.pushActivity( 'PLAYING', () => `${msgrate.length} msg${msgrate.length === 1 ? '' : 's'}/min` )
 	}
 }

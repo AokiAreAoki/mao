@@ -43,11 +43,11 @@ module.exports = {
 							
 							return embed()
 								.setAuthor( '@' + msg.member.user.tag, msg.member.user.avatarURL )
-								.addField( 'Word', `[${ definition.word }](${ definition.permalink })` )
+								.addField( `Word (${page + 1}/${pages})`, `[${ definition.word }](${ definition.permalink })` )
 								.addField( 'Definition', def.length > 1024 ? def.substring( 0, 1021 ).replace( /(.+)[\s\n].*$/, '$1...' ) : def )
 								.addField( 'Example', `*${exmp}*` )
 								.addField( 'Thumbs', `:thumbsup: ${definition.thumbs_up} :thumbsdown: ${definition.thumbs_down}` )
-								.setFooter( `Defined by ${definition.author} ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}. Page ${page + 1}/${pages}` )
+								.setFooter( `Defined by ${definition.author} ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}` )
 						})
 						.createMessage( msg )
 				}, msg.sendcb )

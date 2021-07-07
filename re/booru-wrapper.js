@@ -150,70 +150,78 @@ module.exports = request_module => {
 		}
 	}
 
-	return {
-		Booru: Booru,
-		BooruResults: BooruResults,
-		Gelbooru: new Booru({
-			name: 'gelbooru.com',
-			url: 'https://gelbooru.com/index.php',
-			page_offset: 0,
-			qs: {
-				// tags keyword is "tags" by default
-				page: 'pid',
-				// limit keyword is "limit" by default
-			},
-			const_qs: {
-				page: 'dapi',
-				s: 'post',
-				q: 'index',
-				json: '1',
-			},
-			limit: 250,
-			keys: {
-				id: ( post, pic, tags ) => {
-					tags = tags.replace( /\s+/g, '+' )
-					pic.id = post.id
-					pic.post_url = `https://gelbooru.com/index.php?page=post&s=view&id=${pic.id}&tags=${tags}`
-				},
-				score: '',
-				// sample_url: 'sample',
-				// file_url: 'full',
-				file_url: ( post, pic ) => {
-					pic.full = post.file_url
-					
-					if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
-						pic.hasSample = post.sample == 1
-						pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
-							? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
-							: pic.full
-					} else
-						pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
-				}
-			},
-			remove_other_keys: false,
-		}),
-		Yandere: new Booru({
-			name: 'yande.re',
-			url: 'https://yande.re/post.json',
-			// page_offset is 1 by default
-			qs: {
-				// tags keyword is "tags" by default
-				// page keyword is "page" by default
-				// limit keyword is "limit" by default
-			},
-			// no const qs
-			limit: 100,
-			keys: {
-				id: ( post, pic ) => {
-					pic.id = post.id
-					pic.post_url = 'https://yande.re/post/show/' + pic.id
-				},
-				score: '',
-				file_url: 'full',
-				sample_url: 'sample',
-				created_at: ( post, pic ) => pic.created_at = post.created_at * 1000
-			},
-			remove_other_keys: false,
-		}),
-	}
+	Booru.BooruResults = BooruResults
+	return Booru
 }
+
+return /// the end
+
+////////////////////
+////  Examples  ////
+////////////////////
+
+// Gelbooru:
+const Gelbooru = new Booru({
+	name: 'gelbooru.com',
+	url: 'https://gelbooru.com/index.php',
+	page_offset: 0,
+	qs: {
+		// tags keyword is "tags" by default
+		page: 'pid',
+		// limit keyword is "limit" by default
+	},
+	const_qs: {
+		page: 'dapi',
+		s: 'post',
+		q: 'index',
+		json: '1',
+	},
+	limit: 250,
+	keys: {
+		id: ( post, pic, tags ) => {
+			tags = tags.replace( /\s+/g, '+' )
+			pic.id = post.id
+			pic.post_url = `https://gelbooru.com/index.php?page=post&s=view&id=${pic.id}&tags=${tags}`
+		},
+		score: '',
+		// sample_url: 'sample',
+		// file_url: 'full',
+		file_url: ( post, pic ) => {
+			pic.full = post.file_url
+			
+			if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
+				pic.hasSample = post.sample == 1
+				pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
+					? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
+					: pic.full
+			} else
+				pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
+		}
+	},
+	remove_other_keys: false,
+})
+
+// Yandere:
+const Yandere = new Booru({
+	name: 'yande.re',
+	url: 'https://yande.re/post.json',
+	// page_offset is 1 by default
+	qs: {
+		// tags keyword is "tags" by default
+		// page keyword is "page" by default
+		// limit keyword is "limit" by default
+	},
+	// no const qs
+	limit: 100,
+	keys: {
+		id: ( post, pic ) => {
+			pic.id = post.id
+			pic.post_url = 'https://yande.re/post/show/' + pic.id
+		},
+		score: '',
+		file_url: 'full',
+		sample_url: 'sample',
+		created_at: ( post, pic ) => pic.created_at = post.created_at * 1000
+	},
+	remove_other_keys: false,
+})

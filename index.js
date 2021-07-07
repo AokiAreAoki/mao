@@ -115,7 +115,7 @@ const _tkns = JSON.parse( read( './tokens.json' )
 	.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas
 )
 
-BooruResults.prototype.embed = function( pic ){
+Booru.BooruResults.prototype.embed = function( pic ){
 	if( typeof pic === 'number' )
 		pic = this.pics[pic]
 

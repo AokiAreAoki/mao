@@ -64,24 +64,16 @@ module.exports = {
 				const unused_pic = unused.shift()
 				
 				if( unused_pic ){
-					callback({
-						content: pic.unsupportedExtenstion ? pic.full : '',
-						embed: result.embed( unused_pic ),
-					})
-
+					callback( result.embed( unused_pic ) )
 					used[unused_pic.id] = Date.now()
 					continue
 				}
 				
-				const oldest_used = pics.reduce( ( prev, pic ) => used[pic.id] < used[prev.id] ? pic : prev, pics[Math.floor( Math.random() * pics.length )] )
+				const oldest_pic = pics.reduce( ( prev, pic ) => used[pic.id] < used[prev.id] ? pic : prev, pics[Math.floor( Math.random() * pics.length )] )
 				
-				if( oldest_used ){
-					callback({
-						content: pic.unsupportedExtenstion ? pic.full : '',
-						embed: result.embed( oldest_used ),
-					})
-
-					used[oldest_used.id] = Date.now()
+				if( oldest_pic ){
+					callback( result.embed( oldest_pic ) )
+					used[oldest_pic.id] = Date.now()
 				}
 			}
 		}
@@ -99,7 +91,10 @@ module.exports = {
 			}
 			
 			getNewPics( result, amount, user_msg, post => {
-				user_msg[amount === 1 ? 'edit' : 'send']( post )
+				if( amount === 1 )
+					bot_msg.edit( post )
+				else
+ 					user_msg.send( post )
 			})
 
 			if( amount !== 1 )

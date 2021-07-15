@@ -121,15 +121,14 @@ Booru.BooruResults.prototype.embed = function( pic ){
 
 	let tags = this.tags || 'no tags'
 	let post = embed()
+		.setDescription( `[${tags}](${pic.post_url})` )
 		.setImage( pic.sample )
 		.setFooter( 'Powered by ' + ( this.booru.name ?? 'unknown website' ) )
 
-	if( pic.unsupportedExtention )
-		post.setDescription( `[${tags}](${pic.post_url})\n\`${pic.unsupportedExtention}\` extention is not supported by Discord (AFAIK). So open the [link](${pic.post_url}) to post manually to view it's *content*` )
-	else
-		post.setDescription( `[${tags}](${pic.post_url})` )
-	
-	return post
+	return {
+		content: pic.unsupportedExtention ? pic.full : '',
+		embed: post,
+	}
 }
 
 const Gelbooru = new Booru({

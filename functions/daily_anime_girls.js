@@ -130,15 +130,14 @@ module.exports = {
 
 					pic = pics[Math.floor( Math.random() * pics.length )]
 				}
-				
+
 				let tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ), // ?tags= param remover
 					title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
 					url = pic.post_url.replace( tagsParam, '' )
-				
-				message.edit({
-					content: pic.unsupportedExtenstion ? pic.full : '',
-					embed: response.embed( pic ).setDescription( `[${title}](${url})` ),
-				})
+
+				const content = response.embed( pic )
+				content.embed.setDescription( `[${title}](${url})` )
+				message.edit( content )
 			}).catch( err => {
 				message.edit( { content: cb( err ), embed: null } )
 			})

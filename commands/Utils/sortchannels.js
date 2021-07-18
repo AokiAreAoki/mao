@@ -20,7 +20,8 @@ module.exports = {
 			})
 		
 			for( let i = 0; i < channels.length; ++i )
-				await channels[i].setPosition(i)
+				if( channels[i].position !== i )
+					await channels[i].setPosition(i)
 			
 			if( typeof callback === 'function' )
 				callback( channels.length !== 0 ? channels : null )

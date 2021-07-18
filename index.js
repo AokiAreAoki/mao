@@ -717,11 +717,13 @@ MM.unshiftHandler( 'eval', true, async ( msg, edited ) => {
 					__output += '\n' + String( evaled )
 
 				msg.sendcb( __output )
+				msg.isCommand = true
 			} else if( printEvaled ){
 				if( !tags.cb && !msg.member.hasPermission( discord.Permissions.FLAGS.EMBED_LINKS ) )
 					evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
 
 				await msg.send( tags.cb ? cb( evaled ) : evaled )
+				msg.isCommand = true
 				return abortHQ()
 			}
 			

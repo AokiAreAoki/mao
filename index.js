@@ -691,10 +691,11 @@ MM.unshiftHandler( 'eval', true, async ( msg, edited ) => {
 						
 					case 'function':
 						let funcbody = String( evaled )
-						let indent = funcbody.matchFirst( /\n(\s+)[^\n]+$/ )?.length
-						
+						let indent = funcbody.matchFirst( /\n(\s+)[^\n]+$/ )
+						indent = ( indent.match( /\t/g )?.length ?? 0 ) + ( indent.match( /\s{4}/g )?.length ?? 0 )
+
 						if( indent )
-							funcbody = funcbody.replace( new RegExp( `^\\s{${indent}}`, 'gm' ), '' )
+							funcbody = funcbody.replace( new RegExp( `^(\\t|[^\\t\\S]{4}){${indent}}`, 'gm' ), '' )
 
 						evaled = '```JS\n' + funcbody + '```'
 						tags.cb = false

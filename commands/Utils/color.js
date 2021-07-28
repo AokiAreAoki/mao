@@ -15,9 +15,12 @@ module.exports = {
 		const colorSystems = {
 			rgb: args => vec( toByte( args[0] ), toByte( args[1] ), toByte( args[2] ) ).toHex(),
 			hex: args => {
-				if( args[0].length !== 6 )
-					args[0] = args[0].match( /[\da-f]{3}([\da-f]{3})?/i )[0]
-				return parseInt( args[0].substring( args[0].length - 7 ), 16 )
+				let hex = args[0].matchFirst( /([\da-f]{3}([\da-f]{3})?)/i )
+
+				if( hex.length !== 6 )
+					hex = hex.replace( /([\da-f])/gi, '$1$1' )
+
+				return parseInt( hex, 16 )
 			},
 			hsl: args => {
 				let h = Math.abs( Number( args[0] ) % 360 ),

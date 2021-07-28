@@ -17,7 +17,7 @@
 		"@discordjs/opus": "^0.1.0",
 		"axios": "^0.21.1",
 		"discord-ytdl-core": "^5.0.1",
-		"discord.js": "^12.5.1",
+		"discord.js": "^12.5.3",
 		"express": "^4.17.1",
 		"install": "^0.13.0",
 		"jimp": "^0.9.5",

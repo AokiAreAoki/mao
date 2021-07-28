@@ -377,11 +377,38 @@ bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" de
 const client = new discord.Client({
 	messageCacheLifetime: 1200,
 	messageSweepInterval: 72,
+	intents: [
+		//'GUILDS',
+		//'GUILD_MEMBERS',
+		//'GUILD_BANS',
+		//'GUILD_EMOJIS',
+		'GUILD_INTEGRATIONS',
+		//'GUILD_WEBHOOKS',
+		//'GUILD_INVITES',
+		'GUILD_VOICE_STATES',
+		//'GUILD_PRESENCES',
+		'GUILD_MESSAGES',
+		'GUILD_MESSAGE_REACTIONS',
+		//'GUILD_MESSAGE_TYPING',
+		'DIRECT_MESSAGES',
+		'DIRECT_MESSAGE_REACTIONS',
+		//'DIRECT_MESSAGE_TYPING',
+	]
 })
 
 client.login( _tkns.discord[__flags.dev ? 'dev' : 'mao'] )
+	.catch( err => {
+		console.error( err )
+		log( 'Failed to log in. Exit.' )
+		process.exit(2)
+	})
 
 let isOnlineOrInitialized = false
+
+client.on( 'error', err => {
+	log( 'Client error happaned:' )
+	log( err )
+})
 
 client.once( 'ready', () => {
 	if( isOnlineOrInitialized ){

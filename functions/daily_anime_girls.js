@@ -44,7 +44,7 @@ module.exports = {
 					let guild
 
 					for( let guild_id in guilds )
-						if( guild = client.guilds.cache.get( guild_id ) )
+						if( guild = await client.guilds.fetch( guild_id ) )
 							postAnimeGirls( guild )
 
 					return true
@@ -73,7 +73,7 @@ module.exports = {
 				channel = String( channel )
 
 			if( typeof channel === 'string' )
-				channel = client.channels.cache.get( channel )
+				channel = await client.channels.fetch( channel )
 
 			if( channel instanceof discord.TextChannel ){
 				if( !( channel.guild instanceof discord.Guild ) )

@@ -38,7 +38,7 @@ module.exports = {
 		})
 
 		timer.create( 'voiceTimeout', 1.337, 0, () => {
-			client.voice.connections.forEach( connection => {
+			client.voice?.connections?.forEach( connection => {
 				if( !connection ) return
 				
 				let now = Date.now()

@@ -55,6 +55,11 @@ class MessageManager {
 		this.handleEdits = !!handleEdits
 		this.handleDeletion = !!handleDeletion
 
+		discord.Message.prototype.deleteAnswers = async function(){
+			if( this._answers instanceof Array && this._answers.length !== 0 )
+				return await this.channel.bulkDelete( this._answers )
+		}
+
 		ResponseWaiter.init( discord )
 		this.setupEventHandlers()
 	}
@@ -62,21 +67,21 @@ class MessageManager {
 	setupEventHandlers(){
 		this.client.on( 'message', msg => this.handleMessage( msg, false ) )
 
-		this.client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
-			oldMsg.waiter?.cancel()
+		if( this.handleEdits )
+			this.client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
+				oldMsg.waiter?.cancel()
 
-			if( oldMsg._answers instanceof Array && oldMsg.content !== newMsg.content ){
-				oldMsg.channel.bulkDelete( oldMsg._answers )
-				this.handleMessage( newMsg, true )
-			}
-		})
+				if( oldMsg.content !== newMsg.content ){
+					oldMsg.deleteAnswers()
+					this.handleMessage( newMsg, true )
+				}
+			})
 
-		this.client.on( 'messageDelete', msg => {
-			msg.waiter?.cancel()
-
-			if( msg._answers instanceof Array && msg._answers.length !== 0 )
-				msg.channel.bulkDelete( msg._answers )
-		})
+		if( this.handleDeletion )
+			this.client.on( 'messageDelete', msg => {
+				msg.waiter?.cancel()
+				msg.deleteAnswers()
+			})
 	}
 
 	pushHandler( name, markMessagesAsCommand, callback ){

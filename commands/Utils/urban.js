@@ -10,8 +10,7 @@ module.exports = {
 			description: {
 				short: 'looks for a definition of a word/phrase',
 				full: [
-					'looks for a definition on <https://www.urbandictionary.com/> and shows first result',
-					'// TODO: pagination',
+					'looks for a definition on <https://www.urbandictionary.com/>',
 				],
 				usages: [
 					['<word/phrase>', 'looks for a definition of the $1'],

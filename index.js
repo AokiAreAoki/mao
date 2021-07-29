@@ -82,6 +82,7 @@ logw( 'Requiring modules...' )
 	const Jimp = require( 'jimp' )
 	//const tgb = require( 'node-telegram-bot-api' )
 	const req = require( 'request' )
+	const kym = require( 'nodeyourmeme' )
 log( 'OK' )
 
 // Including my modules

@@ -22,6 +22,7 @@
 		"install": "^0.13.0",
 		"jimp": "^0.9.5",
 		"node-telegram-bot-api": "^0.50.0",
+		"nodeyourmeme": "^2.0.0",
 		"npm": "^6.14.5",
 		"opusscript": "0.0.7",
 		"request": "^2.88.2",

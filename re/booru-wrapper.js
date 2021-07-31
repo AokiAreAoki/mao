@@ -138,15 +138,9 @@ module.exports = request_module => {
 		}
 		
 		async parseNextPage( limit ){
-			if( !this.booru )
-				throw Error( 'no booru ref' )
-
-			let res = await this.booru.q( this.tags, ++this.page, limit ?? this.limit )
-			if( res.pics.length === 0 )
-				return false
-
+			const res = await this.booru.q( this.tags, ++this.page, limit ?? this.limit )
 			this.pics.push( ...res.pics )
-			return true
+			return res
 		}
 	}
 

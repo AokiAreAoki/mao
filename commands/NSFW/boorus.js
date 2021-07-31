@@ -51,14 +51,26 @@ module.exports = {
 			return cooldown[id] ?? 0
 		}
 		
-		function getNewPics( result, amount, msg, callback ){
-			const { pics } = result
+		async function getNewPics( result, amount, msg, callback ){
+			let { pics } = result
 			
 			if( !usedPics[msg.guild.id] )
 				usedPics[msg.guild.id] = {}
 			
 			const used = usedPics[msg.guild.id]
-			const unused = pics.filter( pic => !used[pic.id] || Date.now() - used[pic.id] > 3600e3 )
+			const unused = []
+			
+			while( unused.length < amount ){
+				unused.push( ...pics.filter( pic => !used[pic.id] || Date.now() - used[pic.id] > 3600e3 ) )
+
+				if( unused.length < amount ){
+					pics = ( await result.parseNextPage() ).pics
+
+					if( pics.length === 0 )
+						break
+				} else
+					break
+			}
 			
 			for( let i = 0; i < amount; ++i ){
 				const unused_pic = unused.shift()

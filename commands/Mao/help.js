@@ -24,7 +24,7 @@ module.exports = {
 				const command = CM.findCommand( args.get_string() )
 
 				if( command )
-					return msg.send( String( command.description ) )
+					return command.sendHelp( msg )
 				
 				const module = CM.modules.get( args[0].toLowerCase() ) 
 

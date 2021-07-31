@@ -121,7 +121,7 @@ class CommandManager {
 				})
 				
 				if( command.callback instanceof Function )
-					command.callback( msg, args, args.get_string )
+					command.callback.call( command, msg, args, args.get_string )
 				else
 					log( `Error: callback of "${command}" command is a ${typeof command.callback}, a function expected` )
 				
@@ -146,6 +146,7 @@ let prop_warns = false // disable prop check
 //prop_warns = [] // enable prop check
 
 class Command {
+	static recursiveSubcommandsList = false
 	subcommands = new SubcommandsArray()
 	parent = null
 	
@@ -249,22 +250,24 @@ class Command {
 		return command
 	}
 
-	recursiveSubcommandsList = false
-
 	listSubcommands( parentPath = this.name ){
 		const list = []
 
 		this.subcommands.forEach( subcommand => {
 			const path = subcommand.parentTree.map( c => c === subcommand ? c.aliases.join( '\`/\`' ) : c.name ).join( '\` \`' )
-			const subs = !this.recursiveSubcommandsList && subcommand.subcommands.length !== 0 ? `(${subcommand.subcommands.length})` : ''
+			const subs = !Command.recursiveSubcommandsList && subcommand.subcommands.length !== 0 ? `(${subcommand.subcommands.length})` : ''
 
 			list.push( `• \`${path}\`${subs} - ${subcommand.description.short}` )
 
-			if( this.recursiveSubcommandsList && subcommand.subcommands.length !== 0 )
+			if( Command.recursiveSubcommandsList && subcommand.subcommands.length !== 0 )
 				list.push( ...subcommand.listSubcommands( path ) )
 		})
 
 		return list
+	}
+
+	sendHelp( messageOrChannel ){
+		return messageOrChannel.send( String( this.description ) )
 	}
 
 	toString(){
@@ -574,7 +577,7 @@ function Usage( args ){
 		return matched
 	}))
 	
-	this.description = description.replace( /(\$\d+)/g, ( matched, placeholder ) => {
+	this.description = description?.replace( /(\$\d+)/g, ( matched, placeholder ) => {
 		if( placeholder[0] === '$' ){
 			const arg = args[parseInt( placeholder.substr(1) ) - 1]
 			

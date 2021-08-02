@@ -72,6 +72,11 @@ module.exports = {
 			return promise
 		}
 
+		// url to message instead of its content
+		discord.Message.prototype.toString = function(){
+			return this.url
+		}
+
 		// find single member
 		discord.GuildMemberManager.prototype.find = async function( name ){
 			return ( await this.fetch({ query: name }) ).first()

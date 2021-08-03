@@ -167,7 +167,7 @@ const Gelbooru = new Booru({
 					? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
 					: pic.full
 			} else
-				pic.unsupportedExtention = pic.full.matchFirst( /\.\w+$/i ).substring(1).toUpperCase()
+				pic.unsupportedExtention = pic.full.matchFirst( /\.(\w+)$/i ).toUpperCase()
 		}
 	},
 	remove_other_keys: false,
@@ -177,7 +177,7 @@ const Yandere = new Booru({
 	name: 'yande.re',
 	url: 'https://yande.re/post.json',
 	//url: 'https://aoki.000webhostapp.com/yndr/',
-	// page_offset is 1 by default
+	//page_offset: is 1 by default
 	qs: {
 		// tags keyword is "tags" by default
 		// page keyword is "page" by default

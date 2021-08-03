@@ -6,10 +6,13 @@ module.exports = {
 		const coefficient = .02
 		const maxPicsPerCommand = 9
 		const maxPicsPerCommandSqrt = Math.sqrt( maxPicsPerCommand + coefficient )
+		const picsPerMessage = 5
+		const maxPicsPerCommandRaw = maxPicsPerCommand * picsPerMessage
 		const maotag = 'amatsuka_mao'
 		const safetag = 'rating:safe'
 		const usedPics = {}
 		const cooldown = {}
+
 		const loadingPhrases = [
 			'Processing...',
 			'Loading...',
@@ -51,8 +54,8 @@ module.exports = {
 			return cooldown[id] ?? 0
 		}
 		
-		async function getNewPics( result, amount, msg, callback ){
-			let { pics } = result
+		async function getNewPics( booruResponse, amount, msg ){
+			let { pics } = booruResponse
 			
 			if( !usedPics[msg.guild.id] )
 				usedPics[msg.guild.id] = {}
@@ -64,66 +67,44 @@ module.exports = {
 				unused.push( ...pics.filter( pic => !used[pic.id] || Date.now() - used[pic.id] > 3600e3 ) )
 
 				if( unused.length < amount ){
-					pics = ( await result.parseNextPage() ).pics
+					pics = ( await booruResponse.parseNextPage() ).pics
 
 					if( pics.length === 0 )
 						break
 				} else
 					break
 			}
+
+			const newPics = []
 			
 			for( let i = 0; i < amount; ++i ){
-				const unused_pic = unused.shift()
+				const unusedPic = unused.shift()
 				
-				if( unused_pic ){
-					callback( result.embed( unused_pic ) )
-					used[unused_pic.id] = Date.now()
+				if( unusedPic ){
+					newPics.push( unusedPic )
+					used[unusedPic.id] = Date.now()
 					continue
 				}
 				
-				const oldest_pic = pics.reduce( ( prev, pic ) => used[pic.id] < used[prev.id] ? pic : prev, pics[Math.floor( Math.random() * pics.length )] )
+				const oldestPic = pics.reduce( ( prev, pic ) => used[pic.id] < used[prev.id] ? pic : prev, pics[Math.floor( Math.random() * pics.length )] )
 				
-				if( oldest_pic ){
-					callback( result.embed( oldest_pic ) )
-					used[oldest_pic.id] = Date.now()
+				if( oldestPic ){
+					newPics.push( oldestPic )
+					used[oldestPic.id] = Date.now()
 				}
 			}
+
+			return newPics
 		}
 
-		function postPictures( result, amount, user_msg, bot_msg ){
-			if( result.pics.length === 0 ){
-				bot_msg.edit({
-					content: '',
-					embed: embed()
-						.setDescription( `Tag(s) \`${result.tags}\` not found :(` )
-						.setColor( 0xFF0000 )
-				})
-
-				return
-			}
-			
-			getNewPics( result, amount, user_msg, post => {
-				if( amount === 1 )
-					bot_msg.edit( post )
-				else
- 					user_msg.send( post )
-			})
-
-			if( amount !== 1 )
-				bot_msg.delete()
-
-			cd( user_msg.member, amount )
-			delete user_msg.member.antispam
-		}
-		
-		const sharedCallback = async ( msg, args ) => {
-			if( !msg.member.antispam || msg.member.antispam < Date.now() )
-				msg.member.antispam = Date.now() + 1337
+		const sharedCallback = async ( userMsg, args ) => {
+			if( !userMsg.member.antispam || userMsg.member.antispam < Date.now() )
+				userMsg.member.antispam = Date.now() + 1337
 			else
-				return msg.react( '❌' )
+				return userMsg.react( '❌' )
 			
-			if( cd( msg.member ) > Date.now() )
-				return msg.send( `**Cool down, baka!** \`${Math.floor( cd( msg.member, 1 ) - Date.now() ) / 1e3}\` seconds left` )
+			if( cd( userMsg.member ) > Date.now() )
+				return userMsg.send( `**Cool down, baka!** \`${Math.floor( cd( userMsg.member, 1 ) - Date.now() ) / 1e3}\` seconds left` )
 	
 			let booru
 
@@ -138,35 +119,77 @@ module.exports = {
 			}
 
 			if( !booru ){
-				msg.send( `Internal error happaned: unknown booru: "${args[-1]}"` )
+				userMsg.send( `Internal error happaned: unknown booru: "${args[-1]}"` )
 				console.warn( `unknown booru: "${args[-1]}"` )
 				return
 			}
 
 			const tags = args.map( t => t.toLowerCase().replace( /\s/g, '_' ) )
 			
-			if( tags.find( t => t === maotag ) )
-				return msg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
+			if( tags.some( t => t === maotag ) )
+				return userMsg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
 			
-			const force = args.flags.force && msg.author.isMaster()
+			const force = args.flags.force && userMsg.author.isMaster()
 			let sfw = tags.find( v => v === safetag )
-			let x = parseInt( args.flags.x )
-			x = isNaN(x) ? 1 : clamp( x, 1, maxPicsPerCommand )
 			
 			if( !sfw && args.flags.safe ){
 				tags.push( safetag )
 				sfw = true
 			}
 			
-			if( !sfw && !msg.channel.nsfw && !force )
-				return msg.send( 'This isn\'t an NSFW channel!' );
+			if( !sfw && !userMsg.channel.nsfw && !force )
+				return userMsg.send( 'This isn\'t an NSFW channel!' );
 			
-			const message = await msg.send( getRandomLoadingPhrase() )
+			const botMsg = await userMsg.send( getRandomLoadingPhrase() )
 		
 			booru.q( tags )
-				.then( res => postPictures( res, x, msg, message ) )
+				.then( async result => {
+					if( result.pics.length === 0 ){
+						botMsg.edit({
+							content: '',
+							embed: embed()
+								.setDescription( `Tag(s) \`${result.tags}\` not found :(` )
+								.setColor( 0xFF0000 )
+						})
+
+						return
+					}
+
+					const { raw, x } = args.flags
+					let amount = parseInt( raw ?? x )
+					amount = isNaN( amount ) ? 0 : clamp( amount, 1, raw ? maxPicsPerCommandRaw : maxPicsPerCommand )
+
+					const newPics = await getNewPics( result, amount, userMsg )
+					let posts
+
+					if( raw ){
+						const rawPics = []
+						
+						for( let i = 0; i < amount; i += picsPerMessage ){
+							rawPics.push({
+								content: newPics.slice( i, i + picsPerMessage )
+									.map( p => p.sample )
+									.join( '\n' ),
+								embed: null,
+							})
+						}
+
+						posts = rawPics
+					} else
+						posts = newPics.map( pic => result.embed( pic ) )
+					
+					if( posts.length === 1 )
+						botMsg.edit( posts[0] )
+					else {
+						posts.forEach( post => userMsg.send( post ) )
+						botMsg.delete()
+					}
+
+					cd( userMsg.member, amount )
+					delete userMsg.member.antispam
+				})
 				.catch( err => {
-					message.edit( { content: cb( err ), embed: null } )
+					botMsg.edit( { content: cb( err ), embed: null } )
 					console.error( err )
 				})
 		}
@@ -187,6 +210,7 @@ module.exports = {
 					['force', `force post ignoring the only NSFW channel restiction (master only)`],
 					['safe', 'alias for `rating:safe` tag'],
 					['x', `<amount>`, `$1 of pics to post (max: ${maxPicsPerCommand})`],
+					['raw', `<amount>`, `$1 of pics to post (posts raw links to pics without pretty embed, max: ${maxPicsPerCommandRaw})`],
 				],
 				description: {
 					short: 'hot girls',

@@ -145,22 +145,22 @@ class BakaDB extends events {
 	}
 
 	_delete( object, props ){
-        if( props.length === 0 )
-            return false
+		if( props.length === 0 )
+			return false
 
-        let key = props.shift()
+		let key = props.shift()
 
-        if( typeof object[key] !== 'undefined' ){
-            if( props.length === 0 )
-                delete object[key]
-            else {
-                if( this._delete( object[key], props ) )
-                    delete object[key]
-            }
-        }
+		if( typeof object[key] !== 'undefined' ){
+			if( props.length === 0 )
+				delete object[key]
+			else {
+				if( this._delete( object[key], props ) )
+					delete object[key]
+			}
+		}
 
-        return Object.keys( object ).length === 0
-    }
+		return Object.keys( object ).length === 0
+	}
 
 	_foreach( table, cb ){
 		if( table instanceof Array )

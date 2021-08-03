@@ -87,7 +87,7 @@ module.exports = request_module => {
 						body = JSON.parse( body )
 					} catch( err ){
 						console.error( err )
-					    body = []
+						body = []
 					}
 					
 					resolve( new BooruResults( body, {
@@ -103,9 +103,9 @@ module.exports = request_module => {
 	
 	class BooruResults {
 		constructor( array_pics, options ){
-		    if( !( array_pics instanceof Array ) )
-		        array_pics = []
-		    
+			if( !( array_pics instanceof Array ) )
+				array_pics = []
+			
 			if( !( this.booru = options.booru ) )
 				throw Error( 'No booru specified in options' )
 

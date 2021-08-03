@@ -90,7 +90,7 @@ module.exports = request_module => {
 						body = []
 					}
 					
-					resolve( new BooruResults( body, {
+					resolve( new BooruResponse( body, {
 						tags,
 						page,
 						limit,
@@ -101,7 +101,7 @@ module.exports = request_module => {
 		}
 	}
 	
-	class BooruResults {
+	class BooruResponse {
 		constructor( array_pics, options ){
 			if( !( array_pics instanceof Array ) )
 				array_pics = []
@@ -144,7 +144,7 @@ module.exports = request_module => {
 		}
 	}
 
-	Booru.BooruResults = BooruResults
+	Booru.BooruResponse = BooruResponse
 	return Booru
 }
 

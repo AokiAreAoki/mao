@@ -112,7 +112,7 @@ module.exports = {
 
 			Booru.q( tags ).then( response => {
 				let pic
-				let pics = response.pics.filter( pic => Date.now() - new Date( pic.created_at ).getTime() < 86400e3 )
+				let pics = response.pics.filter( pic => Date.now() - new Date( pic.created_at ) < 86400e3 )
 
 				if( pics.length !== 0 )
 					// Choose a pic with the best score or else the first one

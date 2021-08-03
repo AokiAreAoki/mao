@@ -549,6 +549,8 @@ class EvalTags {
 			value = null
 
 		code.matchFirst( /^\s*([A-Za-z]+)(?:[\s:])/, matched => {
+			matched = matched.toLowerCase()
+
 			if( this.tags[matched] ){
 				tag = matched
 				code = code.trimLeft().substring( tag.length )
@@ -585,6 +587,8 @@ const evalTags = new EvalTags([
 	'noparse',
 	'iom',
 	'dev',
+	'whats',
+	'keys',
 ])
 
 MM.unshiftHandler( 'eval', true, async ( msg, edited ) => {
@@ -656,7 +660,23 @@ MM.unshiftHandler( 'eval', true, async ( msg, edited ) => {
 				return abortHQ()
 
 			const printEvaled = !!( () => {
-				if( tags.tts ){
+				if( tags.whats ){
+					let type = typeof evaled
+
+					if( type === 'object' ){
+						if( evaled == null )
+							type = 'a null'
+						else
+							type = `an ${type}, instance of ${evaled.constructor.name}`
+					} else if( type !== 'undefined' )
+						type = 'a ' + type
+
+					evaled = type
+				} else if( tags.keys ){
+					evaled = Object.keys( evaled ).join( ', ' )
+					evaled = evaled ? 'keys: ' + evaled : 'no keys'
+					tags.tts = false
+				} else if( tags.tts ){
 					evaled = typeof evaled === 'object'
 						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled, tags.tts.value )}`
 						: evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`

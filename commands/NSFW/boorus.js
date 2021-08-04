@@ -157,7 +157,7 @@ module.exports = {
 
 					const { raw, x } = args.flags
 					let amount = parseInt( raw ?? x )
-					amount = isNaN( amount ) ? 0 : clamp( amount, 1, raw ? maxPicsPerCommandRaw : maxPicsPerCommand )
+					amount = isNaN( amount ) ? 1 : clamp( amount, 0, raw ? maxPicsPerCommandRaw : maxPicsPerCommand )
 
 					const newPics = await getNewPics( result, amount, userMsg )
 					let posts

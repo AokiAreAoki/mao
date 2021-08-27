@@ -3,6 +3,11 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
+		db.dag ??= {
+			GMT: 3,
+			postAt: 21,
+		}
+
 		const sources = {
 			gelbooru: Gelbooru,
 			yandere: Yandere,
@@ -13,8 +18,9 @@ module.exports = {
 		}
 		
 		function getDate( date = Date.now() ){
-			const GMT = db.GMT ?? 0
-			return Math.floor( ( Number( date ) + GMT * 3600e3 ) / 86400e3 )
+			const GMT = db.dag.GMT ?? 0
+			const postAt = db.dag.postAt ?? 0
+			return Math.floor( ( Number( date ) + ( GMT - postAt ) * 3600e3 ) / 86400e3 )
 		}
 
 		function parseXML( xml ){
@@ -34,11 +40,19 @@ module.exports = {
 			return result
 		}
 
+		class ThreadCreationCanceler {
+			canceled = false
+
+			delete(){
+				this.canceled = true
+			}
+		}
+
 		// Main function
 		async function postAnimeGirls( channel ){
 			// "*" passed
 			if( channel === '*' ){
-				const guilds = bakadb.get( 'daily_girls' )
+				const guilds = bakadb.get( 'dag/data' )
 
 				if( guilds ){
 					let guild
@@ -56,7 +70,7 @@ module.exports = {
 			// Guild passed
 			if( channel instanceof discord.Guild ){
 				const guild = channel
-				const channels = bakadb.get( 'daily_girls', guild.id )
+				const channels = bakadb.get( 'dag/data', guild.id )
 
 				if( channels ){
 					for( let channel_id in channels )
@@ -81,38 +95,46 @@ module.exports = {
 			} else
 				throw new Error( 'The channel arg must be an instance of Discord.TextChannel or an ID of a channel' )
 			
-			let dailies = bakadb.get( 'daily_girls', channel.guild.id, channel.id )
+			const dailyData = bakadb.get( 'dag/data', channel.guild.id, channel.id )
 
-			if( !dailies )
+			if( !dailyData )
 				throw new Error( 'This channel have no dailies setup' )
 
-			let { src, tags } = dailies
-			tags = tags ?? ''
-			const Booru = sources[src]
-			const today = getDate()
+			const {
+				src: source,
+				doCreateThread
+			} = dailyData
 			
+			const tags = dailyData.tags ?? ''
+			const Booru = sources[source]
+
 			if( !Booru )
-				throw new Error( `ERROR: Unknown source "${src}"` )
+				throw new Error( `ERROR: Unknown source "${source}"` )
 			
-			let message = await channel.send( embed()
-				.addField( 'Parsing daily anime girls...', `Tags: ${tags ? `\`${tags}\`` : 'no tags'}` )
+			const message = await channel.send( Embed()
+				.addField( 'Parsing daily anime girls...', `${tags ? `Tags: \`${tags}\`` : 'No tags'}` )
 				.setFooter( 'Powered by ' + Booru.name )
 			)
 
+			const today = getDate()
+			
 			if( channel.last_posts )
 				undoAnimeGirls( channel, today )
 			else
 				channel.last_posts = []
 
-			channel.last_posts.push({
+			const post = {
 				channel_id: channel.id,
 				message_id: message.id,
 				date: today,
-			})
+			}
+			channel.last_posts.push( post )
 
-			Booru.q( tags ).then( response => {
-				let pic
-				let pics = response.pics.filter( pic => Date.now() - new Date( pic.created_at ) < 86400e3 )
+			if( doCreateThread )
+				post.thread = new ThreadCreationCanceler()
+
+			Booru.q( tags ).then( async response => {
+				let pic, pics = response.pics.filter( pic => Date.now() - new Date( pic.created_at ) < 86400e3 )
 
 				if( pics.length !== 0 )
 					// Choose a pic with the best score or else the first one
@@ -131,13 +153,34 @@ module.exports = {
 					pic = pics[Math.floor( Math.random() * pics.length )]
 				}
 
-				let tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ), // ?tags= param remover
+				const tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ),
+					// ^to remove `tags` parameter from url
 					title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
-					url = pic.post_url.replace( tagsParam, '' )
+					url = pic.post_url.replace( tagsParam, '' ),
+					messageData = response.embed( pic )
+					
+				messageData.embeds[0].setDescription( `[${title}](${url})` )
+				await message.edit( messageData )
+				
+				if( doCreateThread ){
+					const date = new Date()
 
-				const content = response.embed( pic )
-				content.embed.setDescription( `[${title}](${url})` )
-				message.edit( content )
+					message.startThread({
+						autoArchiveDuration: 1440, // 1 day
+						name: [
+							String( date.getDate() ).replace( /^(\d)$/, '0$1' ),
+							String( date.getMonth() + 1 ).replace( /^(\d)$/, '0$1' ),
+							String( date.getYear() % 100 ).replace( /^(\d)$/, '0$1' ),
+						].join( '.' ),
+					})
+						.then( thread => {
+							if( post.thread?.canceled )
+								thread.delete()
+							else
+								post.thread = thread
+						})
+						.catch( console.error )
+				}
 			}).catch( err => {
 				message.edit( { content: cb( err ), embeds: [] } )
 			})
@@ -147,7 +190,7 @@ module.exports = {
 		function undoAnimeGirls( channel, date = getDate() ){
 			// "*" passed
 			if( channel === '*' ){
-				const guilds = bakadb.get( 'daily_girls' )
+				const guilds = bakadb.get( 'dag/data' )
 
 				if( guilds ){
 					let guild
@@ -165,7 +208,7 @@ module.exports = {
 			// Guild passed
 			if( channel instanceof discord.Guild ){
 				const guild = channel
-				const channels = bakadb.get( 'daily_girls', guild.id )
+				const channels = bakadb.get( 'dag/data', guild.id )
 
 				if( channels ){
 					for( let channel_id in channels )
@@ -196,14 +239,16 @@ module.exports = {
 
 				if( posts.length > 0 ){
 					posts.forEach( async post => {
-						let msg = await client.channels.cache.get( post.channel_id )?.messages.fetch( post.message_id )
+						const msg = await client.channels.cache.get( post.channel_id )?.messages.fetch( post.message_id )
 
 						if( msg?.deletable ){
 							await msg.edit( Embed()
 								.setDescription( 'Deleted' )
 								.setColor( 0xFF0000 )
 							)
+
 							msg.delete( 1337 )
+							post.thread?.delete()
 						}
 					})
 
@@ -229,10 +274,10 @@ module.exports = {
 		async function check(){
 			const today = getDate()
 			
-			if( db.last_daily_girls === today )
+			if( bakadb.get( 'dag/last_post' ) === today )
 				return
 
-			db.last_daily_girls = today
+			bakadb.set( 'dag/last_post', today )
 			bakadb.save()
 			
 			postAnimeGirls( '*' )

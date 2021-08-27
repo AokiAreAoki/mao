@@ -373,6 +373,12 @@ function httpGet( options, callback, errcallback ){
 	return promise
 }
 
+//////////  unhandled rejections handler  //////////
+
+process.on( 'unhandledRejection', ( reason, promise ) => {
+	log( 'unhandledRejection:', reason, promise )
+})
+
 //////////  Initializing BakaDB  //////////
 
 bakadb.init( __flags.dev ? './test/bdb' : './bdb', {

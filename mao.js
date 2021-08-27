@@ -1,15 +1,17 @@
 const cp = require( 'child_process' )
 
-function start( firstTime ){
+function start( itsRestart ){
 	let mao = cp.fork( __dirname + '/index.js', process.argv.slice(2) )
 	
-	if( process.platform === 'win32' )
+	if( process.platform === 'win32' ){
+		cp.exec( `wmic process where "ProcessID=${process.pid}" CALL setpriority "above normal"` )
 		cp.exec( `wmic process where "ProcessID=${mao.pid}" CALL setpriority "above normal"` )
-	//else
-		//console.log( `\nmao.js :: DO THE NICE, BAKA\n` )
-		// cp.exec( `nice...` )
+	} else {
+		// here could be linux's nice
+		//cp.exec( `nice...` )
+	}
 
-	if( !firstTime )
+	if( itsRestart )
 		console.log( `Restarting Mao...` )
 
 	mao.once( 'exit', code => {
@@ -19,10 +21,10 @@ function start( firstTime ){
 			return console.log( `Full exit code received. Mao won't be restarted. Exit.` )
 		
 		if( code === 0 )
-			start()
+			start( true )
 		else
 			setTimeout( start, 7331 )
 	})
 }
 
-start( true )
+start()

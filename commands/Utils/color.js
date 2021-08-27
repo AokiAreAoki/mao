@@ -93,13 +93,13 @@ module.exports = {
 							return msg.sendcb( err )
 
 						img.rgba( false )
-
-						img.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
+						msg.send( img )
+						/*img.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
 							delete img
 							if( err ) msg.sendcb( err )
 							else msg.send({ files: [buffer] })
 								.catch( err => msg.sendcb( err ) )
-						})
+						})*/
 					})
 				} else
 					msg.send( 'Woops... Failed to parse the color :(((' )

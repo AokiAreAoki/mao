@@ -47,10 +47,10 @@ module.exports = {
 				if( msg.mentions.everyone )
 					return msg.send( "Are You Baka?" )
 				
-				const mentionedMembers = msg.mentions.members.array()
+				const mentionedMembers = msg.mentions.members
 				
 				// Search for user by name
-				if( mentionedMembers.length === 0 ){
+				if( mentionedMembers.size === 0 ){
 					const member = await msg.guild.members.find( args.get_string() )
 					
 					if( member )
@@ -62,8 +62,10 @@ module.exports = {
 				}
 				
 				// Mentioned member avatar
-				if( mentionedMembers[0] )
-					sendAvatar( msg, mentionedMembers[0].user )
+				const member = mentionedMembers.first()
+
+				if( member )
+					sendAvatar( msg, member.user )
 				else
 					msg.send( "Woops... Sry, something went wrong :(" )
 			},

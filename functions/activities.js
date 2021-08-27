@@ -117,7 +117,7 @@ module.exports = {
 		// msg rate
 		const msgrate = []
 		
-		client.on( 'message', msg => {
+		client.on( 'messageCreate', msg => {
 			if( msg.member && !msg.author.bot )
 				msgrate.push( Date.now() + 60e3 )
 		})

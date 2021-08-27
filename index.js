@@ -378,10 +378,28 @@ bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" de
 //////////  Creating client  //////////
 
 const client = new discord.Client({
-	messageCacheLifetime: 1200,
-	messageSweepInterval: 72,
+	//messageCacheLifetime: 1200,
+	//messageSweepInterval: 72,
+	
+	/*makeCache: require( 'discord.js/src/util/Options.js' ).cacheWithLimits({
+		MessageManager: {
+			sweepInterval: 300,
+			sweepFilter: LimitedCollection.filterByLifetime({
+				lifetime: 1800,
+				getComparisonTimestamp: e => e.editedTimestamp ?? e.createdTimestamp,
+			}),
+		},
+		ThreadManager: {
+			sweepInterval: 3600,
+			sweepFilter: LimitedCollection.filterByLifetime({
+				getComparisonTimestamp: e => e.archiveTimestamp,
+				excludeFromSweep: e => !e.archived,
+			}),
+		},
+	}),*/
+
 	intents: [
-		//'GUILDS',
+		'GUILDS',
 		//'GUILD_MEMBERS',
 		//'GUILD_BANS',
 		//'GUILD_EMOJIS',
@@ -396,7 +414,7 @@ const client = new discord.Client({
 		'DIRECT_MESSAGES',
 		'DIRECT_MESSAGE_REACTIONS',
 		//'DIRECT_MESSAGE_TYPING',
-	]
+	],
 })
 
 client.login( _tkns.discord[__flags.dev ? 'dev' : 'mao'] )
@@ -674,11 +692,22 @@ MM.unshiftHandler( 'eval', true, async ( msg, edited ) => {
 						type = 'a ' + type
 
 					evaled = type
-				} else if( tags.keys ){
-					evaled = Object.keys( evaled ).join( ', ' )
-					evaled = evaled ? 'keys: ' + evaled : 'no keys'
+					return true
+				}
+				
+				if( tags.keys ){
+					if( evaled == null ){
+						evaled = `\`${String( evaled )}\` has no keys`
+						return true
+					}
+					
+					evaled = Object.keys( evaled ).join( '` `' )
+					evaled = evaled ? `keys: \`${evaled}\`` : 'no keys'
 					tags.tts = false
-				} else if( tags.tts ){
+					return true
+				}
+				
+				if( tags.tts ){
 					evaled = typeof evaled === 'object'
 						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled, tags.tts.value )}`
 						: evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
@@ -722,16 +751,14 @@ MM.unshiftHandler( 'eval', true, async ( msg, edited ) => {
 						
 						switch( evaled.constructor.name ){
 							case 'MessageEmbed':
+							case 'Jimp':
 								msg.send( evaled )
 								return
 
-							case 'Jimp':
-								evaled.getBuffer( Jimp.AUTO, ( err, buffer ) => {
-									if( err ) msg.sendcb( err )
-									else msg.send( { files: [buffer] } )
-								})
-
-								return
+							case 'Array':
+								evaled = `here's ur array for u: ${tts( evaled, 1 )}`
+								tags.cb = true
+								break
 
 							default:
 								evaled = String( evaled )
@@ -771,7 +798,7 @@ MM.unshiftHandler( 'eval', true, async ( msg, edited ) => {
 				msg.sendcb( __output )
 				msg.isCommand = true
 			} else if( printEvaled ){
-				if( !tags.cb && !msg.member.hasPermission( discord.Permissions.FLAGS.EMBED_LINKS ) )
+				if( !tags.cb && !msg.member.permissions.has( discord.Permissions.FLAGS.EMBED_LINKS ) )
 					evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
 
 				await msg.send( tags.cb ? cb( evaled ) : evaled )

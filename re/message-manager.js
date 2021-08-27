@@ -65,7 +65,7 @@ class MessageManager {
 	}
 
 	setupEventHandlers(){
-		this.client.on( 'message', msg => this.handleMessage( msg, false ) )
+		this.client.on( 'messageCreate', msg => this.handleMessage( msg, false ) )
 
 		if( this.handleEdits )
 			this.client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
@@ -290,7 +290,7 @@ class ResponseWaiter {
 			const msg = this.displayMessage
 
 			if( msg instanceof discord.Message && !msg.deleted )
-				msg.edit({ content: '**Timed out**', embed: null })
+				msg.edit({ content: '**Timed out**', embeds: [] })
 					.then( m => m.delete( 1337 ) )
 		}
 	}
@@ -301,7 +301,7 @@ class ResponseWaiter {
 			const msg = this.displayMessage
 
 			if( msg instanceof discord.Message && !msg.deleted )
-				msg.edit({ content: '**Canceled**', embed: null })
+				msg.edit({ content: '**Canceled**', embeds: [] })
 					.then( m => m.delete( 1337 ) )
 		}
 	}

@@ -1,83 +1,163 @@
 module.exports = {
-	requirements: 'discord cb',
+	requirements: 'discord cb tts',
+	evaluations: {
+		Jimp: 'Jimp ?? null'
+	},
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		const ending = '\n...'
-		
+
 		function cutIfLimit( message ){
 			if( typeof message === 'string' && message.length > 2000 ){
-				let cb = message.matchFirst( /```$/ ) || ''
+				const cb = message.matchFirst( /```$/ ) || ''
 				message = message.substring( 0, 2000 - ending.length - cb.length ) + ending + cb
-			} else if( typeof message === 'object' )
+			} else if( typeof message === 'object' && message !== null )
 				message.content = cutIfLimit( message.content )
 
 			return message
 		}
 
-		// send and cut the message if > 2000 chars
+		function handleArgs( content, options = {} ){
+			options.embeds ??= []
+			options.files ??= []
+			options.allowedMentions ??= {}
+			options.allowedMentions.repliedUser ??= false
+
+			if( typeof content === 'object' ){
+				switch( content?.constructor ){
+				/*case Array:
+					options.content = tts( content, 1 )
+					options.cb = true
+					break*/
+
+				case discord.MessageEmbed:
+					options.embeds = [content]
+					break
+
+				case Jimp:
+					content.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
+						if( err )
+							options.embeds.push( Embed()
+								.setColor( 0xFF0000 )
+								.setDescription( 'Looks like i got to send a picture but something went wrong' )
+								.addField( 'Error:', cb( err ) )
+							)
+						else
+							options.files.push( buffer )
+					})
+					break
+
+				default:
+					options = content
+					options.allowedMentions ??= {}
+					options.allowedMentions.repliedUser ??= false
+					break
+				}
+			} else
+				options.content = String( content )
+
+			if( options.cb ){
+				options.content = cb( options.content )
+				delete options.cb
+			}
+			
+			return cutIfLimit( options )
+		}
+		
+		/// TextChannel ///
+		// TextChannel.send
 		discord.TextChannel.prototype.original_send = discord.TextChannel.prototype.send
 		discord.TextChannel.prototype.send = function( content, options ){
-			return this.original_send( cutIfLimit( content ), cutIfLimit( options ) )
-		}
-
-		// edit and cut the message if > 2000 chars
-		discord.Message.prototype.original_edit = discord.Message.prototype.edit
-		discord.Message.prototype.edit = function( content, options ){
-			return this.original_edit( cutIfLimit( content ), cutIfLimit( options ) )
-		}
-
-		// send in codeblock
-		discord.TextChannel.prototype.sendcb = function( message, options ){
-			return this.send( cb( message ), options )
-		}
-
-		// old delete
-		discord.Message.prototype.original_delete = discord.Message.prototype.delete
-		discord.Message.prototype.delete = function( timeOrOptions ){
-			if( typeof timeOrOptions == 'number' )
-				return this.original_delete( { timeout: timeOrOptions } )
-			
-			return this.original_delete( timeOrOptions )
-		}
-
-		// send and bind to `this` message
-		discord.Message.prototype.send = async function( content, options ){
-			let promise = this.channel.send( content, options )
-			
-			if( this._answers instanceof Array )
-				promise.then( m => this._answers.push(m) )
-			
-			return promise
+			return this.original_send( handleArgs( content, options ) )
 		}
 		
-		// send in codeblock and bind to `this` message
-		discord.Message.prototype.sendcb = async function( content, options ){
-			let promise = this.channel.sendcb( content, options )
-			
-			if( this._answers instanceof Array )
-				promise.then( m => this._answers.push(m) )
-			
-			return promise
+		// TextChannel.sendcb
+		discord.TextChannel.prototype.sendcb = function( content, options ){
+			options = handleArgs( content, options )
+			options.content = cutIfLimit( cb( options.content ) )
+			return this.original_send( options )
 		}
-		
-		// reply and bind to `this` message
+
+		/// Message ///
+		// Message.reply
 		discord.Message.prototype.original_reply = discord.Message.prototype.reply
-		discord.Message.prototype.reply = function( content, options ){
-			let promise = this.original_reply( content, options )
-			
-			if( this._answers instanceof Array )
-				promise.then( m => this._answers.push(m) )
-			
-			return promise
+		discord.Message.prototype.reply = function( content, options, mention = false ){
+			if( typeof options === 'boolean' ){
+				mention = options
+				options = {}
+			}
+
+			options = handleArgs( content, options )
+			options.allowedMentions.repliedUser = !!mention
+
+			return this.original_reply( options )
+				.then( m => {
+					this.mentionRepliedUser = mention
+
+					if( this._answers instanceof Array )
+						this._answers.push(m)
+
+					return m
+				})
 		}
 
-		// url to message instead of its content
+		// Message.send
+		discord.Message.prototype.send = function( content, options = {}, replyLvl = 1 ){
+			if( typeof options === 'number' ){
+				replyLvl = options
+				options = {}
+			}
+				
+			options = handleArgs( content, options )
+
+			if( replyLvl > 0 )
+				return this.reply( options, replyLvl !== 1 )
+
+			return this.channel.send( options )
+				.then( m => {
+					if( this._answers instanceof Array )
+						this._answers.push(m)
+
+					return m
+				})
+		}
+		
+		// Message.sendcb
+		discord.Message.prototype.sendcb = function( ...args ){
+			return this.send( cb( args.shift() ), ...args )
+		}
+		
+		// Message.edit
+		discord.Message.prototype.original_edit = discord.Message.prototype.edit
+		discord.Message.prototype.edit = function( content, options = {} ){
+			options = handleArgs( content, options )
+			options.allowedMentions.repliedUser = !!this.mentionRepliedUser
+			return this.original_edit( options )
+		}
+
+		// Message.delete
+		discord.Message.prototype.original_delete = discord.Message.prototype.delete
+		discord.Message.prototype.delete = async function( timeout ){
+			if( this.deleted )
+				return this
+				
+			if( typeof timeout === 'number' ){
+				await new Promise( resolve => setTimeout( () => resolve(), timeout ) )
+			
+				if( this.deleted )
+					return this
+			}
+				
+			return await this.original_delete()
+		}
+
+		// Message.toString: url to message instead of its content
 		discord.Message.prototype.toString = function(){
 			return this.url
 		}
 
-		// find single member
+		// GuildMemberManager.find: finds single member
 		discord.GuildMemberManager.prototype.find = async function( name ){
 			return ( await this.fetch({ query: name }) ).first()
 		}

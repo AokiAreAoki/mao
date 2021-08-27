@@ -40,10 +40,11 @@ module.exports = {
 				if( postfix.length > 10 )
 					postfix = ''
 
-				msg.send( postfix
+				const response = postfix
 					? msg.member.displayName.replace( /@/g, '#' ) + postfix
 					: getRandomResponse( msg.member )
-				)
+
+				msg.send( response, 0 )
 			}
 		})
 	}

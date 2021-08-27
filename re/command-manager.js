@@ -13,7 +13,7 @@ String.prototype.matchFirst = function( re, cb ){
 	return matched
 }
 
-class CommandManager {
+class CommandManager extends require( 'events' ) {
 	client
 	prefix
 	considerMentionAsPrefix
@@ -100,34 +100,39 @@ class CommandManager {
 		// Checking for prefix
 		let prefix = msg.content.matchFirst( this.prefix )
 
-		if( !prefix && this.considerMentionAsPrefix )
+		if( !prefix ){
+			if( !this.considerMentionAsPrefix )
+				return
+
 			prefix = msg.content.matchFirst( new RegExp( `^<@!?${client.user.id}>\s*` ) )
-
-		// If prefix found
-		if( prefix ){
-			const [command, command_name, string_args] = this.findCommandAndArgs( msg.content.substring( prefix.length ) )
+		
+			if( !prefix )
+				return
+		}
 			
-			if( command ){
-				if( !this.canAccessModule( msg.author, command.module ) )
-					return
+		// If prefix found
+		const [command, command_name, string_args] = this.findCommandAndArgs( msg.content.substring( prefix.length ) )
+		
+		if( command ){
+			if( !this.canAccessModule( msg.author, command.module ) )
+				return this.emit( 'cant-access', msg, command )
 
-				msg.isCommand = true
+			msg.isCommand = true
 
-				// Parsing arguments
-				const args = ArgumentParser.new( string_args, command )
+			// Parsing arguments
+			const args = ArgumentParser.new( string_args, command )
 
-				command_name.forEach( ( v, k ) => {
-					k -= command_name.length
-					args[k] = v
-				})
-				
-				if( command.callback instanceof Function )
-					command.callback.call( command, msg, args, args.get_string )
-				else
-					log( `Error: callback of "${command}" command is a ${typeof command.callback}, a function expected` )
-				
-				return true
-			}
+			command_name.forEach( ( v, k ) => {
+				k -= command_name.length
+				args[k] = v
+			})
+			
+			if( command.callback instanceof Function )
+				command.callback.call( command, msg, args, args.get_string )
+			else
+				log( `Error: callback of "${command}" command is a ${typeof command.callback}, a function expected` )
+			
+			return true
 		}
 	}
 

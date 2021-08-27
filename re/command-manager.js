@@ -484,10 +484,10 @@ class CommandDescription {
 		})
 		
 		examples?.forEach( args => {
-			if( args instanceof Array ){
-				const description = args.pop()
-				this.examples.push({ args, description })
-			}
+			if( typeof args === 'string' )
+				this.usages.push( args )
+			else if( args instanceof Array )
+				this.usages.push( new Example( args ) )
 		})
 	}
 
@@ -571,14 +571,17 @@ CommandManager.CommandDescription = CommandDescription
 function Usage( args ){
 	const description = args.pop()
 
-	this.args = args.map( arg => arg.replace( /(@@)/g, ( matched, placeholder ) => {
+	this.args = args = args.map( arg => arg.replace( /(@@)/g, ( matched, placeholder ) => {
 		if( placeholder === '@@' )
-			return '@someuser#1337'
+			return '@user'
 
 		return matched
 	}))
 	
-	this.description = description?.replace( /(\$\d+)/g, ( matched, placeholder ) => {
+	this.description = description?.replace( /(@@|\$\d+)/g, ( matched, placeholder ) => {
+		if( placeholder === '@@' )
+			return '`@user`'
+
 		if( placeholder[0] === '$' ){
 			const arg = args[parseInt( placeholder.substr(1) ) - 1]
 			
@@ -590,6 +593,32 @@ function Usage( args ){
 	})
 }
 CommandManager.Usage = Usage
+
+function Example( args ){
+	const description = args.pop()
+
+	this.args = args = args.map( arg => arg.replace( /(@@)/g, ( matched, placeholder ) => {
+		if( placeholder === '@@' )
+			return '@someuser#1337'
+
+		return matched
+	}))
+	
+	this.description = description?.replace( /(@@|\$\d+)/g, ( matched, placeholder ) => {
+		if( placeholder === '@@' )
+			return '@someuser#1337'
+
+		if( placeholder[0] === '$' ){
+			const arg = args[parseInt( placeholder.substr(1) ) - 1]
+			
+			if( arg )
+				return `\`${arg}\``
+		}
+
+		return matched
+	})
+}
+CommandManager.Example = Example
 
 class Module {
 	static unprintname( module_printname ){

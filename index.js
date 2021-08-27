@@ -532,6 +532,17 @@ const CM = new CommandManager( client, /^(-|(mao|мао)\s+)/i, true )
 CM.setModuleAccessor( ( user, module ) => !module.isHidden || user.isMaster() )
 MM.unshiftHandler( 'commands', true, ( ...args ) => CM.handleMessage( ...args ) )
 
+CM.on( 'cant-access', ( msg, command ) => {
+	console.log( `[CM] User "${msg.author.username}" (${msg.author.id}) tried to access "${command.name}" command` )
+
+	msg.author.nextWeirdReaction ??= Date.now() + 1337
+	
+	if( msg.author.nextWeirdReaction < Date.now() ){
+		msg.author.nextWeirdReaction = Date.now() + 13370
+		msg.send( ':/' )
+	}
+})
+
 // Special prefix if logged in as MaoDev#2638
 client.on( 'ready', () => {
 	if( client.user.id == '598593004088983688' )

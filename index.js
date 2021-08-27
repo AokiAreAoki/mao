@@ -118,19 +118,28 @@ const _tkns = JSON.parse( read( './tokens.json' )
 	.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas
 )
 
-Booru.BooruResponse.prototype.embed = function( pic ){
-	if( typeof pic === 'number' )
-		pic = this.pics[pic]
-
-	let tags = this.tags || 'no tags'
-	let post = embed()
-		.setDescription( `[${tags}](${pic.post_url})` )
-		.setImage( pic.sample )
-		.setFooter( 'Powered by ' + ( this.booru.name ?? 'unknown website' ) )
+Booru.BooruResponse.prototype.embed = function( pics ){
+	if( typeof pics === 'number' )
+		pics = this.pics[pics]
+	
+	if( !( pics instanceof Array ) )
+		pics = [pics]
+	
+	const videos = []
+	
+	pics = pics.map( pic => {
+		if( pic.unsupportedExtention )
+			videos.push( pic.full )
+		
+		return Embed()
+			.setDescription( `[${this.tags ? 'Tags: ' + this.tags : 'No tags'}](${pic.post_url})` )
+			.setImage( pic.sample )
+			.setFooter( 'Powered by ' + ( this.booru.name ?? 'unknown website' ) )
+	})
 
 	return {
-		content: pic.unsupportedExtention ? pic.full : '',
-		embed: post,
+		content: videos.join( '\n' ) || null,
+		embeds: pics,
 	}
 }
 

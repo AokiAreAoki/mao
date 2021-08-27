@@ -3,20 +3,22 @@ const log = console.log
 const __flags = {}
 
 function logw( text ){
-	return process.stdout.write( text )
+	return process.stdout.write( String( text ) )
 }
 
 /// Some custom methods
 String.prototype.matchFirst = function( re, cb ){
 	let matched = this.match( re )
-	
-	if( matched )
-		matched = matched[1] ?? matched[0]
+	let string = null
 
-	if( matched && typeof cb === 'function' )
-		cb( matched )
+	if( matched ){
+		string = matched[1] ?? matched[0]
 
-	return matched
+		if( string && typeof cb === 'function' )
+			cb( string )
+	}
+
+	return string
 }
 
 String.prototype.char = function(){
@@ -780,7 +782,11 @@ MM.unshiftHandler( 'eval', true, async ( msg, edited ) => {
 			return abortHQ()
 		} catch( err ){
 			if( __printerr ){
-				msg.sendcb( err.stack ?? err )
+				if( err )
+					msg.sendcb( err?.stack )
+				else
+					msg.send( `OK, i catched the error but somewhat i've got ${err} instead of error...` )
+
 				return abortHQ()
 			}
 		}

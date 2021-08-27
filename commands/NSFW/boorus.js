@@ -3,11 +3,20 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
-		const coefficient = .02
-		const maxPicsPerCommand = 9
-		const maxPicsPerCommandSqrt = Math.sqrt( maxPicsPerCommand + coefficient )
-		const picsPerMessage = 5
-		const maxPicsPerCommandRaw = maxPicsPerCommand * picsPerMessage
+		const boorus = [
+			{
+				booru: Gelbooru,
+				url: 'gelbooru.com',
+				aliases: 'gelbooru glbr',
+			},
+			{
+				booru: Yandere,
+				url: 'yande.re',
+				aliases: 'yandere yndr',
+			},
+		]
+
+		const maxPicsPerCommand = 10
 		const maotag = 'amatsuka_mao'
 		const safetag = 'rating:safe'
 		const usedPics = {}
@@ -49,7 +58,7 @@ module.exports = {
 				return
 			
 			if( typeof x === 'number' )
-				return cooldown[id] = Math.max( cd( user ), Date.now() ) + ( maxPicsPerCommandSqrt - Math.sqrt( maxPicsPerCommand + coefficient - x ) ) * 6e3
+				return cooldown[id] = Math.max( cd( user ), Date.now() ) + Math.sin( x * Math.PI / maxPicsPerCommand / 2 ) * 5e3
 			
 			return cooldown[id] ?? 0
 		}
@@ -97,7 +106,7 @@ module.exports = {
 			return newPics
 		}
 
-		const sharedCallback = async ( userMsg, args ) => {
+		async function sharedCallback( userMsg, args ){
 			if( !userMsg.member.antispam || userMsg.member.antispam < Date.now() )
 				userMsg.member.antispam = Date.now() + 1337
 			else
@@ -106,19 +115,7 @@ module.exports = {
 			if( cd( userMsg.member ) > Date.now() )
 				return userMsg.send( `**Cool down, baka!** \`${Math.floor( cd( userMsg.member, 1 ) - Date.now() ) / 1e3}\` seconds left` )
 	
-			let booru
-
-			switch( args[-1][0].toLowerCase() ){
-				case 'g':
-					booru = Gelbooru
-					break
-					
-				case 'y':
-					booru = Yandere
-					break
-			}
-
-			if( !booru ){
+			if( !this.booru ){
 				userMsg.send( `Internal error happaned: unknown booru: "${args[-1]}"` )
 				console.warn( `unknown booru: "${args[-1]}"` )
 				return
@@ -142,7 +139,7 @@ module.exports = {
 			
 			const botMsg = await userMsg.send( getRandomLoadingPhrase() )
 		
-			booru.q( tags )
+			this.booru.q( tags )
 				.then( async result => {
 					if( result.pics.length === 0 ){
 						botMsg.edit({
@@ -156,67 +153,33 @@ module.exports = {
 						return
 					}
 
-					const { raw, x } = args.flags
-					let amount = parseInt( raw ?? x )
-					amount = isNaN( amount ) ? 1 : clamp( amount, 0, raw ? maxPicsPerCommandRaw : maxPicsPerCommand )
+					let amount = parseInt( args.flags.x )
+					amount = isNaN( amount ) ? 1 : clamp( amount, 0, maxPicsPerCommand )
 
 					const newPics = await getNewPics( result, amount, userMsg )
-					let posts
-
-					if( raw ){
-						const rawPics = []
-						
-						for( let i = 0; i < amount; i += picsPerMessage ){
-							rawPics.push({
-								content: newPics.slice( i, i + picsPerMessage )
-									.map( p => p.sample )
-									.join( '\n' ),
-								embed: null,
-							})
-						}
-
-						posts = rawPics
-					} else
-						posts = newPics.map( pic => result.embed( pic ) )
-					
-					if( posts.length === 1 )
-						botMsg.edit( posts[0] )
-					else {
-						posts.forEach( post => userMsg.send( post ) )
-						botMsg.delete()
-					}
+					botMsg.edit( result.embed( newPics ) )
 
 					cd( userMsg.member, amount )
 					delete userMsg.member.antispam
 				})
 				.catch( err => {
-					botMsg.edit( { content: cb( err ), embed: null } )
+					botMsg.edit( { content: cb( err ), embeds: [] } )
 					console.error( err )
 				})
 		}
 
-		for( const booru of [
-			{
-				aliases: 'gelbooru glbr',
-				url: 'gelbooru.com',
-			},
-			{
-				aliases: 'yandere yndr',
-				url: 'yande.re',
-			},
-		]){
-			addCmd({
-				aliases: booru.aliases,
+		for( const settings of boorus ){
+			const command = addCmd({
+				aliases: settings.aliases,
 				flags: [
 					['force', `force post ignoring the only NSFW channel restiction (master only)`],
 					['safe', 'alias for `rating:safe` tag'],
 					['x', `<amount>`, `$1 of pics to post (max: ${maxPicsPerCommand})`],
-					['raw', `<amount>`, `$1 of pics to post (posts raw links to pics without pretty embed, max: ${maxPicsPerCommandRaw})`],
 				],
 				description: {
 					short: 'hot girls',
 					full: [
-						`Searches and posts pics from \`${booru.url}\``,
+						`Searches and posts pics from \`${settings.url}\``,
 						`This is NSFW command and only available in NSFW channels`,
 						`* Add \`--safe\` flag or \`rating:safe\` tag to use it in non-NSFW channel`,
 						`~~** tho it doesn't guarantee any safety~~`,
@@ -227,6 +190,8 @@ module.exports = {
 				},
 				callback: sharedCallback,
 			})
+
+			command.booru = settings.booru
 		}
 	}
 }

@@ -28,11 +28,11 @@ module.exports = {
 				if( meme )
 					kym.search( meme )
 						.then( meaning => {
-							//msg.send( embed().addField( meaning.name, cut( meaning.about ) ) )
-							msg.send( embed().setDescription( `**${meaning.name}** - ${cut( meaning.about )}` ) )
+							//msg.send( Embed().addField( meaning.name, cut( meaning.about ) ) )
+							msg.send( Embed().setDescription( `**${meaning.name}** - ${cut( meaning.about )}` ) )
 						})
 						.catch( err => {
-							msg.send( embed()
+							msg.send( Embed()
 								.setColor( 0xFF0000 )
 								.setDescription( `The \`${meme}\` meme not found :c` )
 							)

@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'embed numsplit maoclr db',
+	requirements: 'Embed numsplit maoclr db',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -31,7 +31,7 @@ module.exports = {
 			callback: msg => {
 				let totaluptime = db.totaluptime || 1
 				let string_time = `${numsplit( Math.floor( totaluptime ) )}m = ${numsplit( Math.floor( totaluptime / 6 ) / 10 )}h`
-				msg.send( embed().addField( 'Total uptime', string_time ) )
+				msg.send( Embed().addField( 'Total uptime', string_time ) )
 			},
 		})
 	}

@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'embed',
+	requirements: 'Embed',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -55,7 +55,7 @@ module.exports = {
 						query += `\n${numbers[i]} ${options[i]}`
 				}
 
-				let m = await msg.send( embed()
+				let m = await msg.send( Embed()
 					.setAuthor( msg.author.tag, msg.author.avatarURL(64) )
 					.addField( 'Vote:', query )
 				)

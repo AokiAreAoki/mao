@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'embed',
+	requirements: 'Embed',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -50,7 +50,7 @@ module.exports = {
 							text = translit( lang == 'en', m.content )
 			
 							if( text )
-								msg.send( embed()
+								msg.send( Embed()
 									.setAuthor( m.member.user.tag, m.member.user.avatarURL() )
 									.setDescription( text )
 								)
@@ -62,7 +62,7 @@ module.exports = {
 						text = translit( lang == 'en', text )
 			
 						if( text )
-							msg.send( embed()
+							msg.send( Embed()
 								.setAuthor( msg.member.user.tag, msg.member.user.avatarURL() )
 								.setDescription( text )
 							)
@@ -79,7 +79,7 @@ module.exports = {
 						let text = translit( args[1] == 'en', m.content )
 			
 						if( text )
-							msg.send( embed()
+							msg.send( Embed()
 								.setAuthor( m.member.user.tag, m.member.user.avatarURL() )
 								.setDescription( text )
 							)

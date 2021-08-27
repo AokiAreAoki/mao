@@ -235,7 +235,7 @@ function read( path ){
 	return fs.readFileSync( path ).toString()
 }
 
-function embed(){
+function Embed(){
 	return new discord.MessageEmbed().setColor( maoclr )
 }
 

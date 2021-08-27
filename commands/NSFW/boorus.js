@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'client embed Gelbooru Yandere clamp tts',
+	requirements: 'client Embed Gelbooru Yandere clamp tts',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -146,10 +146,11 @@ module.exports = {
 				.then( async result => {
 					if( result.pics.length === 0 ){
 						botMsg.edit({
-							content: '',
-							embed: embed()
+							content: null,
+							embeds: [Embed()
 								.setDescription( `Tag(s) \`${result.tags}\` not found :(` )
 								.setColor( 0xFF0000 )
+							]
 						})
 
 						return

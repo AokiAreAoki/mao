@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'embed instanceOf',
+	requirements: 'Embed instanceOf',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -9,7 +9,7 @@ module.exports = {
 			if( !instanceOf( user, 'User' ) && !instanceOf( user, 'ClientUser' ) ) return
 			if( !instanceOf( messageOrChannel, 'Message' ) && !instanceOf( messageOrChannel, 'TextChannel' ) ) return
 			
-			messageOrChannel.send( embed()
+			messageOrChannel.send( Embed()
 				.setDescription( `${user.equals( client.user ) ? 'My' : `**${user.username}**'s`} avatar` )
 				.setImage( user.displayAvatarURL({ size: 2048, dynamic: true }) )
 			)
@@ -33,7 +33,7 @@ module.exports = {
 				
 				// Server icon
 				if( args[0].toLowerCase() === 'server' )
-					return msg.send( embed()
+					return msg.send( Embed()
 						.setDescription( `Server icon` )
 						.setImage( msg.guild.iconURL({ size: 1024, dynamic: true }) )
 					)

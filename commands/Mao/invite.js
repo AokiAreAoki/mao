@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'embed',
+	requirements: 'Embed',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -33,7 +33,7 @@ module.exports = {
 				const perm = invite_types[args[0].toLowerCase()]
 					
 				if( perm )
-					msg.send( embed().addField(
+					msg.send( Embed().addField(
 						perm.name + ' permissions invite',
 						`Here's your [invite link](https://discord.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=${perm.int})`
 					))

@@ -37,7 +37,7 @@ module.exports = {
 				if( shortHEX )
 					rgb.map( n => n + ( n << 4 ) )
 
-				msg.send( embed()
+				msg.send( Embed()
 					.setDescription( `0x${hex} = **${rgb.join( ', ' )}**` )
 					.setColor( hex )
 				)
@@ -62,7 +62,7 @@ module.exports = {
 					return hex + ( axis < 0x10 ? '0' : '' ) + axis
 				}, '' )
 				
-				msg.send( embed()
+				msg.send( Embed()
 					.setDescription( `${rgb.join( ', ' )} = **0x${hex}**` )
 					.setColor( rgb )
 				)

@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'httpGet embed',
+	requirements: 'httpGet Embed',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -25,12 +25,12 @@ module.exports = {
 						body = JSON.parse( body )
 
 						if( body.msg ){
-							msg.send( embed()
+							msg.send( Embed()
 								.setDescription( '**Error**: ' + body.msg )
 								.setColor( 0xFF0000 )
 							)
 						} else {
-							msg.send( embed()
+							msg.send( Embed()
 								.setDescription( `[${args[0]}](${body.url})` )
 								.setImage( body.url )
 								.setFooter( 'Powered by nekos.life' )
@@ -41,7 +41,7 @@ module.exports = {
 					httpGet( "https://nekos.life/api/v2/endpoints", body => {
 						let m = body.match( /(?:'\w+?').*(?=>)/ )[0]
 
-						msg.send( embed()
+						msg.send( Embed()
 							.addField( 'Tags:', m.match( /\w+/g ).sort().join( ', ' ) )
 							.setFooter( 'Powered by nekos.life' )
 						)

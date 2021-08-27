@@ -9,7 +9,7 @@ module.exports = {
 				let channel = client.channels.cache.get( db.restart.channel )
 
 				if( channel && timeleft < 60e3 ){
-					channel.send( embed()
+					channel.send( Embed()
 						.setTitle( "🚀 Yay, I'm back again!" )
 						.addField( "🏗️ Init",`\`${numsplit( mao.initializationTime )}ms\``, true )
 						.addField( "📡 Login", `\`${numsplit( mao.loginTime )}ms\``, true )

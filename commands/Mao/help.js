@@ -35,7 +35,7 @@ module.exports = {
 				return msg.send( `No module or command named \`${arg}\` has been found.` )
 			}
 
-			const emb = embed().setDescription([
+			const emb = Embed().setDescription([
 				`Prefix: \`${CM.prefix}\``,
 				`Flag prefix: \`${CM.constructor.ArgumentParser.flagPrefix}\``,
 				`For more information use \`help <command/module>\``,

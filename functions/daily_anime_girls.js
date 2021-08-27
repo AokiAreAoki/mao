@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'client httpGet db bakadb Gelbooru Yandere discord',
+	requirements: 'client httpGet db bakadb Gelbooru Yandere discord Embed',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -121,7 +121,7 @@ module.exports = {
 					pics = response.pics
 
 					if( pics.length === 0 ){
-						message.edit( embed()
+						message.edit( Embed()
 							.setDescription( `Tag(s) \`${tags}\` not found :(` )
 							.setColor( 0xFF0000 )
 						)
@@ -139,7 +139,7 @@ module.exports = {
 				content.embed.setDescription( `[${title}](${url})` )
 				message.edit( content )
 			}).catch( err => {
-				message.edit( { content: cb( err ), embed: null } )
+				message.edit( { content: cb( err ), embeds: [] } )
 			})
 		}
 
@@ -199,7 +199,7 @@ module.exports = {
 						let msg = await client.channels.cache.get( post.channel_id )?.messages.fetch( post.message_id )
 
 						if( msg?.deletable ){
-							await msg.edit( embed()
+							await msg.edit( Embed()
 								.setDescription( 'Deleted' )
 								.setColor( 0xFF0000 )
 							)

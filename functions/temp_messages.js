@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'client embed bakadb db MM',
+	requirements: 'client Embed bakadb db MM',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -44,7 +44,7 @@ module.exports = {
 						if( ++tms >= max_tms )
 							return msg.send( "You've reached the limit of temporary messages" )
 				
-				let message = await msg.send( embed()
+				let message = await msg.send( Embed()
 					.setAuthor( '@' + msg.author.tag, msg.author.avatarURL() )
 					.setDescription( 'Provide the time your message will be deleted in' )
 					.setFooter( 'Timeout: 60s' )
@@ -85,7 +85,7 @@ module.exports = {
 							if( v > 0 ) timeleft.push( v + ' ' + time_units[i] + ss(v) )
 						})
 						
-						message.edit( embed()
+						message.edit( Embed()
 							.setAuthor( '@' + msg.author.tag, msg.author.avatarURL() )
 							.setDescription( 'Your message will be deleted in ' + timeleft.join( ' ' ) )
 						).then( m => {

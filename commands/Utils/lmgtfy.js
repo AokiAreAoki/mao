@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'embed',
+	requirements: 'Embed',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -30,10 +30,10 @@ module.exports = {
 
 				url += encodeURI( ( whatis + q ).replace( /\s+/g, '+' ) ) + iie
 
-				msg.send( embed()
+				msg.send( Embed()
 					.addField( `OK 👌. Googling \`${whatis + q}\`...`, 'Please wait a bit :^)' )
 				).then( m => {
-					setTimeout( () => m.edit( embed().addField( 'Found!', `Click here to find out ${whatis.toLowerCase()}[${q}](${url})` ) ), timeout )
+					setTimeout( () => m.edit( Embed().addField( 'Found!', `Click here to find out ${whatis.toLowerCase()}[${q}](${url})` ) ), timeout )
 				})
 			},
 		})

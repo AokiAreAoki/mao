@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'embed httpGet',
+	requirements: 'Embed httpGet',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -40,7 +40,7 @@ module.exports = {
 							const exmp = definition.example.replace( /\[(.*?)\](?!\(https?:\/\/.*?\))/g, ( _, p1 ) => `[${p1}](https://www.urbandictionary.com/define.php?term=${ encodeURI( p1 ) })` )
 							const date = new Date( definition.written_on )
 							
-							return embed()
+							return Embed()
 								.setAuthor( '@' + msg.member.user.tag, msg.member.user.avatarURL )
 								.addField( `Word (${page + 1}/${pages})`, `[${ definition.word }](${ definition.permalink })` )
 								.addField( 'Definition', def.length > 1024 ? def.substring( 0, 1021 ).replace( /(.+)[\s\n].*$/, '$1...' ) : def )

@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'log embed maoclr httpGet ytdl _tkns instanceOf',
+	requirements: 'log Embed maoclr httpGet ytdl _tkns instanceOf',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -29,12 +29,15 @@ module.exports = {
 			return 0
 		}
 
-		client.once( 'ready2', () => client.guilds.cache.array().forEach( g => defineMData( g.id ) ) )
+		client.once( 'ready2', () => client.guilds.cache.forEach( g => defineMData( g.id ) ) )
 		client.on( 'guildCreate', guild => defineMData( guild.id ) )
 		
 		client.on( 'voiceStateUpdate', ( oldState, newState ) => {
+			if( newState.id !== client.user.id )
+				return
+				
 			if( !newState.selfDeaf )
-				newState.setSelfDeaf( true )
+				newState.setDeaf( true )
 		})
 
 		timer.create( 'voiceTimeout', 1.337, 0, () => {
@@ -171,7 +174,7 @@ module.exports = {
 			let pos = mdata[channel.guild.id].queue.length,
 				isMember = requester.constructor.name === 'GuildMember'
 			
-			channel.send( embed()
+			channel.send( Embed()
 				.addField( 'Song queued', `Your song \`${song.author}\` - \`${song.title}\` is \`${pos + postfix(pos)}\` in the queue list.` )
 				.setAuthor( isMember ? requester.displayName : requester.username, ( isMember ? requester.user : requester ).avatarURL() )
 			)
@@ -197,7 +200,7 @@ module.exports = {
 			if( queue && queue.length > 0 ){
 				let songs = '', i = 0
 				queue.forEach( ( song, k ) => songs += `${songs.length != 0 ? '\n' : ''}[${k + 1}] • \`${song.author}\` - \`${song.title}\`` )
-				channel.send( embed().addField( '**Queue:**', songs ) )
+				channel.send( Embed().addField( '**Queue:**', songs ) )
 			} else
 				channel.send( 'Queue is empty' )
 		}
@@ -254,7 +257,7 @@ module.exports = {
 												sendQueuedMessage( msg.channel, songs[n - 1], msg.member )
 												resolve( true )
 											} else {
-												msg.send( embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
+												msg.send( Embed().setDescription( 'Nothing found :(' ).setColor( 0xff0000 ) )
 												resolve( false )
 											}
 										}
@@ -273,7 +276,7 @@ module.exports = {
 		}
 
 		function sendNowPlaying( channel, song ){
-			channel.send( embed().addField( 'Now playing:', `\`${song.author}\` - \`${song.title}\`` ) )
+			channel.send( Embed().addField( 'Now playing:', `\`${song.author}\` - \`${song.title}\`` ) )
 		}
 
 		const maxResCnt = 10
@@ -500,7 +503,7 @@ module.exports = {
 
 		addMCommand( 'skip s', `Skips song (doesn't work ¯\\_(ツ)_/¯)`, async ( msg, args ) => {
 			let skipped_song = skip( msg.guild )
-			msg.send( embed().addField( 'Skipped:', `\`${skipped_song.author}\` - \`${skipped_song.title}\`` ) )
+			msg.send( Embed().addField( 'Skipped:', `\`${skipped_song.author}\` - \`${skipped_song.title}\`` ) )
 		})
 
 		addMCommand( 'stop st', 'Stops music', async msg => {
@@ -533,7 +536,7 @@ module.exports = {
 					else
 						log( `Error: m.${option}.func is a ${typeof option.func}, function expected` )
 				} else {
-					let emb = embed()
+					let emb = Embed()
 						.setAuthor( msg.member.displayName, msg.author.avatarURL )
 					
 					for( let cmd in m ){

@@ -448,11 +448,11 @@ client.once( 'ready', () => {
 	} else
 		isOnlineOrInitialized = true
 
-	lch = client.channels.cache.get( '334675361482670080' )
+	lch = client.channels.cache.get( '721667351648403507' )
 	
 	client.on( 'ready', () => {
 		log( "I'm back" )
-		lch = client.channels.cache.get( '334675361482670080' )
+		lch = client.channels.cache.get( '721667351648403507' )
 	})
 })
 

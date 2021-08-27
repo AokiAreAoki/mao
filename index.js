@@ -611,7 +611,7 @@ const evalTags = new EvalTags([
 	'keys',
 ])
 
-MM.unshiftHandler( 'eval', true, async ( msg, edited ) => {
+MM.unshiftHandler( 'eval', true, async msg => {
 	let ismaster = msg.author instanceof discord.User && msg.author.isMaster()
 
 	if( ismaster ){

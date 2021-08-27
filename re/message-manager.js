@@ -70,6 +70,7 @@ class MessageManager {
 		if( this.handleEdits )
 			this.client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
 				oldMsg.waiter?.cancel()
+				newMsg.hasBeenEdited = true
 
 				if( oldMsg.content !== newMsg.content ){
 					oldMsg.deleteAnswers()
@@ -102,17 +103,17 @@ class MessageManager {
 		return true
 	}
 
-	async handleMessage( message, edited ){
+	async handleMessage( message ){
 		message._answers = []
 		message.isCommand = false
 
-		if( ResponseWaiter.handleMessage( message, edited ) )
+		if( ResponseWaiter.handleMessage( message ) )
 			return
 		
 		for( let i = 0; i < this.handlers.length; ++i ){
 			const handler = this.handlers[i]
 
-			if( await handler.callback( message, edited ) ){
+			if( await handler.callback( message ) ){
 				if( handler.isCommandHandler )
 					message.isCommand = true
 
@@ -199,7 +200,7 @@ class ResponseWaiter {
 		return isResponseWaiterInitialized
 	}
 
-	static handleMessage( message, edited ){
+	static handleMessage( message ){
 		const waiter = ResponseWaiter.find( message.author, message.channel )
 		
 		if( waiter )

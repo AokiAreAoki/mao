@@ -22,6 +22,7 @@ class CommandManager {
 	list_commands = []
 
 	constructor( client, prefix, considerMentionAsPrefix = false ){
+		super()
 		this.client = client
 		this.prefix = prefix
 		this.considerMentionAsPrefix = !!considerMentionAsPrefix
@@ -91,7 +92,7 @@ class CommandManager {
 		return [command, command_name, string_args]
 	}
 
-	handleMessage( msg, hasBeenEdited ){
+	handleMessage( msg ){
 		// Ignore bots and itself
 		if( msg.author.id == this.client.user.id || msg.author.bot )
 			return

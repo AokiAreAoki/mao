@@ -9,7 +9,7 @@ module.exports = {
 			callback: async msg => {
 				msg.isCommand = false
 				
-				if( msg.edits.length > 1 ){
+				if( msg.hasBeenEdited ){
 					await msg.react( client.emojis.cache.get( '822881934484832267' ) ?? '👌' )
 					await msg.delete( 1337 )
 					return

@@ -29,6 +29,15 @@ Number.prototype.char = function(){
 	return String.fromCharCode( this )
 }
 
+String.prototype.line = function( start = 1, end ){
+	if( !end )
+		end = start
+	else if( end < start )
+		end = undefined
+
+	return this.split( '\n' ).slice( start - 1, end ).join( '\n' )
+}
+
 //////////  Simple flag parser  //////////
 let flags = {}
 let noflags = true
@@ -775,7 +784,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 							return true
 						}
 						
-						switch( evaled.constructor.name ){
+						switch( evaled.constructor?.name ){
 							case 'MessageEmbed':
 							case 'Jimp':
 								msg.send( evaled )
@@ -783,7 +792,6 @@ MM.unshiftHandler( 'eval', true, async msg => {
 
 							case 'Array':
 								evaled = `here's ur array for u: ${tts( evaled, 1 )}`
-								tags.cb = true
 								break
 
 							default:
@@ -801,12 +809,11 @@ MM.unshiftHandler( 'eval', true, async msg => {
 							funcbody = funcbody.replace( new RegExp( `^(\\t|[^\\t\\S]{4}){${indent}}`, 'gm' ), '' )
 						}
 						
-						evaled = '```JS\n' + funcbody + '```'
-						tags.cb = false
+						evaled = funcbody
+						tags.cb = { value: 'js' }
 						break
 						
 					default:
-						tags.cb = true
 						evaled = `Result parse error: unknown type "${typeof evaled}" of evaled`
 						break
 				}
@@ -816,6 +823,8 @@ MM.unshiftHandler( 'eval', true, async msg => {
 
 			if( typeof evaled !== 'string' )
 				return
+			else if( !tags.cb && evaled.indexOf( '\n' ) !== -1 )
+				tags.cb = true
 
 			if( __output ){
 				if( printEvaled )
@@ -827,7 +836,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 				if( !tags.cb && !msg.member.permissions.has( discord.Permissions.FLAGS.EMBED_LINKS ) )
 					evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
 
-				await msg.send( tags.cb ? cb( evaled ) : evaled )
+				await msg.send( tags.cb ? cb( evaled, tags.cb.value ) : evaled )
 				msg.isCommand = true
 				return abortHQ()
 			}

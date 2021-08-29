@@ -592,8 +592,6 @@ log( 'OK' )
 //////////  Eval  //////////
 let eval_prefix = /^>>+\s*/i
 
-client.on( 'ready', () => eval_prefix = new RegExp( `^(>>+|<@!?${client.user.id}>)\\s*`, 'i' ) )
-
 class EvalTags {
 	constructor( tags ){
 		this.tags = new List( tags )

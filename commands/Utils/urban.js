@@ -20,7 +20,7 @@ module.exports = {
 				let q = args.get_string()
 				
 				if( !q ){
-					msg.send( 'Gimme a word some baka~!' )
+					msg.send( 'Gimme a word baka~!' )
 					return
 				}
 				

@@ -11,7 +11,7 @@ module.exports = {
 				usages: [
 					['sends list of all categories'],
 					['<category>', 'sends a random pic from $1'],
-				[,
+				],
 			},
 			flags: [
 				['force', `force post ignoring the only NSFW channel restiction (master only)`],

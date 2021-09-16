@@ -82,17 +82,21 @@ log()
 //////////  Including modules  //////////
 logw( 'Requiring modules...' )
 	const fs = require( 'fs' )
-	const http = require( 'http' )
-	const https = require( 'https' )
 	const { join } = require( 'path' )
 	const cp = require( 'child_process' )
+	const Jimp = require( 'jimp' )
+
+	const http = require( 'http' )
+	const https = require( 'https' )
+	const req = require( 'request' ) // deprecated
+	const axios = require( 'axios' )
 	const discord = require( 'discord.js' )
 	const Collection = discord.Collection
+	//const tgb = require( 'node-telegram-bot-api' )
+
 	const ytdl = require( 'ytdl-core-discord' )
 		  ytdl.search = require( 'ytsr' )
-	const Jimp = require( 'jimp' )
-	//const tgb = require( 'node-telegram-bot-api' )
-	const req = require( 'request' )
+
 	const kym = require( 'nodeyourmeme' )
 log( 'OK' )
 

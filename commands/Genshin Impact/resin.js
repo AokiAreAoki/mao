@@ -11,13 +11,13 @@ module.exports = {
 			description: {
 				single: 'calcs time required for resin to regenerate',
 				usages: [
-					['<to>', 'calcs time required to regenerate $2 resin']
-					['<from>', '<to>', 'calcs time required for resin to regenerate from $1 to $2']
+					['<to>', 'calcs time required to regenerate $2 resin'],
+					['<from>', '<to>', 'calcs time required for resin to regenerate from $1 to $2'],
 				],
 				examples: [
 					['60', 'calcs time required to regenerate 60 resin'],
 					['max', 'time required for resin to fully replenish'],
-					['full', 'the same as `max`']
+					['full', 'the same as `max`'],
 					['15', '40', 'calcs time required for resin to regenerate from 15 to 40'],
 					['123', 'max/full', 'calcs time required for resin to regenerate from 123 to max (160)'],
 				],

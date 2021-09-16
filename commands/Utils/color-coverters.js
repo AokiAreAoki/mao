@@ -10,7 +10,7 @@ module.exports = {
 					['<hex>', 'converts $1 to RGB'],
 				],
 				examples: [
-					['0xFF8000', 'converts $1 to RGB (\`255, 128, 0\`)']
+					['0xFF8000', 'converts $1 to RGB (\`255, 128, 0\`)'],
 				],
 			},
 			callback: ( msg, args ) => {
@@ -52,7 +52,7 @@ module.exports = {
 					['<rgb>', 'converts $1 to HEX'],
 				],
 				examples: [
-					['255', '128', '0', 'converts $1, $2, $3 to HEX (\`0xFF8000\`)']
+					['255', '128', '0', 'converts $1, $2, $3 to HEX (\`0xFF8000\`)'],
 				],
 			},
 			callback: ( msg, args ) => {

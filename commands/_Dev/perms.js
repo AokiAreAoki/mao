@@ -133,8 +133,8 @@ module.exports = {
 			description: {
 				single: 'sets permissions for users',
 				usages: [
-					['<@@>', '<permissions...>', 'sets $2 permissions for $1']
-				]
+					['<@@>', '<permissions...>', 'sets $2 permissions for $1'],
+				[
 			},
 			callback: async ( msg, args ) => {
 				let username = args.shift()
@@ -158,8 +158,8 @@ module.exports = {
 			description: {
 				single: 'removes permissions from users',
 				usages: [
-					['<@@>', '<permissions...>', 'removes $2 permissions from $1']
-				]
+					['<@@>', '<permissions...>', 'removes $2 permissions from $1'],
+				[
 			},
 			callback: async ( msg, args ) => {
 				let username = args.shift()

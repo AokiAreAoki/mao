@@ -56,7 +56,7 @@ module.exports = {
 					`* \`HSL/HSV\` doesn't autodetects. You have to specify \`hsl\`/\`hsv\` as a color type to use it.`,
 				],
 				usages: [
-					[`[type]`, `<color data...>`, '']
+					[`[type]`, `<color data...>`, ''],
 				],
 				examples: [
 					['rgb', '255', '0', '127', 'RGB color system with \`rgb\` type specified'],

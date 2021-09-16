@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'cb req instanceOf',
+	requirements: 'cb axios instanceOf',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -143,30 +143,22 @@ module.exports = {
 						
 						let message = await msg.send( `Running your \`${language}\` code...` )
 
-						req({
-							method: 'POST',
-							uri: "https://rextester.com/rundotnet/api",
-							qs: {
+						axios.post( 'https://rextester.com/rundotnet/api', {
+							params: {
 								LanguageChoice: lang.id,
 								Program: code,
 								Input: '',
 								CompilerArgs : lang.compiler_args || '',
-							}
-						}, ( err, req, body ) => {
-							if( err )
-								return message.edit( cb( err ) )
+							},
+						}).then( ({ data, status, statusText }) => {
+							if( status !== 200 )
+								return message.edit( cb( statusText ) )
 
-							try {
-								let result = JSON.parse( body )
-								
-								message.edit( message.content + '\n' // `\n${result.Stats}\n`
-									+ ( `Output:${result.Result ? cb( result.Result ) : ' nothing\n'}` )
-									+ ( result.Warnings !== null ? 'Warnings:' + cb( result.Warnings ) : '' )
-									+ ( result.Errors !== null ? 'Error:' + cb( result.Errors ) : '' )
-								)
-							} catch( err ){
-								message.edit( cb( err ) )
-							}
+							message.edit( message.content + '\n' // `\n${result.Stats}\n`
+								+ ( `Output:${data.Result ? cb( data.Result ) : ' nothing\n'}` )
+								+ ( data.Warnings !== null ? 'Warnings:' + cb( data.Warnings ) : '' )
+								+ ( data.Errors !== null ? 'Error:' + cb( data.Errors ) : '' )
+							)
 						})
 					} else
 						msg.send( `Unknown language \`${requestedLang}\`. \`-rextester list\` - list of languages` )

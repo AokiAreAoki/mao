@@ -1,5 +1,5 @@
-module.exports = request_module => {
-	const req = request_module
+module.exports = axios_module => {
+	const axios = axios_module
 
 	const all_options = {
 		name: 'unknown booru', // Just a name of a booru
@@ -76,21 +76,13 @@ module.exports = request_module => {
 				qs[this.qs.page] = ( page ?? 0 ) + this.page_offset
 				qs[this.qs.limit] = limit = limit ?? this.limit
 				
-				req({
-					uri: this.url,
-					qs: qs,
-				}, ( err, res, body ) => {
-					if( err )
-						return reject( err )
+				axios.get( this.url, {
+					params: qs,
+				}).then( ({ data, status, statusText }) => {
+					if( status !== 200 )
+						return reject( statusText )
 
-					try {
-						body = JSON.parse( body )
-					} catch( err ){
-						console.error( err )
-						body = []
-					}
-					
-					resolve( new BooruResponse( body, {
+					resolve( new BooruResponse( data, {
 						tags,
 						page,
 						limit,

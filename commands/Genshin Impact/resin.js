@@ -11,7 +11,7 @@ module.exports = {
 			description: {
 				single: 'calcs time required for resin to regenerate',
 				usages: [
-					['<to>', 'calcs time required to regenerate $2 resin'],
+					['<to>', 'calcs time required to regenerate $1 resin'],
 					['<from>', '<to>', 'calcs time required for resin to regenerate from $1 to $2'],
 				],
 				examples: [

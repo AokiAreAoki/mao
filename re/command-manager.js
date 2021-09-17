@@ -490,9 +490,9 @@ class CommandDescription {
 		
 		examples?.forEach( args => {
 			if( typeof args === 'string' )
-				this.usages.push( args )
+				this.examples.push( args )
 			else if( args instanceof Array )
-				this.usages.push( new Example( args ) )
+				this.examples.push( new Example( args ) )
 		})
 	}
 

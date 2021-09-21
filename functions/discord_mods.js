@@ -111,7 +111,7 @@ module.exports = {
 				
 			options = handleArgs( content, options )
 
-			if( replyLvl > 0 )
+			if( replyLvl > 0 && !this.deleted )
 				return this.reply( options, replyLvl !== 1 )
 
 			return this.channel.send( options )
@@ -150,6 +150,10 @@ module.exports = {
 			}
 				
 			return await this.original_delete()
+				.then( msg => {
+					msg.deleted = true
+					return msg
+				})
 		}
 
 		// Message.toString: url to message instead of its content

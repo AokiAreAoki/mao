@@ -291,7 +291,7 @@ function CommandFlag( ...args ){
 
 class ArgumentParser extends Array {
 	static flagPrefix = /^(--|\/)/
-	string
+	string = ''
 	pos = []
 	flags = null
 
@@ -308,21 +308,22 @@ class ArgumentParser extends Array {
 		if( command?.hasFlags ){
 			this.flags = {}
 
-			for( let i = 0; i < this.length; ++i ){
+			for( let i = this.length - 1; i >= 0; --i ){
 				const arg = this[i].trim().toLowerCase()
 				const prefix = arg.matchFirst( ArgumentParser.flagPrefix )
-				
+
 				if( !prefix )
 					continue
 
 				const flag = command.flags.get( arg.substr( prefix.length ) )
 
 				if( flag ){
-					this.spliceArgs(i)
-					this.flags[flag.name] = this.spliceArgs( i, flag.args.length )
-					--i
+					this.flags[flag.name] = this.spliceArgs( i, flag.args.length + 1 )
+					this.flags[flag.name].shift()
 				}
 			}
+
+			this.parseArgs()
 		}
 	}
 
@@ -340,29 +341,22 @@ class ArgumentParser extends Array {
 		const pos = this.pos[0]
 		this.pos = this.pos.map( p => p - pos )
 		this.string = this.string.substr( pos )
-		
+
 		return arg
 	}
-	
+
 	spliceArgs( pos, amount = 1 ){
 		if( amount === 0 )
 			return []
 
-		this.pos.splice( pos, amount )
-		return super.splice( pos, amount )
-		
-		const spliced = []
+		const posses = this.pos.splice( pos, amount )
+		const args = Array.from( super.splice( pos, amount ) )
 
-		for( let i = pos; i < pos + amount; ++i )
-			spliced.push( this[i] )
-		
-		for( let i = pos + amount; i < this.length; ++i )
-			this[i - amount] = this[i]
+		const last = args.length - 1
+		this.string = this.string.substring( 0, posses[0] )
+			 + this.string.substr( posses[last] + args[last].length )
 
-		for( let i = 0; i < amount; ++i )
-			super.pop()
-
-		return spliced
+		return args
 	}
 
 	get_string( number = 0 ){
@@ -371,6 +365,8 @@ class ArgumentParser extends Array {
 	}
 
 	parseArgs(){
+		this.length = 0
+		this.pos.length = 0
 		let arg = '', pos = 0, quotes = ''
 
 		for( let i = 0; i < this.string.length; ++i ){
@@ -392,7 +388,7 @@ class ArgumentParser extends Array {
 						continue
 					}
 				} else {
-					if( char == '"' || char == "'" ){
+	 				if( char == '"' || char == "'" ){
 						quotes = char
 						pos = i
 						continue

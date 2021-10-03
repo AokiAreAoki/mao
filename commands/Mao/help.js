@@ -6,7 +6,7 @@ module.exports = {
 		const help = addCmd({
 			aliases: 'help h',
 			description: {
-				short: 'sends this message',
+				short: '-help help for help',
 				full: 'Displays information about commands and modules',
 				usages: [
 					['sends a list of all modules and commands'],

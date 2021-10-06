@@ -11,7 +11,8 @@ module.exports = {
 				
 				if( msg.hasBeenEdited ){
 					await msg.react( client.emojis.cache.get( '822881934484832267' ) ?? '👌' )
-					await msg.delete( 1337 )
+					await msg.deleteAnswers()
+					await msg.delete()
 					return
 				}
 
@@ -23,7 +24,7 @@ module.exports = {
 				
 					if( message ){
 						await msg.react( client.emojis.cache.get( '822881934484832267' ) ?? '👌' )
-						await message.channel.bulkDelete( message._answers )
+						await message.deleteAnswers()
 						await message.channel.bulkDelete( [msg, message] )
 					} else {
 						msg.isCommand = true

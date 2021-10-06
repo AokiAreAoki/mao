@@ -56,8 +56,10 @@ class MessageManager {
 		this.handleDeletion = !!handleDeletion
 
 		discord.Message.prototype.deleteAnswers = async function(){
-			if( this._answers instanceof Array && this._answers.length !== 0 )
+			if( this._answers instanceof Array && this._answers.length !== 0 ){
+				this._answers = this._answers.filter( m => !m.deleted )
 				return await this.channel.bulkDelete( this._answers )
+			}
 		}
 
 		ResponseWaiter.init( discord )

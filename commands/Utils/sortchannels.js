@@ -34,7 +34,7 @@ module.exports = {
 				[`<category ID>`, 'sorts channels of $1 by alphabet'],
 			],
 		}, ( msg, args ) => {
-			if( msg.member.hasPermission( discord.Permissions.FLAGS.MANAGE_CHANNELS ) ){
+			if( msg.member.permissions.has( discord.Permissions.FLAGS.MANAGE_CHANNELS ) ){
 				if( /^\d+$/.test( args[0] ) ){
 					let category = client.channels.cache.get( args[0] )
 					

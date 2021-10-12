@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'Embed numsplit maoclr db',
+	requirements: 'Embed numsplit db',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		

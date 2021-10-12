@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'discord bakadb db List maoclr',
+	requirements: 'discord bakadb db List',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		

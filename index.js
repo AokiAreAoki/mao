@@ -118,10 +118,18 @@ logw( 'Requiring custom modules...' )
 log( 'OK' )
 
 // Defining some shit
-const maoclr = 0xF2B066
 const write = fs.writeFileSync
 const readdir = fs.readdirSync
 const clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
+
+// Getting config
+function updateConfig(){
+	config = JSON.parse( read( './config.json' )
+		.replace( /\/\/.+?\n/g, '' )	// removes comments 'cuz JSON is retarded
+		.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas 'cuz JSON is retarded
+	)
+}
+updateConfig()
 
 // Getting tokens
 if( !fs.existsSync( './tokens.json' ) ){
@@ -130,8 +138,8 @@ if( !fs.existsSync( './tokens.json' ) ){
 }
 
 const _tkns = JSON.parse( read( './tokens.json' )
-	//.replace( /\/\/.+?\n/g, '' )	// removes comments from the file 'cuz JSON.parse can't ignore them. baka.
-	.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas
+	.replace( /\/\/.+?\n/g, '' )	// removes comments 'cuz JSON is retarded
+	.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas 'cuz JSON is retarded
 )
 
 // Booru wrappers
@@ -262,7 +270,7 @@ function read( path ){
 }
 
 function Embed(){
-	return new discord.MessageEmbed().setColor( maoclr )
+	return new discord.MessageEmbed().setColor( config.maoclr )
 }
 
 function cb( text, lang = '' ){

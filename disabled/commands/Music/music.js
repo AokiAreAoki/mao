@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'log Embed maoclr httpGet ytdl _tkns instanceOf',
+	requirements: 'log Embed httpGet ytdl _tkns instanceOf',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 

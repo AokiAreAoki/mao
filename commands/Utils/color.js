@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'vec Jimp maoclr',
+	requirements: 'vec Jimp config',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -43,7 +43,7 @@ module.exports = {
 				return result
 			},
 			hsv: 'hsl',
-			mao: () => maoclr,
+			mao: () => config.maoclr,
 		}
 		
 		addCmd({

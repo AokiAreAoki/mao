@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'CM Embed maoclr __flags',
+	requirements: 'CM Embed __flags',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		

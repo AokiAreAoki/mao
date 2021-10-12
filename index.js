@@ -398,14 +398,7 @@ function httpGet( options, callback, errcallback ){
 	return promise
 }
 
-//////////  unhandled rejections handler  //////////
-
-process.on( 'unhandledRejection', ( reason, promise ) => {
-	log( 'unhandledRejection:', reason, promise )
-})
-
 //////////  Initializing BakaDB  //////////
-
 bakadb.init( __flags.dev ? './test/bdb' : './bdb', {
 	List: List,
 })
@@ -416,7 +409,6 @@ bakadb.on( 'missing-encoder', encoder => log( `[WARNING] Missing "${encoder}" en
 bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" decoder` ) )
 
 //////////  Creating client  //////////
-
 const client = new discord.Client({
 	//messageCacheLifetime: 1200,
 	//messageSweepInterval: 72,
@@ -484,6 +476,19 @@ client.once( 'ready', () => {
 	client.on( 'ready', () => {
 		log( "I'm back" )
 		lch = client.channels.cache.get( '721667351648403507' )
+	})
+	
+	process.on( 'unhandledRejection', async reason => {
+		log( 'Unhandled rejection:', reason.stack )
+		
+		if( !config['log-channel'] )
+			return log( '`log-channel` is not specified or not found' )
+
+		client.channels.fetch( config['log-channel'] )
+			.then( channel => channel.send( Embed()
+				.addField( `Unhandled rejection:`, cb( reason.stack ) )
+			))
+			.catch( () => log( '`log-channel` is not specified or not found' ) )
 	})
 })
 

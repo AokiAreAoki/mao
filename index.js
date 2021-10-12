@@ -38,46 +38,48 @@ String.prototype.line = function( start = 1, end ){
 	return this.split( '\n' ).slice( start - 1, end ).join( '\n' )
 }
 
-//////////  Simple flag parser  //////////
-let flags = {}
-let noflags = true
-const list_of_flags = [
-	'--dev',
-	'--flags',
-]
-	
-list_of_flags.forEach( f => flags[f] = f.replace( /^-+/, '' ) )
+{ //////////  Simple flag parser  //////////
+	let flags = {}
+	let noflags = true
+	const list_of_flags = [
+		'--dev',
+		'--flags',
+		'--imports-watcher',
+	]
+		
+	list_of_flags.forEach( f => flags[f] = f.replace( /^-+/, '' ) )
 
-process.argv.slice(2).forEach( flag => {
-	let flagname = flags[flag]?.toLowerCase()
+	process.argv.slice(2).forEach( flag => {
+		let flagname = flags[flag]?.toLowerCase()
 
-	if( flagname ){
-		__flags[flagname] = true
-		noflags = false
-		return
+		if( flagname ){
+			__flags[flagname] = true
+			noflags = false
+			return
+		}
+		
+		throw new Error( `Unknown flag "${flag}". Run Mao with "--flags" flag to see all flags` )
+	})
+
+	if( noflags )
+		log( `Running Mao with no flags` )
+	else {
+		if( __flags.flags ){
+			log( 'List of flags:' )
+			list_of_flags.forEach( f => log( `   ${f}` ) )
+			process.exit( 228 ) // full exit code
+		}
+
+		let flags_array = []
+
+		for( let k in __flags )
+			flags_array.push(k)
+
+		log( `Running Mao with next flags: ${flags_array.join( ', ' )}` )
 	}
-	
-	throw new Error( `Unknown flag "${flag}". Run Mao with "--flags" flag to see all flags` )
-})
 
-if( noflags )
-	log( `Running Mao with no flags` )
-else {
-	if( __flags.flags ){
-		log( 'List of flags:' )
-		list_of_flags.forEach( f => log( `   ${f}` ) )
-		process.exit( 228 ) // full exit code
-	}
-
-	let flags_array = []
-
-	for( let k in __flags )
-		flags_array.push(k)
-
-	log( `Running Mao with next flags: ${flags_array.join( ', ' )}` )
+	log()
 }
-
-log()
 
 //////////  Including modules  //////////
 logw( 'Requiring modules...' )
@@ -121,6 +123,7 @@ const write = fs.writeFileSync
 const readdir = fs.readdirSync
 const clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
 
+// Getting tokens
 if( !fs.existsSync( './tokens.json' ) ){
 	log( '\nFile "tokens.json" does not exists, exit.' )
 	process.exit( 228 )
@@ -131,6 +134,7 @@ const _tkns = JSON.parse( read( './tokens.json' )
 	.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas
 )
 
+// Booru wrappers
 Booru.BooruResponse.prototype.embed = function( pics ){
 	if( typeof pics === 'number' )
 		pics = this.pics[pics]

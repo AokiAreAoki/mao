@@ -1,10 +1,13 @@
 module.exports = {
-	requirements: 'client',
+	requirements: 'discord client',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 				
-		async function sortChannels( parentID, callback ){
-			let channels = client.channels.cache.array().filter( c => c.parentID == parentID )
+		async function sortChannels( category ){
+			if( !( category instanceof discord.CategoryChannel ) )
+				throw Error( `category must be an instance of CategoryChannel` )
+
+			const channels = Array.from( category.children ).map( e => e[1] )
 			
 			channels.sort( ( a, b ) => {
 				a = a.name, b = b.name
@@ -18,46 +21,52 @@ module.exports = {
 		
 				return -1
 			})
-		
+			
 			for( let i = 0; i < channels.length; ++i )
 				if( channels[i].position !== i )
 					await channels[i].setPosition(i)
 			
-			if( typeof callback === 'function' )
-				callback( channels.length !== 0 ? channels : null )
+			return channels.length !== 0 ? channels : null
 		}
 		
-		addCmd( 'sortchannels', {
-			short: 'sorts channels in category',
-			full: 'sorts channels in category by alphabet',
-			usages: [
-				[`<category ID>`, 'sorts channels of $1 by alphabet'],
-			],
-		}, ( msg, args ) => {
-			if( msg.member.permissions.has( discord.Permissions.FLAGS.MANAGE_CHANNELS ) ){
-				if( /^\d+$/.test( args[0] ) ){
-					let category = client.channels.cache.get( args[0] )
-					
-					if( category ){
-						if( category.type === 'category' )
-							msg.send( `Sorting \`#${category.name}\`...` )
-						else
-							msg.send( `This isn't a category, this is ${category.type} channel` )
-					} else
-						msg.send( `Category with ID "${args[0]}" not found` )
-					
-					sortChannels( args[0], channels => {
-						if( channels == null )
-							msg.send( 'Hmm... Seems like this category is empty' )
-						else if( channels.length === 1 )
-							msg.send( 'Hmm... Seems like this category has only one channel' )
-						else
-							msg.send( `Done! ${channels.length} channels have been sorted` )
-					})
-				} else
-					msg.send( 'Please, provide category ID' )
-			} else
-				msg.send( "You don't have permission" )
+		addCmd({
+			aliases: 'sortchannels',
+			description: {
+				single: 'sorts channels in category by alphabet',
+				usages: [
+					[`<category ID>`, 'sorts channels of $1 by alphabet'],
+				],
+			},
+			callback: async ( msg, args ) => {
+				if( !msg.member.permissions.has( discord.Permissions.FLAGS.MANAGE_CHANNELS ) )
+					return msg.send( `You don't have permission` )
+
+				if( !/^\d+$/.test( args[0] ) )
+					return msg.send( `Please, provide category ID` )
+
+				const category = client.channels.resolve( await client.channels.fetch( args[0] ) )
+				
+				if( !category )
+					return msg.send( `Category with ID \`${args[0]}\` not found` )
+				
+				if( category.type !== 'GUILD_CATEGORY' )
+					return msg.send( `The ID you provided belongs to a non-category type channel` )
+				
+				const messagePromise = msg.send( `Sorting \`#${category.name}\`...` )
+				await category.guild.channels.fetch( null, { force: true } )
+				
+				const [channels, message] = await Promise.all([
+					sortChannels( category ),
+					messagePromise,
+				])
+
+				if( channels == null )
+					message.edit( 'Hmm... Seems like this category is empty' )
+				else if( channels.length === 1 )
+					message.edit( 'Hmm... Seems like this category has only one channel' )
+				else
+					message.edit( `Done! ${channels.length} channels have been sorted` )
+			},
 		})
 	}
 }

@@ -35,11 +35,13 @@ module.exports = {
 				],
 			},
 			callback: async ( msg, args ) => {
-				const lang = args[0].toLowerCase()
+				let lang = args[0].toLowerCase()
 
 				if( lang != 'ru' && lang != 'en' )
 					return msg.send( 'Invalid language! Use `EN` or `RU`' )
 				
+				lang = lang == 'en'
+
 				if( args[1] ){
 					let text = args.get_string(1)
 					
@@ -47,7 +49,7 @@ module.exports = {
 						let m = await msg.channel.messages.fetch( args[1] )
 			
 						if( m ){
-							text = translit( lang == 'en', m.content )
+							text = translit( lang, m.content )
 			
 							if( text )
 								msg.send( Embed()
@@ -59,7 +61,7 @@ module.exports = {
 						} else
 							msg.send( 'Failed to fetch the message! The message doesn\'t exist, or is in another channel.' )
 					} else { // Text provided
-						text = translit( lang == 'en', text )
+						text = translit( lang, text )
 			
 						if( text )
 							msg.send( Embed()
@@ -70,13 +72,13 @@ module.exports = {
 							msg.send( 'Failed to transliterate the message.' )
 					}
 				} else { // Nothing provided
-					let mm = await msg.channel.messages.fetch({ limit: 1, before: msg.id })
+					const mm = await msg.channel.messages.fetch({ limit: 1, before: msg.id })
 			
 					if( mm.size == 0 )
 						msg.send( 'Previous message not found.' )
 					else {
-						let m = mm.array()[0]
-						let text = translit( args[1] == 'en', m.content )
+						let m = mm.first()
+						let text = translit( lang, m.content )
 			
 						if( text )
 							msg.send( Embed()

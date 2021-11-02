@@ -14,13 +14,13 @@ module.exports = {
 				],
 			},
 			callback: ( msg, args ) => {
-				const hex = args[0].matchFirst( /(?:0x|#)(([0-9a-f]{3}){1,2})/i )
-				const shortHEX = hex.length === 3
-
-				if( hex )
-					hex = Number( '0x' + hex )
-				else
+				const stringHEX = args[0].matchFirst( /(?:0x|#)(([0-9a-f]{3}){1,2})/i )
+				
+				if( !stringHEX )
 					return msg.send( 'Invalid hex provided' )
+				
+				const hex = Number( '0x' + stringHEX )
+				const shortHEX = hex.length === 3
 					
 				// ( hex >> 16 ) & 0xFF
 				// ( hex >> 8 ) & 0xFF
@@ -38,7 +38,7 @@ module.exports = {
 					rgb.map( n => n + ( n << 4 ) )
 
 				msg.send( Embed()
-					.setDescription( `0x${hex} = **${rgb.join( ', ' )}**` )
+					.setDescription( `0x${stringHEX} = **${rgb.join( ', ' )}**` )
 					.setColor( hex )
 				)
 			},

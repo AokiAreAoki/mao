@@ -52,7 +52,7 @@ module.exports = {
 							return command
 						}).join( ', ' )
 
-						emb.addField( module.printname + ':', commands )
+						emb.addField( module.printname, commands )
 					}
 				})
 

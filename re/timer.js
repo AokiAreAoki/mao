@@ -5,22 +5,20 @@ function expect( number, argument, expected ){
 }
 
 class timer {
-	constructor(){
-		this.timers = {}
-	}
-
-	simple( timeout, func ){ //  :\
+	static timers = {}
+	
+	static simple( timeout, func ){
 		setTimeout( func, timeout * 1e3 )
 	}
 	
-	create( name, interval, repeats, func ){
+	static create( name, interval, repeats, func ){
 		expect( 1, name, 'string' )
 		expect( 2, interval, 'number' )
 		expect( 3, repeats, 'number' )
 		expect( 4, func, 'function' )
 		
 		repeats = Math.floor( repeats )
-		let repeating = repeats > 0
+		const repeating = repeats > 0
 		
 		if( this.timers[name] )
 			clearInterval( this.timers[name] );
@@ -37,24 +35,25 @@ class timer {
 		}, interval * 1e3 )
 	}
 	
-	remove( name ){
+	static remove( name ){
 		if( this.timers[name] ){
 			clearInterval( this.timers[name] )
 			delete this.timers[name]
 			return true
-		} else
-			return false
+		}
+		
+		return false
 	}
 	
-	removeAll(){
+	static removeAll(){
 		this.timers.forEach( timer => clearInterval( timer ) )
 		delete this.timers
 		this.timers = {}
 	}
 	
-	exists( name ){
-		return !!this.timers[name]
+	static exists( name ){
+		return this.timers[name] != undefined
 	}
 }
 
-exports = module.exports = new timer()
+module.exports = timer

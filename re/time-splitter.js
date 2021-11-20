@@ -1,5 +1,5 @@
 
-const tu = {}
+let tu = {}
 tu.miliseconds = 1
 tu.seconds = 1000 * tu.miliseconds
 tu.minutes = 60 * tu.seconds
@@ -9,7 +9,7 @@ tu.weeks = 7 * tu.days
 tu.months = tu.weeks * 30 / 7
 tu.years = tu.months * 365.25 / 30
 
-const singularForm = {
+let singularForm = {
 	miliseconds: 'milisecond',
 	seconds: 'second',
 	minutes: 'minute',
@@ -29,6 +29,9 @@ function plural( number ){
 }
 
 class TimeSplitter {
+	static tu = tu
+	static singularForm = singularForm
+	
 	constructor( time = {} ){
 		this.timestamp = 0
 		this.tu = []
@@ -53,6 +56,10 @@ class TimeSplitter {
 		}
 	}
 	
+	static fromMS( miliseconds = Date.now() ){
+		return new TimeSplitter({ miliseconds })
+	}
+	
 	static convert( value, unitFrom, unitTo ){
 		return value / tu[unitTo] * tu[unitFrom]
 	}
@@ -62,7 +69,7 @@ class TimeSplitter {
 		ignoreZeroValues = false,
 		ascOrder = true,
 		formatter = ( value, unit, units ) => `${value} ${units}`
-	}){
+	} = {} ){
 		let units = []
 
 		for( let u in tu )

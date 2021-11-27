@@ -39,7 +39,14 @@ module.exports = {
 						: msg.id
 				}
 				
+				const user = await client.users.fetch( args[1]?.matchFirst( /\d+/ ) )
+					.catch( () => null )
+
 				const messages = await msg.channel.messages.fetch( fetchOptions )
+					.then( mm => user
+						? mm.filter( m => m.author.id === user.id )
+						: mm
+					)
 
 				if( client.user.bot )
 					msg.channel.bulkDelete( messages )

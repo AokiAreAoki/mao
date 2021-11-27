@@ -16,7 +16,7 @@ module.exports = {
 				single: 'deletes messages',
 				usages: [
 					[`<number>`, `deletes $1 last messages (max. ${MAX})`],
-					[`<number>`, '[@@]', `fetches $1 messages and deletes any that belong to @@ (max. ${MAX})`],
+					[`<number>`, '[@@]', `deletes $1 messages that belong to @@ (max. ${MAX}; fetches only last 100 messages)`],
 				],
 			},
 			callback: async ( msg, args ) => {
@@ -40,16 +40,17 @@ module.exports = {
 				}
 				
 				const user = await client.users.fetch( args[1]?.matchFirst( /\d+/ ) )
+					.then( user => {
+						fetchOptions.limit = 100
+						return user
+					})
 					.catch( () => null )
 
 				const messages = await msg.channel.messages.fetch( fetchOptions )
-					.then( mm => user
-						? mm.filter( m => m.author.id === user.id )
-						: mm
-					)
+					.then( mm => user ? mm.filter( m => m.author.id === user.id ) : mm )
 
 				if( client.user.bot )
-					msg.channel.bulkDelete( messages )
+					msg.channel.bulkDelete( Array.from( messages.values() ).slice( 0, amount ) )
 				else
 					messages.forEach( m => m.delete() )
 

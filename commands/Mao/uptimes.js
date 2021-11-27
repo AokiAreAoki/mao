@@ -1,3 +1,4 @@
+
 module.exports = {
 	requirements: 'Embed numsplit db',
 	init: ( requirements, mao ) => {
@@ -7,21 +8,15 @@ module.exports = {
 			aliases: 'uptime',
 			description: 'Mao\'s uptime',
 			callback: msg => {
-				let uptime = process.uptime()
-				let v = 'seconds'
-				
-				if( uptime > 60 ){
-					uptime = uptime / 60
-					
-					if( uptime > 60 ){
-						uptime = uptime / 60
-						v = 'hours'
-					} else {
-						v = 'minutes'
-					}
-				}
-				
-				msg.send( `Uptime: ${Math.floor( uptime )} ${v}` )
+				const uptime = new TimeSplitter({
+					seconds: Math.floor( process.uptime() ),
+				})
+
+				msg.send( 'Uptime: ' + uptime.toString({
+					maxTU: 2,
+					ignoreZeros: true,
+					separator: `, `,
+				}))
 			},
 		})
 

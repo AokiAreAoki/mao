@@ -847,7 +847,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 
 			if( __output ){
 				if( printEvaled )
-					__output += '\n' + String( evaled )
+					print( evaled )
 
 				msg.sendcb( __output )
 				msg.isCommand = true

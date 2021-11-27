@@ -125,7 +125,7 @@ module.exports = {
 		
 		// Message.sendcb
 		discord.Message.prototype.sendcb = function( ...args ){
-			return this.send( cb( args.shift() ), ...args )
+			return this.channel.sendcb( ...args )
 		}
 		
 		// Message.edit

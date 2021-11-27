@@ -82,7 +82,7 @@ module.exports = {
 				this.id = -1
 				this.text = ''
 				this.next = Date.now() + 15e3
-				timer.create( 'activities', 3, 0, () => ActivityManager.update() )
+				timer.create( 'activities', 4, 0, () => ActivityManager.update() )
 			}
 
 			static pushActivity( type, callback ){

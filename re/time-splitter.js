@@ -1,4 +1,3 @@
-
 let tu = {}
 tu.miliseconds = 1
 tu.seconds = 1000 * tu.miliseconds
@@ -9,7 +8,7 @@ tu.weeks = 7 * tu.days
 tu.months = tu.weeks * 30 / 7
 tu.years = tu.months * 365.25 / 30
 
-let singularForm = {
+let singularForm = { // useless ig
 	miliseconds: 'milisecond',
 	seconds: 'second',
 	minutes: 'minute',
@@ -66,18 +65,24 @@ class TimeSplitter {
 	
 	toString({
 		separator = '\n',
-		ignoreZeroValues = false,
-		ascOrder = true,
-		formatter = ( value, unit, units ) => `${value} ${units}`
+		ignoreZeros = false,
+		ascOrder = false,
+		formatter = ( value, unit ) => `${value} ${unit}`,
+		maxTU = -1,
 	} = {} ){
-		let units = []
+		const units = []
+		let tu = Object.keys( TimeSplitter.tu )
 
-		for( let u in tu )
-			if( !ignoreZeroValues || this[u] !== 0 )
-				units.push( formatter( this[u], singularForm[u], u ) )
+		if( !ascOrder )
+			tu = tu.reverse()
 
-		if( ascOrder )
-			units = units.reverse()
+		for( const u of tu ){
+			if( !ignoreZeros || this[u] !== 0 )
+				units.push( formatter( this[u], this[u] === 1 ? singularForm[u] : u ) )
+
+			if( maxTU > 0 && units.length !== 0 && --maxTU === 0 )
+                                break
+		}
 
 		return units.join( separator || '\n' )
 	}

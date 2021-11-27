@@ -69,6 +69,7 @@ module.exports = {
 		// TextChannel.send
 		discord.TextChannel.prototype.original_send = discord.TextChannel.prototype.send
 		discord.TextChannel.prototype.send = function( content, options ){
+			this.sendTyping()
 			return this.original_send( handleArgs( content, options ) )
 		}
 		
@@ -102,30 +103,33 @@ module.exports = {
 				})
 		}
 
+		// Message.sendcb
+		discord.Message.prototype.sendcb = function( content, options, replyLvl ){
+			return this.send( content, options, replyLvl, true )
+		}
+
 		// Message.send
-		discord.Message.prototype.send = function( content, options = {}, replyLvl = 1 ){
+		discord.Message.prototype.send = function( content, options = {}, replyLvl = 1, cb = false ){
+			this.channel.sendTyping()
+
 			if( typeof options === 'number' ){
 				replyLvl = options
 				options = {}
 			}
-				
-			options = handleArgs( content, options )
-
+			
+			if( cb )
+				options.cb = true
+			
 			if( replyLvl > 0 && !this.deleted )
-				return this.reply( options, replyLvl !== 1 )
+				return this.reply( content, options, replyLvl !== 1 )
 
-			return this.channel.send( options )
+			return this.channel.send( handleArgs( content, options ) )
 				.then( m => {
 					if( this._answers instanceof Array )
 						this._answers.push(m)
 
 					return m
 				})
-		}
-		
-		// Message.sendcb
-		discord.Message.prototype.sendcb = function( ...args ){
-			return this.channel.sendcb( ...args )
 		}
 		
 		// Message.edit

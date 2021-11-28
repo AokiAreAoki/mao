@@ -157,7 +157,7 @@ Booru.BooruResponse.prototype.embed = function( pics ){
 			videos.push( pic.full )
 		
 		return Embed()
-			.setDescription( `[${this.tags ? 'Tags: ' + this.tags : 'No tags'}](${pic.post_url})` )
+			.setDescription( `[${this.tags ? 'Tags: ' + this.tags : 'No tags'}](${pic.post_url.replace( /\)/g, '%29' )})` )
 			.setImage( pic.sample )
 			.setFooter( 'Powered by ' + ( this.booru.name ?? 'unknown website' ) )
 	})

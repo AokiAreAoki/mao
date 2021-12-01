@@ -268,6 +268,16 @@ module.exports = {
 			standsfor: 'daily anime girls',
 			post: postAnimeGirls,
 			undo: undoAnimeGirls,
+			postAt( timeH ){
+				db.dag.postAt = timeH
+				db.dag.last_post = getDate()
+				bakadb.save()
+			},
+			setGMT( gmt ){
+				db.dag.GMT = gmt
+				db.dag.last_post = getDate()
+				bakadb.save()
+			},
 		}
 		
 		// Poster

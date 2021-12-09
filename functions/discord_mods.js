@@ -24,6 +24,9 @@ module.exports = {
 			options.allowedMentions ??= {}
 			options.allowedMentions.repliedUser ??= false
 
+			if( content === null )
+				throw new Error( 'content can not be ' + String( content ) )
+
 			if( typeof content === 'object' ){
 				switch( content?.constructor ){
 				/*case Array:
@@ -66,11 +69,23 @@ module.exports = {
 		}
 		
 		/// TextChannel ///
+		// TextChannel.sendTyping
+		discord.TextChannel.prototype.original_sendTyping = discord.TextChannel.prototype.sendTyping
+		discord.TextChannel.prototype.sendTyping = function(){
+			if( !this.typing_cd || this.typing_cd < Date.now() ){
+				this.typing_cd = Date.now() + 1337
+				return this.original_sendTyping()
+					.catch( () => {} )
+			}
+
+			return Promise.resolve()
+		}
+
 		// TextChannel.send
 		discord.TextChannel.prototype.original_send = discord.TextChannel.prototype.send
 		discord.TextChannel.prototype.send = function( content, options ){
-			this.sendTyping()
-			return this.original_send( handleArgs( content, options ) )
+			return this.sendTyping()
+				.then( () => this.original_send( handleArgs( content, options ) ) )
 		}
 		
 		// TextChannel.sendcb
@@ -110,8 +125,6 @@ module.exports = {
 
 		// Message.send
 		discord.Message.prototype.send = function( content, options = {}, replyLvl = 1, cb = false ){
-			this.channel.sendTyping()
-
 			if( typeof options === 'number' ){
 				replyLvl = options
 				options = {}

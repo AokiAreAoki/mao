@@ -29,7 +29,10 @@ module.exports = {
 		MM.pushHandler( 'mention_response', false, msg => {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
-			
+
+			if( msg.content.matchFirst( /(thanks?|thx)\s*mao/ ) )
+				return msg.send( 'no problem', 0 )
+
 			const mention = msg.content.matchFirst( mentionRE )
 
 			if( mention ){
@@ -39,7 +42,7 @@ module.exports = {
 				const text = msg.content.substr( mention.length )
 
 				if( /^('?s|\s*is)?\s*((stupid|shit|dumb)\s*bot|baka|бака|дура|дурында|тупая|глупая)\s*~?[!.]?/i.test( text ) )
-					return msg.reply( 'no u' )
+					return msg.send( 'no u' )
 
 				let postfix = text.matchFirst( /\W*$/i ) ?? ''
 

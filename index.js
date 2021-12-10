@@ -112,6 +112,7 @@ logw( 'Requiring custom modules...' )
 	const MessageManager = require( './re/message-manager' )
 	//const MyLang = require( './re/MyLang' )
 	const Paginator = require( './re/paginator' )
+	const SauceNAO = require( './re/saucenao-wrapper' )
 	const timer = require( './re/timer' )
 	const tree = require( './re/tree-printer' )
 	const vec = require( './re/vector' )
@@ -234,6 +235,17 @@ const Yandere = new Booru({
 		created_at: ( post, pic ) => pic.created_at = post.created_at * 1000
 	},
 	remove_other_keys: false,
+})
+
+// SauceNAO wrapper
+const sauce = new SauceNAO( axios, {
+	output_type: 2,
+	api_key: _tkns.saucenao,
+	db: 999,
+	numres: 5,
+	dedupe: 0,
+	// hide: 0,
+	// testmode: 1,
 })
 
 //////////  Some Functions  //////////

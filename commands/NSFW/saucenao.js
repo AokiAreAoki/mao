@@ -22,7 +22,9 @@ module.exports = {
 				.catch( () => null )
 
 			if( !sauces || sauces.size === 0 )
-				return msg.send( 'Sauce not found :(' )
+				return messagePromise.then( m => m.edit( Embed()
+					.setDescription( 'Sauce not found :(' )
+				))
 
 			const embeds = sauces.map( ( { header, data }, page ) => {
 				const description = [

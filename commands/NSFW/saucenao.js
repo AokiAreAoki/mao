@@ -42,8 +42,8 @@ module.exports = {
 				const ids = Object.keys( data ).filter( k => k.endsWith( '_id' ) )
 
 				data?.ext_urls?.forEach?.( ( url, i ) => {
-					const sourceName = prettify( ids[i] )
-					const sourceID = data[ids[i]]
+					const sourceName = ids[i] ? prettify( ids[i] ) : ''
+					const sourceID = ids[i] ? data[ids[i]] : url.matchFirst( /https?:\/\/([\w\._-]+)\// )
 					description.push( [sourceName, sourceID, url.replace( /\)/g, '%29' )] )
 				})
 
@@ -53,7 +53,7 @@ module.exports = {
 						if( url )
 							value = `[${value}](${url})`
 
-						return `**${key}**: ${value}`
+						return `**${key || 'Sauce'}**: ${value}`
 					}).join( '\n' ) )
 					.setImage( header.thumbnail )
 					.setFooter( `Page: ${page + 1}/${sauces.length}` )

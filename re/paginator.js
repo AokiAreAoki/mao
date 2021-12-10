@@ -1,5 +1,6 @@
 
 class Paginator {
+	/// Static ///
 	static discord
 	static client
 	static left = '⬅️'
@@ -15,14 +16,15 @@ class Paginator {
 		}
 
 		client.on( 'messageReactionAdd', ( reaction, user ) => {
-			reaction.message.paginator?.react( reaction, user )
+			reaction.message.paginator?._react( reaction, user )
 		})
 
 		client.on( 'messageReactionRemove', ( reaction, user ) => {
-			reaction.message.paginator?.react( reaction, user )
+			reaction.message.paginator?._react( reaction, user )
 		})
 	}
 
+	/// Instance ///
 	page = 0
 	pageAmount = null
 	timeout = null
@@ -55,18 +57,26 @@ class Paginator {
 			throw Error( `The page change handler is not set` )
 
 		const message = await channel.send( this.getPageContent() )
+		this.setMessage( message, false )
+		return this
+	}
+
+	setMessage( message, doUpdatePage = true ){
 		this.message = message
-		
 		message.paginator = this
+
+		if( doUpdatePage )
+			this.updatePage()
+
 		message.react( Paginator.left )
 		message.react( Paginator.right )
 		message.react( Paginator.stop )
 
-		return message
+		return this
 	}
 
 	// Runtime methods
-	react( reaction, user ){
+	_react( reaction, user ){
 		if( this.stopped ) return
 		if( reaction.message.id !== this.message.id ) return
 		if( user.id !== this.user.id ) return
@@ -76,14 +86,14 @@ class Paginator {
 				if( ++this.page >= this.pageAmount )
 					this.page -= this.pageAmount
 				
-				this.changePage()
+				this.updatePage()
 				break
 
 			case Paginator.left:
 				if( --this.page < 0 )
 					this.page += this.pageAmount
 
-				this.changePage()
+				this.updatePage()
 				break
 			
 			case Paginator.stop:
@@ -96,7 +106,7 @@ class Paginator {
 		return this.pageChangeHandler( this.page, this.pageAmount )
 	}
 
-	changePage(){
+	updatePage(){
 		if( this.stopped )
 			return
 
@@ -104,7 +114,7 @@ class Paginator {
 			if( !this.timeout )
 				this.timeout = setTimeout( () => {
 					this.timeout = null
-					this.changePage()
+					this.updatePage()
 				}, this.nextChange - Date.now() )
 
 			return

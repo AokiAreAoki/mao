@@ -19,6 +19,11 @@ module.exports = {
 			)
 			
 			const sauces = await sauce.find( url, false )
+				.catch( () => null )
+
+			if( !sauces || sauces.size === 0 )
+				return msg.send( 'Sauce not found :(' )
+
 			const embeds = sauces.map( ( { header, data }, page ) => {
 				const description = [
 					['Similarity', header.similarity],

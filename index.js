@@ -569,59 +569,6 @@ logw( 'Including functions...' )
 	})
 log( 'OK' )
 
-//////////  Command manager  //////////
-const CM = new CommandManager( client, /^(-|(mao|мао)\s+)/i, true )
-CM.setModuleAccessor( ( user, module ) => !module.isHidden || user.isMaster() )
-MM.unshiftHandler( 'commands', true, ( ...args ) => CM.handleMessage( ...args ) )
-
-CM.on( 'cant-access', ( msg, command ) => {
-	console.log( `[CM] User "${msg.author.username}" (${msg.author.id}) tried to access "${command.name}" command` )
-
-	msg.author.nextWeirdReaction ??= Date.now() + 1337
-	
-	if( msg.author.nextWeirdReaction < Date.now() ){
-		msg.author.nextWeirdReaction = Date.now() + 13370
-		msg.send( ':/' )
-	}
-})
-
-// Special prefix if logged in as MaoDev#2638
-client.on( 'ready', () => {
-	if( client.user.id == '598593004088983688' )
-		CM.prefix = /^(--\s*)/i
-})
-
-// Including commands
-logw( 'Including commands...' )
-	readdir( './commands' ).forEach( module_folder => {
-		const moduleIsHidden = module_folder[0] === '_'
-		const module = CM.addModule( module_folder.substr( moduleIsHidden ? 1 : 0 ), moduleIsHidden )
-
-		readdir( './' + join( 'commands', module_folder ) ).forEach( file => {
-			if( file.endsWith( '.js' ) ){
-				const path = './' + join( 'commands', module_folder, file )
-
-				try {
-					include( path, {
-						addCmd: ( aliases, description, callback ) => {
-							if( typeof aliases !== 'string' && aliases instanceof Object ){
-								let options = aliases
-								options.module = module
-								return CM.addCommand( options )
-							}
-
-							return CM.addCommand({ module, aliases, description, callback })
-						},
-					})
-				} catch( err ){
-					log( `\n    Failed to include "${path}" file...` )
-					throw err
-				}
-			}
-		})
-	})
-log( 'OK' )
-
 //////////  Eval  //////////
 let eval_prefix = /^>>+\s*/i
 
@@ -887,6 +834,59 @@ MM.unshiftHandler( 'eval', true, async msg => {
 		return abortHandlersQueue
 	}
 })
+
+//////////  Command manager  //////////
+const CM = new CommandManager( client, /^(-|(mao|мао)\s+)/i, true )
+CM.setModuleAccessor( ( user, module ) => !module.isHidden || user.isMaster() )
+MM.unshiftHandler( 'commands', true, ( ...args ) => CM.handleMessage( ...args ) )
+
+CM.on( 'cant-access', ( msg, command ) => {
+	console.log( `[CM] User "${msg.author.username}" (${msg.author.id}) tried to access "${command.name}" command` )
+
+	msg.author.nextWeirdReaction ??= Date.now() + 1337
+	
+	if( msg.author.nextWeirdReaction < Date.now() ){
+		msg.author.nextWeirdReaction = Date.now() + 13370
+		msg.send( ':/' )
+	}
+})
+
+// Special prefix if logged in as MaoDev#2638
+client.on( 'ready', () => {
+	if( client.user.id == '598593004088983688' )
+		CM.prefix = /^(--\s*)/i
+})
+
+// Including commands
+logw( 'Including commands...' )
+	readdir( './commands' ).forEach( module_folder => {
+		const moduleIsHidden = module_folder[0] === '_'
+		const module = CM.addModule( module_folder.substr( moduleIsHidden ? 1 : 0 ), moduleIsHidden )
+
+		readdir( './' + join( 'commands', module_folder ) ).forEach( file => {
+			if( file.endsWith( '.js' ) ){
+				const path = './' + join( 'commands', module_folder, file )
+
+				try {
+					include( path, {
+						addCmd: ( aliases, description, callback ) => {
+							if( typeof aliases !== 'string' && aliases instanceof Object ){
+								let options = aliases
+								options.module = module
+								return CM.addCommand( options )
+							}
+
+							return CM.addCommand({ module, aliases, description, callback })
+						},
+					})
+				} catch( err ){
+					log( `\n    Failed to include "${path}" file...` )
+					throw err
+				}
+			}
+		})
+	})
+log( 'OK' )
 
 //////////  Finish  //////////
 initializationTime = Math.round( Date.now() - startedAt )

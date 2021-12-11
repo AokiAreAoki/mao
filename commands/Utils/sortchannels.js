@@ -21,10 +21,14 @@ module.exports = {
 		
 				return -1
 			})
+
+			channels.nothichChanged = true
 			
 			for( let i = 0; i < channels.length; ++i )
-				if( channels[i].position !== i )
+				if( channels[i].position !== i ){
 					await channels[i].setPosition(i)
+					channels.nothichChanged = false
+				}
 			
 			return channels.length !== 0 ? channels : null
 		}
@@ -61,9 +65,11 @@ module.exports = {
 				])
 
 				if( channels == null )
-					message.edit( 'Hmm... Seems like this category is empty' )
+					message.edit( `Hmm... Seems like this category is empty` )
 				else if( channels.length === 1 )
-					message.edit( 'Hmm... Seems like this category has only one channel' )
+					message.edit( `Hmm... Seems like this category has only one channel` )
+				else if( channels.nothichChanged )
+					message.edit( `All channels are sorted in the right order` )
 				else
 					message.edit( `Done! ${channels.length} channels have been sorted` )
 			},

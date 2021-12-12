@@ -462,6 +462,9 @@ client.once( 'ready', () => {
 	})
 	
 	process.on( 'unhandledRejection', async reason => {
+		if( reason.message === 'Unknown Message' )
+			return
+
 		log( 'Unhandled rejection:', reason.stack )
 		
 		if( !config['log-channel'] )

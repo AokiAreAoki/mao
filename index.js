@@ -597,6 +597,7 @@ const evalFlagsParser = new EvalFlagsParser([
 	'dev',
 	'whats',
 	'keys',
+	'dontawait',
 ])
 
 MM.unshiftHandler( 'eval', true, async msg => {
@@ -662,7 +663,9 @@ MM.unshiftHandler( 'eval', true, async msg => {
 					.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Role
 			}
 
-			evaled = await eval( code )
+			evaled = evalflags.dontawait
+				? eval( code )
+				: await eval( code )
 
 			if( evalflags.silent )
 				return abortHQ()

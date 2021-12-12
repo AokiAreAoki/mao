@@ -504,6 +504,10 @@ client.once( 'ready', () => {
 	})
 })
 
+client.on( 'messageDelete', msg => {
+	msg.deleted = true
+})
+
 client.once( 'ready2', () => {
 	/// Here the bot is fully initialized ///
 	

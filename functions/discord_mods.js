@@ -95,6 +95,12 @@ module.exports = {
 			return this.original_send( options )
 		}
 
+		// TextChannel.bulkDelete
+		discord.TextChannel.prototype.original_bulkDelete = discord.Message.prototype.bulkDelete
+		discord.TextChannel.prototype.bulkDelete = function( messages ){
+			return this.original_bulkDelete( messages ).catch( () => messages )
+		}
+
 		/// Message ///
 		// Message.reply
 		discord.Message.prototype.original_reply = discord.Message.prototype.reply
@@ -158,19 +164,23 @@ module.exports = {
 		discord.Message.prototype.delete = async function( timeout ){
 			if( this.deleted )
 				return this
-				
+
+			if( this.deletion )
+				return this.deletion
+
 			if( typeof timeout === 'number' ){
-				await new Promise( resolve => setTimeout( () => resolve(), timeout ) )
+				await new Promise( resolve => setTimeout( resolve, timeout ) )
 			
 				if( this.deleted )
 					return this
 			}
-				
-			return await this.original_delete()
-				.then( msg => {
-					msg.deleted = true
-					return msg
-				})
+
+			this.deletion = this.original_delete().catch( () => this )
+			await this.deletion
+			delete this.deletion
+			
+			this.deleted = true
+			return this
 		}
 
 		// Message.toString: url to message instead of its content

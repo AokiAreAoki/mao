@@ -96,7 +96,7 @@ module.exports = {
 		}
 
 		// TextChannel.bulkDelete
-		discord.TextChannel.prototype.original_bulkDelete = discord.Message.prototype.bulkDelete
+		discord.TextChannel.prototype.original_bulkDelete = discord.TextChannel.prototype.bulkDelete
 		discord.TextChannel.prototype.bulkDelete = function( messages ){
 			return this.original_bulkDelete( messages ).catch( () => messages )
 		}

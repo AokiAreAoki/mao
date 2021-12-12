@@ -547,21 +547,21 @@ log( 'OK' )
 //////////  Eval  //////////
 let eval_prefix = /^>>+\s*/i
 
-class EvalTags {
-	constructor( tags ){
-		this.tags = new List( tags )
+class EvalFlagsParser {
+	constructor( flags ){
+		this.flags = new List( flags )
 	}
 
-	parseAndCutFirstTag( code ){
-		let tag = null,
+	parseAndCutFirstFlag( code ){
+		let flag = null,
 			value = null
 
 		code.matchFirst( /^\s*([A-Za-z]+)(?:[\s:])/, matched => {
 			matched = matched.toLowerCase()
 
-			if( this.tags[matched] ){
-				tag = matched
-				code = code.trimLeft().substring( tag.length )
+			if( this.flags[matched] ){
+				flag = matched
+				code = code.trimLeft().substring( flag.length )
 
 				if( code[0] === ':' ){
 					value = code.matchFirst( /^.([\w\*]+)/ ) ?? ''
@@ -570,24 +570,24 @@ class EvalTags {
 			}
 		})
 
-		return [code, tag, value]
+		return [code, flag, value]
 	}
 
 	parseAndCut( code ){
-		let tag, value,
-			tags = {}
+		let flag, value,
+			flags = {}
 
 		do {
-			[code, tag, value] = this.parseAndCutFirstTag( code )
-			if( !tag ) break
-			tags[tag] = { value }
+			[code, flag, value] = this.parseAndCutFirstFlag( code )
+			if( !flag ) break
+			flags[flag] = { value }
 		} while( true )
 
-		return [code, tags]
+		return [code, flags]
 	}
 }
 
-const evalTags = new EvalTags([
+const evalFlagsParser = new EvalFlagsParser([
 	'cb',
 	'tts',
 	'del',
@@ -614,18 +614,18 @@ MM.unshiftHandler( 'eval', true, async msg => {
 		else if( !db.evalall?.[msg.author.id] )
 			return
 
-		let [code, tags] = evalTags.parseAndCut( said )
+		let [code, evalflags] = evalFlagsParser.parseAndCut( said )
 
-		if( tags.dev )
-			tags.iom = { value: 'dev' }
+		if( evalflags.dev )
+			evalflags.iom = { value: 'dev' }
 
-		if( tags.iom && tags.iom.value !== null ){
-			if( tags.iom.value !== db.token && tags.iom.value !== '*' )
+		if( evalflags.iom && evalflags.iom.value !== null ){
+			if( evalflags.iom.value !== db.token && evalflags.iom.value !== '*' )
 				return
 		} else if( __flags.dev )
 			return
 
-		if( tags.del )
+		if( evalflags.del )
 			await msg.delete()
 
 		code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s, it => code = it )
@@ -654,7 +654,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 				return msg.send( ...args )
 			}
 
-			if( !tags.noparse ){
+			if( !evalflags.noparse ){
 				code = code
 					.replace( /<@!?(\d+)>/gi, `( here.guild.members.cache.get('$1') || client.users.cache.get('$1') )` ) // Member || User
 					.replace( /<#(\d+)>/gi, `client.channels.cache.get('$1')` ) // Channel
@@ -664,11 +664,11 @@ MM.unshiftHandler( 'eval', true, async msg => {
 
 			evaled = await eval( code )
 
-			if( tags.silent )
+			if( evalflags.silent )
 				return abortHQ()
 
 			const printEvaled = !!( () => {
-				if( tags.whats ){
+				if( evalflags.whats ){
 					let type = typeof evaled
 
 					if( type === 'object' ){
@@ -682,8 +682,8 @@ MM.unshiftHandler( 'eval', true, async msg => {
 					evaled = type
 					return true
 				}
-				
-				if( tags.keys ){
+
+				if( evalflags.keys ){
 					if( evaled == null ){
 						evaled = `\`${String( evaled )}\` has no keys`
 						return true
@@ -691,13 +691,13 @@ MM.unshiftHandler( 'eval', true, async msg => {
 					
 					evaled = Object.keys( evaled ).join( '` `' )
 					evaled = evaled ? `keys: \`${evaled}\`` : 'no keys'
-					tags.tts = false
+					evalflags.tts = false
 					return true
 				}
 				
-				if( tags.tts ){
+				if( evalflags.tts ){
 					evaled = typeof evaled === 'object'
-						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled, tags.tts.value )}`
+						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled, evalflags.tts.value )}`
 						: evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
 
 					return true
@@ -712,18 +712,18 @@ MM.unshiftHandler( 'eval', true, async msg => {
 					case 'bigint':
 					case 'symbol':
 						evaled = String( evaled )
-						if( !__printerr && !tags.cb && code === evaled )
+						if( !__printerr && !evalflags.cb && code === evaled )
 							return
 						break
 
 					case 'number':
-						if( !__printerr && !tags.cb && /^\+?([a-z_]\w+|(\d+)?(\.\d+)?)$/i.test( code ) )
+						if( !__printerr && !evalflags.cb && /^\+?([a-z_]\w+|(\d+)?(\.\d+)?)$/i.test( code ) )
 							return
 						evaled = numsplit( evaled )
 						break
 
 					case 'string':
-						if( !__printerr && !tags.cb && code[0] === code[code.length - 1] && '"\'`'.search( code[0] ) + 1 )
+						if( !__printerr && !evalflags.cb && code[0] === code[code.length - 1] && '"\'`'.search( code[0] ) + 1 )
 							if( code.substring( 1, code.length - 1 ) === evaled )
 								return
 						break
@@ -763,7 +763,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 						}
 						
 						evaled = funcbody
-						tags.cb = { value: 'js' }
+						evalflags.cb = { value: 'js' }
 						break
 						
 					default:
@@ -776,8 +776,8 @@ MM.unshiftHandler( 'eval', true, async msg => {
 
 			if( typeof evaled !== 'string' )
 				return
-			else if( !tags.cb && evaled.indexOf( '\n' ) !== -1 )
-				tags.cb = true
+			else if( !evalflags.cb && evaled.indexOf( '\n' ) !== -1 )
+				evalflags.cb = true
 
 			if( __output ){
 				if( printEvaled )
@@ -786,10 +786,10 @@ MM.unshiftHandler( 'eval', true, async msg => {
 				msg.sendcb( __output )
 				msg.isCommand = true
 			} else if( printEvaled ){
-				if( !tags.cb && !msg.member.permissions.has( discord.Permissions.FLAGS.EMBED_LINKS ) )
+				if( !evalflags.cb && !msg.member.permissions.has( discord.Permissions.FLAGS.EMBED_LINKS ) )
 					evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
 
-				await msg.send( tags.cb ? cb( evaled, tags.cb.value ) : evaled )
+				await msg.send( evalflags.cb ? cb( evaled, evalflags.cb.value ) : evaled )
 				msg.isCommand = true
 				return abortHQ()
 			}

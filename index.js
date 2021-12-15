@@ -369,25 +369,22 @@ bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" de
 
 //////////  Creating client  //////////
 const client = new discord.Client({
-	//messageCacheLifetime: 1200,
-	//messageSweepInterval: 72,
-	
-	/*makeCache: require( 'discord.js/src/util/Options.js' ).cacheWithLimits({
+	makeCache: discord.Options.cacheWithLimits({
 		MessageManager: {
 			sweepInterval: 300,
-			sweepFilter: LimitedCollection.filterByLifetime({
-				lifetime: 1800,
+			sweepFilter: discord.LimitedCollection.filterByLifetime({
+				lifetime: 3600,
 				getComparisonTimestamp: e => e.editedTimestamp ?? e.createdTimestamp,
 			}),
 		},
 		ThreadManager: {
 			sweepInterval: 3600,
-			sweepFilter: LimitedCollection.filterByLifetime({
+			sweepFilter: discord.LimitedCollection.filterByLifetime({
 				getComparisonTimestamp: e => e.archiveTimestamp,
 				excludeFromSweep: e => !e.archived,
 			}),
 		},
-	}),*/
+	}),
 
 	intents: [
 		'GUILDS',

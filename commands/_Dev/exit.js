@@ -22,7 +22,7 @@ module.exports = {
 					}).catch( () => {} )
 					
 					channel.messages.fetch( db.restart.message )
-						.then( m => m.delete( 1337 ) )
+						.then( m => m.purge( 1337 ) )
 						.catch( () => {} )
 				}
 			}

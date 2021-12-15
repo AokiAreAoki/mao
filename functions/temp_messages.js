@@ -4,7 +4,7 @@ module.exports = {
 		requirements.define( global )
 		
 		const max_tms = 5
-		const max_lifetime = 86400
+		const max_lifetime = 86400 * 3
 		const time_units = ['day', 'hour', 'minute', 'second']
 		const ss = num => num === 1 ? '' : 's'
 		

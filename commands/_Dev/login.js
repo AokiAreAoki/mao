@@ -8,9 +8,9 @@ module.exports = {
 			description: 'changes account',
 			callback: async msg => {
 				let accounts = '```Choose account:\n'
-				let tokens = _tkns.discord
+				let tokens = []
 				
-				for( let k in tokens ){
+				for( const k in _tkns.discord ){
 					tokens.push(k)
 					accounts += `[${tokens.length}] ${k}\n`
 				}
@@ -27,8 +27,10 @@ module.exports = {
 
 						if( number <= tokens.length ){
 							waiter.stop()
-							await m.delete()
-							await msg.delete()
+							await Promise.all([
+								message.delete(),
+								msg.delete(),
+							])
 
 							const token = tokens[number - 1]
 							await client.destroy()

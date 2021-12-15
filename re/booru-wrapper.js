@@ -1,57 +1,57 @@
 module.exports = axios_module => {
 	const axios = axios_module
-
-	const all_options = {
-		name: 'unknown booru', // Just a name of a booru
-		url: '', // API URL
-		limit: 100, // limit of posts per request
-		page_offset: 1, // page offset
-		qs: [ // query params
+	
+	class Booru {
+		name = 'unknown booru' // Just a name of a booru
+		url = '' // API URL
+		limit = 100 // limit of posts per request
+		page_offset = 1 // page offset
+		qs = [ // query params
 			'tags',
 			'page',
 			'limit',
 			// * if some params are not specified default param name will be used
-		],
-		const_qs: {}, // constant query params
-		keys: {}, // Response keys
-		remove_other_keys: false,
-	}
-	
-	class Booru {
-		constructor( options ){
-			for( let key in all_options ){
-				let defaultValue = all_options[key]
+		]
+		const_qs = {} // constant query params
+		keys = {} // Response keys
+		remove_other_keys = false
 
-				if( defaultValue instanceof Array && options[key] instanceof Object ){
-					this[key] = {}
+		constructor( options ){
+			for( const prop in this ){
+				const defaultValue = this[prop]
+
+				if( defaultValue instanceof Array && options[prop] instanceof Object ){
+					this[prop] = {}
 					
-					defaultValue.forEach( defaultKey => {
-						if( typeof options[key][defaultKey] === 'undefined' )
-							return this[key][defaultKey] = defaultKey
+					for( const subprop of defaultValue ){
+						if( typeof options[prop][subprop] === 'undefined' ){
+							this[prop][subprop] = subprop
+							continue
+						}
 							
-						if( typeof options[key][defaultKey] === 'string' ){
-							this[key][defaultKey] = options[key][defaultKey].trim()
-							if( !this[key][defaultKey] ) this[key][defaultKey] = defaultKey
-							return
+						if( typeof options[prop][subprop] === 'string' ){
+							this[prop][subprop] = options[prop][subprop].trim()
+							if( !this[prop][subprop] ) this[prop][subprop] = subprop
+							continue
 						}
 
-						this[key][defaultKey] = options[key][defaultKey]
-					})
+						this[prop][subprop] = options[prop][subprop]
+					}
 					
 					continue
 				}
 
-				switch( typeof options[key] ){
+				switch( typeof options[prop] ){
 					case 'string':
-						if( this[key] = options[key].trim() )
+						if( this[prop] = options[prop].trim() )
 							break
 					
 					case 'undefined':
-						this[key] = defaultValue
+						this[prop] = defaultValue
 						break
 
 					default:
-						this[key] = options[key]
+						this[prop] = options[prop]
 						break
 				}
 			}

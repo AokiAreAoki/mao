@@ -20,15 +20,11 @@ module.exports = {
 				
 				let channel = client.channels.cache.get( data.channel )
 				if( !channel ) conti
-					
+				
 				channel.messages.fetch( messageid )
-					.then( async m => {
-						await m.delete()
-						delete db.temp_messages[messageid]
-					})
-					.catch( err => {
-						delete db.temp_messages[messageid]
-					})
+					.then( m => m.delete() )
+					.catch( () => {} )
+					.then( () => delete db.temp_messages[messageid] )
 			}
 		}, 5e3 )
 		
@@ -39,12 +35,12 @@ module.exports = {
 			if( /[\s\n]\/temp$/i.test( msg.content ) ){
 				let tms = 0
 				
-				for( let k in db.temp_messages )
+				for( const k in db.temp_messages )
 					if( db.temp_messages[k].userid == msg.author.id )
 						if( ++tms >= max_tms )
 							return msg.send( "You've reached the limit of temporary messages" )
 				
-				let message = await msg.send( Embed()
+				const message = await msg.send( Embed()
 					.setAuthor( '@' + msg.author.tag, msg.author.avatarURL() )
 					.setDescription( 'Provide the time your message will be deleted in' )
 					.setFooter( 'Timeout: 60s' )

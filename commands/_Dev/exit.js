@@ -16,7 +16,7 @@ module.exports = {
 						.addField( "🛠️ Overall", `\`${numsplit( timeleft )}ms\``, true )
 						.setTimestamp( Date.now() )
 					).then( async m => {
-						await m.delete( 8000 )
+						m.purge( 5e3 )
 						delete db.restart
 						bakadb.save()
 					}).catch( () => {} )

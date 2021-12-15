@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'discord cb tts',
+	requirements: 'discord cb tts clamp',
 	evaluations: {
 		Jimp: 'Jimp ?? null'
 	},
@@ -101,6 +101,26 @@ module.exports = {
 			return this.original_bulkDelete( messages ).catch( () => messages )
 		}
 
+		// TextChannel.purge
+		discord.TextChannel.prototype.purge = async function( messages, delay ){
+			if( messages == null )
+				return
+
+			delay = typeof delay === 'number'
+				? clamp( delay, 0, 300e3 )
+				: 0
+
+			if( messages instanceof discord.Collection )
+				messages.each( m => m.makeUnpurgable?.( delay ) )
+			else
+				messages.forEach?.( m => m.makeUnpurgable?.( delay ) )
+			
+			if( delay )
+				await new Promise( resolve => setTimeout( resolve, delay ) )
+
+			return this.bulkDelete( messages )			
+		}
+
 		/// Message ///
 		// Message.reply
 		discord.Message.prototype.original_reply = discord.Message.prototype.reply
@@ -169,10 +189,9 @@ module.exports = {
 				return this.deletion
 
 			if( typeof timeout === 'number' ){
+				timeout = clamp( timeout, 0, 300e3 )
 				await new Promise( resolve => setTimeout( resolve, timeout ) )
-			
-				if( this.deleted )
-					return this
+				return await this.delete()
 			}
 
 			this.deletion = this.original_delete().catch( () => this )
@@ -183,6 +202,21 @@ module.exports = {
 			return this
 		}
 
+		// Message.makeUnpurgable
+		discord.Message.prototype.makeUnpurgable = function( delay ){
+			this.unpurgable = Date.now() + 1337 + ( delay || 0 )
+		}
+
+		// Message.purge
+		discord.Message.prototype.purge = async function( delay ){
+			delay = typeof delay === 'number'
+				? clamp( delay, 0, 300e3 )
+				: 0
+
+			this.makeUnpurgable( delay )
+			return this.delete( delay )
+		}
+
 		// Message.toString: url to message instead of its content
 		discord.Message.prototype.toString = function(){
 			return this.url
@@ -190,7 +224,24 @@ module.exports = {
 
 		// GuildMemberManager.find: finds single member
 		discord.GuildMemberManager.prototype.find = async function( name ){
-			return ( await this.fetch({ query: name }) ).first()
+			if( typeof name === 'number' )
+				name = String( name )
+			else if( typeof name !== 'string' )
+				return null
+
+			const id = name.matchFirst( /\d+/ )
+			
+			if( id ){
+				const memberFetchedByID = await this.fetch( id )
+					.catch( () => null )
+
+				if( memberFetchedByID )
+					return memberFetchedByID
+			}
+
+			return this.fetch({ query: name })
+				.then( members => members.first() )
+				.catch( () => null )
 		}
 
 		// advanced setActivity

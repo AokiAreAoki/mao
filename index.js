@@ -97,7 +97,7 @@ const clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
 // Getting config
 function updateConfig(){
 	config = JSON.parse( read( './config.json' )
-		.replace( /\/\/.+?\n/g, '' )	// removes comments 'cuz JSON is retarded
+		.replace( /[^:]\/\/.+$/gm, '' )	// removes comments 'cuz JSON is retarded
 		.replace( /,[\n\s]+}/g, '}' )	// removes trailing commas 'cuz JSON is retarded
 	)
 }
@@ -141,23 +141,7 @@ Booru.BooruResponse.prototype.embed = function( pics ){
 }
 
 const Gelbooru = new Booru({
-	name: 'gelbooru.com',
-	url: 'https://gelbooru.com/index.php',
-	//url: 'https://aoki.000webhostapp.com/glbr/',
-	page_offset: 0,
-	qs: {
-		// tags keyword is "tags" by default
-		page: 'pid',
-		// limit keyword is "limit" by default
-	},
-	const_qs: {
-		page: 'dapi',
-		s: 'post',
-		q: 'index',
-		json: '1',
-		//_token: _tkns.booru_proxy,
-	},
-	limit: 250,
+	...config.boorus.gelbooru,
 	keys: {
 		id: ( post, pic, tags ) => {
 			tags = tags.replace( /\s+/g, '+' )
@@ -182,19 +166,7 @@ const Gelbooru = new Booru({
 })
 
 const Yandere = new Booru({
-	name: 'yande.re',
-	url: 'https://yande.re/post.json',
-	//url: 'https://aoki.000webhostapp.com/yndr/',
-	//page_offset: is 1 by default
-	qs: {
-		// tags keyword is "tags" by default
-		// page keyword is "page" by default
-		// limit keyword is "limit" by default
-	},
-	const_qs: {
-		//_token: _tkns.booru_proxy,
-	},
-	limit: 100,
+	...config.boorus.yandere,
 	keys: {
 		id: ( post, pic ) => {
 			pic.id = post.id
@@ -207,6 +179,10 @@ const Yandere = new Booru({
 	},
 	remove_other_keys: false,
 })
+
+// Boorus' proxy access token
+//Gelbooru.const_qs._token = _tkns.booru_proxy
+//Yandere.const_qs._token = _tkns.booru_proxy
 
 // SauceNAO wrapper
 const sauce = new SauceNAO( axios, {

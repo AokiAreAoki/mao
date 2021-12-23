@@ -189,7 +189,7 @@ const sauce = new SauceNAO( axios, {
 	output_type: 2,
 	api_key: _tkns.saucenao,
 	db: 999,
-	numres: 5,
+	numres: 10,
 	dedupe: 0,
 	// hide: 0,
 	// testmode: 1,

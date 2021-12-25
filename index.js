@@ -115,7 +115,7 @@ const _tkns = JSON.parse( read( './tokens.json' )
 )
 
 // Booru wrappers
-Booru.BooruResponse.prototype.embed = function( pics ){
+Booru.BooruResponse.prototype.embed = function( pics, mapFunction = null ){
 	if( typeof pics === 'number' )
 		pics = this.pics[pics]
 	
@@ -123,8 +123,7 @@ Booru.BooruResponse.prototype.embed = function( pics ){
 		pics = [pics]
 	
 	const videos = []
-	
-	pics = pics.map( pic => {
+	const embeds = pics.map( pic => {
 		if( pic.unsupportedExtention )
 			videos.push( pic.full )
 		
@@ -134,9 +133,12 @@ Booru.BooruResponse.prototype.embed = function( pics ){
 			.setFooter( 'Powered by ' + ( this.booru.name ?? 'unknown website' ) )
 	})
 
+	if( mapFunction instanceof Function )
+		embeds.forEach( mapFunction )
+
 	return {
 		content: videos.join( '\n' ) || null,
-		embeds: pics,
+		embeds,
 	}
 }
 

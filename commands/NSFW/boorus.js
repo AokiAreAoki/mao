@@ -141,7 +141,9 @@ module.exports = {
 		
 			this.booru.q( tags )
 				.then( async result => {
-					if( result.pics.length === 0 ){
+					const pics = result.pics
+
+					if( pics.length === 0 ){
 						botMsg.edit({
 							content: null,
 							embeds: [Embed()
@@ -156,8 +158,17 @@ module.exports = {
 					let amount = parseInt( args.flags.x )
 					amount = isNaN( amount ) ? 1 : clamp( amount, 0, maxPicsPerCommand )
 
-					const newPics = await getNewPics( result, amount, userMsg )
-					botMsg.edit( result.embed( newPics ) )
+					if( args.flags.pager ){
+						userMsg.author.createPaginator()
+							.setPages( pics.length )
+							.onPageChanged( ( page, pages ) => result.embed( pics[page], embed => {
+								embed.setFooter( `(${page + 1}/${pages}) ` + ( embed.footer?.text || '' ) )
+							}))
+							.setMessage( botMsg )
+					} else {
+						const newPics = await getNewPics( result, amount, userMsg )
+						botMsg.edit( result.embed( newPics ) )
+					}
 
 					cd( userMsg.member, amount )
 					delete userMsg.member.antispam
@@ -175,6 +186,7 @@ module.exports = {
 					['force', `force post ignoring the only NSFW channel restiction (master only)`],
 					['safe', 'alias for `rating:safe` tag'],
 					['x', `<amount>`, `$1 of pics to post (max: ${maxPicsPerCommand})`],
+					['pager', 'pagination'],
 				],
 				description: {
 					short: 'hot girls',

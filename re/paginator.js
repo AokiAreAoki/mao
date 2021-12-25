@@ -3,9 +3,12 @@ class Paginator {
 	/// Static ///
 	static discord
 	static client
-	static left = '⬅️'
-	static right = '➡️'
-	static stop = '⏹️'
+	static emojis = {
+		left: '⬅️',
+		right: '➡️',
+		lock: '🔒',
+		stop: '⏹️',
+	}
 
 	static init( discord, client ){
 		Paginator.discord = discord
@@ -16,11 +19,11 @@ class Paginator {
 		}
 
 		client.on( 'messageReactionAdd', ( reaction, user ) => {
-			reaction.message.paginator?._react( reaction, user )
+			reaction.message.paginator?._react( reaction, user, true )
 		})
 
 		client.on( 'messageReactionRemove', ( reaction, user ) => {
-			reaction.message.paginator?._react( reaction, user )
+			reaction.message.paginator?._react( reaction, user, false )
 		})
 	}
 
@@ -30,6 +33,7 @@ class Paginator {
 	timeout = null
 	nextChange = 0
 	stopped = false
+	authorOnly = false
 
 	constructor( user ){
 		this.user = user
@@ -68,36 +72,42 @@ class Paginator {
 		if( doUpdatePage )
 			this.updatePage()
 
-		message.react( Paginator.left )
-		message.react( Paginator.right )
-		message.react( Paginator.stop )
+		for( const k in Paginator.emojis )
+			message.react( Paginator.emojis[k] )
 
 		return this
 	}
 
 	// Runtime methods
-	_react( reaction, user ){
+	_react( reaction, user, addOrRemove ){
 		if( this.stopped ) return
 		if( reaction.message.id !== this.message.id ) return
-		if( user.id !== this.user.id ) return
+		if( user.bot || user.id === Paginator.client.user.id ) return
+		if( this.authorOnly && user.id !== this.user.id ) return
 
 		switch( reaction.emoji.toString() ){
-			case Paginator.right:
+			case Paginator.emojis.right:
 				if( ++this.page >= this.pageAmount )
 					this.page -= this.pageAmount
 				
 				this.updatePage()
 				break
 
-			case Paginator.left:
+			case Paginator.emojis.left:
 				if( --this.page < 0 )
 					this.page += this.pageAmount
 
 				this.updatePage()
 				break
+
+			case Paginator.emojis.lock:
+				if( user.id === this.user.id )
+					this.authorOnly = addOrRemove
+				break
 			
-			case Paginator.stop:
-				this.stop()
+			case Paginator.emojis.stop:
+				if( user.id === this.user.id )
+					this.stop()
 				break
 		}
 	}

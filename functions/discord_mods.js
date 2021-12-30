@@ -217,6 +217,19 @@ module.exports = {
 			return this.delete( delay )
 		}
 
+		// Message.getReferencedMessage
+		discord.Message.prototype.getReferencedMessage = async function(){
+			const r = this.reference
+		  
+			if( !r )
+			 	return null
+		  
+			return this.reference.message ??= await client.guilds.fetch( r.guildId )
+				.then( g => g.channels.fetch( r.channelId ) )
+				.then( c => c.messages.fetch( r.messageId ) )
+				.catch( () => null )
+		}
+
 		// Message.toString: url to message instead of its content
 		discord.Message.prototype.toString = function(){
 			return this.url

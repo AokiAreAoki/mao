@@ -1,10 +1,10 @@
 module.exports = {
-	requirements: 'client Embed bakadb db MM',
+	requirements: 'client Embed bakadb db MM TimeSplitter',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
 		const max_tms = 5
-		const max_lifetime = 86400 * 3
+		const max_lifetime = 3 * 86400e3
 		const time_units = ['day', 'hour', 'minute', 'second']
 		const ss = num => num === 1 ? '' : 's'
 		
@@ -28,70 +28,48 @@ module.exports = {
 			}
 		}, 5e3 )
 		
-		MM.pushHandler( 'temp_messages', false, async msg => {
+		MM.pushHandler( 'temp_messages', false, msg => {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
+
+			const match = msg.content.match( /[\s\n]\/temp\s*((\d+)d)?\s*((\d+)h)?\s*((\d+)m)?\s*((\d+)s)?$/i )
+
+			if( !match )
+				return
 			
-			if( /[\s\n]\/temp$/i.test( msg.content ) ){
-				let tms = 0
-				
-				for( const k in db.temp_messages )
-					if( db.temp_messages[k].userid == msg.author.id )
-						if( ++tms >= max_tms )
-							return msg.send( "You've reached the limit of temporary messages" )
-				
-				const message = await msg.send( Embed()
-					.setAuthor( '@' + msg.author.tag, msg.author.avatarURL() )
-					.setDescription( 'Provide the time your message will be deleted in' )
-					.setFooter( 'Timeout: 60s' )
-				)
-				
-				msg.awaitResponse({
-					timeout: 60,
-					displayMessage: message,
-				})
-					.then( ( msg2, waiter ) => {
-						let match = msg2.content.match( /((\d+)d)?\s*((\d+)h)?\s*((\d+)m)?\s*((\d+)s)?/i )
-						if( match == null ) return
-						
-						let d = match[2] ? Number( match[2] ) : 0
-						let h = match[4] ? Number( match[4] ) : 0
-						let m = match[6] ? Number( match[6] ) : 0
-						let s = match[8] ? Number( match[8] ) : 0
-					
-						let lifetime = d * 86400 + h * 3600 + m * 60 + s
-						if( lifetime === 0 ) return
-						
-						lifetime = Math.min( lifetime, max_lifetime )
-						
-						db.temp_messages[msg.id] = {
-							userid: msg.author.id,
-							channel: msg.channel.id,
-							timestamp: Date.now() + lifetime * 1000,
-						}
-						bakadb.save()
-						
-						let timeleft = []
-						d = Math.floor( lifetime / 86400 )
-						h = Math.floor( lifetime / 3600 % 24 )
-						m = Math.floor( lifetime / 60 % 60 )
-						s = lifetime % 60;
-						
-						[d,h,m,s].forEach( ( v, i ) => {
-							if( v > 0 ) timeleft.push( v + ' ' + time_units[i] + ss(v) )
-						})
-						
-						message.edit( Embed()
-							.setAuthor( '@' + msg.author.tag, msg.author.avatarURL() )
-							.setDescription( 'Your message will be deleted in ' + timeleft.join( ' ' ) )
-						).then( m => {
-							m.delete( 4e3 )
-							msg2.delete( 4e3 )
-						})
-						
-						waiter.stop()
-					})
+			let tms = 0
+			for( const k in db.temp_messages )
+				if( db.temp_messages[k].userid == msg.author.id )
+					if( ++tms >= max_tms )
+						return msg.send( "You've reached the limit of temporary messages" )
+
+			const lifetime = new TimeSplitter({
+				days: match[2] ? parseInt( match[2] ) : 0,
+				hours: match[4] ? parseInt( match[4] ) : 0,
+				minutes: match[6] ? parseInt( match[6] ) : 0,
+				seconds: match[8] ? parseInt( match[8] ) : 0,
+			})
+
+			if( lifetime.timestamp === 0 )
+				return
+			else if( lifetime.timestamp > max_lifetime )
+				lifetime.fromMS( max_lifetime )
+			
+			db.temp_messages[msg.id] = {
+				userid: msg.author.id,
+				channel: msg.channel.id,
+				timestamp: Date.now() + lifetime.timestamp,
 			}
+			bakadb.save()
+			
+			msg.send( Embed()
+				.setAuthor( '@' + msg.author.tag, msg.author.avatarURL() )
+				.setDescription( 'Your message will be deleted in ' + lifetime.toString({
+					separator: ', ',
+					and: true,
+					ignoreZeros: true,
+				}))
+			).then( m => m.delete( 4e3 ) )
 		})
 	}
 }

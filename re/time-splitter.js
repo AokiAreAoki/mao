@@ -69,6 +69,7 @@ class TimeSplitter {
 		ascOrder = false,
 		formatter = ( value, unit ) => `${value} ${unit}`,
 		maxTU = -1,
+		and = null,
 	} = {} ){
 		const units = []
 		let tu = Object.keys( TimeSplitter.tu )
@@ -81,10 +82,18 @@ class TimeSplitter {
 				units.push( formatter( this[u], this[u] === 1 ? singularForm[u] : u ) )
 
 			if( maxTU > 0 && units.length !== 0 && --maxTU === 0 )
-                                break
+				break
 		}
 
-		return units.join( separator || '\n' )
+		if( and === true )
+			and = ' and '
+		
+		if( typeof and === 'string' && units.length > 1 )
+			and += units.pop()
+		else
+			and = ''
+
+		return units.join( separator || '\n' ) + and
 	}
 }
 

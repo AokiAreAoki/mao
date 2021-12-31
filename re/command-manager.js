@@ -247,11 +247,13 @@ class Command {
 	}
 
 	addSubcommand( options ){
-		options.module = this.module
-		options.parent = this
-		options.cm = this.cm
-		
-		const command = new Command( options )
+		const command = new Command({
+			...options,
+			module: this.module,
+			parent: this.parent,
+			cm: this.cm,
+		})
+
 		this.subcommands.push( command )
 		return command
 	}
@@ -296,6 +298,7 @@ class ArgumentParser extends Array {
 	flags = null
 
 	static new( string_args, command = null ){
+	static new( string_args, command = null, command_name = [] ){
 		const ap = new ArgumentParser()
 		ap.parse( string_args, command )
 		return ap
@@ -323,6 +326,11 @@ class ArgumentParser extends Array {
 				}
 			}
 
+			command.flags.forEach( ( _, flag ) => {
+				if( !this.flags[flag] )
+					this.flags[flag] = []
+			})
+
 			this.parseArgs()
 		}
 	}
@@ -340,7 +348,7 @@ class ArgumentParser extends Array {
 
 		const pos = this.pos[0]
 		this.pos = this.pos.map( p => p - pos )
-		this.string = this.string.substr( pos )
+		this.string = this.string.substring( pos )
 
 		return arg
 	}

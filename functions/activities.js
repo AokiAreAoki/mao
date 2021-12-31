@@ -1,38 +1,56 @@
+
+const activityTypes = {
+	PLAYING: true,
+	LISTENING: true,
+	WATCHING: true,
+	COMPETING: true,
+	STREAMING: true,
+	CUSTOM_STATUS: false, // for users only
+}
+
+function Activity( options ){
+	if( typeof options === 'string' )
+		return {
+			invoke: () => options,
+			type: 'PLAYING',
+		}
+
+	const activity = {
+		type: options.type || 'PLAYING',
+	}
+
+	if( !activityTypes[activity.type] )
+		throw Error( `Unknown activity type: "${type}"` )
+
+	if( options.name )
+		activity.name = options.name
+
+	if( options.deadline )
+		activity.deadline = options.deadline
+
+	if( options.callback instanceof Function ){
+		activity.static = false
+		activity.invoke = options.callback
+		return activity
+	}
+
+	if( typeof options.callback === 'number' )
+		options.callback = String( options.callback )
+	
+	if( typeof options.callback === 'string' ){
+		activity.static = true
+		activity.invoke = () => options.callback
+		return activity
+	}
+	
+	throw new Error( `Wrong type of second argument (expected function or string, got ${typeof options.callback}` )
+}
+
 module.exports = {
 	requirements: 'client timer db',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
-		const activityTypes = {
-			PLAYING: true,
-			LISTENING: true,
-			WATCHING: true,
-			COMPETING: true,
-			STREAMING: true,
-			CUSTOM_STATUS: false, // for users only
-		}
-		
-		function Activity( type, callbackOrString ){
-			if( !callbackOrString )
-				[type, callbackOrString] = ['PLAYING', type]
-			else
-				type = type.toUpperCase()
-
-			if( !activityTypes[type] )
-				throw new Error( `Unknown activity type: "${type}"` )
-
-			let activity = { type }
-
-			if( typeof callbackOrString === 'function' )
-				activity.invoke = callbackOrString
-			else if( typeof callbackOrString === 'string' )
-				activity.invoke = () => callbackOrString
-			else
-				throw new Error( `Wrong typeof second argument (expected function or string, got ${typeof callbackOrString}` )
-
-			return activity
-		}
-		
 		class ActivityManager {
 			static id = -1
 			static next = 0
@@ -58,6 +76,9 @@ module.exports = {
 			}
 
 			static init( client ){
+				db.customActivities ??= []
+				db.customActivities.sort( ( a, b ) => a.deadline - b.deadline )
+
 				client.on( 'ready', () => ActivityManager.reset() )
 				this.reset()
 			}
@@ -86,21 +107,31 @@ module.exports = {
 			}
 
 			static pushActivity( type, callback ){
-				this.activities.push( Activity( type, callback ) )
+				this.activities.push( Activity({ type, callback }) )
 			}
 
-			static pushCustomActivity( deadline, type, callback ){
-				db.customActivities = db.customActivities ?? []
-				let activity = Activity( type, callback )
-				activity.deadline = Number( deadline )
+			// add custom activity
+			static addCA( name, deadline, type, callback ){
+				db.customActivities ??= []
+
+				const activity = Activity({ name, deadline, type, callback })
 				db.customActivities.push( activity )
+				db.customActivities.sort( ( a, b ) => a.deadline - b.deadline )
 			}
 
-			static setCurrentCustomActivity( deadline, type, callback ){
-				db.customActivities = db.customActivities ?? []
-				let activity = Activity( type, callback )
-				activity.deadline = Number( deadline )
-				db.customActivities[0] = activity
+			// edit custom activity
+			static editCA( name, deadline, type, callback ){
+				db.customActivities ??= []
+
+				const index = db.customActivities.findIndex( a => a.name === name )
+
+				if( index === -1 )
+					return false
+
+				const activity = Activity({ name, deadline, type, callback })
+				db.customActivities[index] = activity
+				db.customActivities.sort( ( a, b ) => a.deadline - b.deadline )
+				return true
 			}
 		}
 		

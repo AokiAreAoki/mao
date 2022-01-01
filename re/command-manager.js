@@ -297,7 +297,6 @@ class ArgumentParser extends Array {
 	pos = []
 	flags = null
 
-	static new( string_args, command = null ){
 	static new( string_args, command = null, command_name = [] ){
 		const ap = new ArgumentParser()
 		ap.parse( string_args, command )

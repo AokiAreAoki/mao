@@ -16,7 +16,7 @@ function Activity( options ){
 		}
 
 	const activity = {
-		type: options.type || 'PLAYING',
+		type: options.type ? options.type.toUpperCase() : 'PLAYING',
 	}
 
 	if( !activityTypes[activity.type] )

@@ -24,8 +24,9 @@ module.exports = {
 							return Embed()
 								.addField( `Activity`, [
 									ca.name ? `Unique name: ${ca.name}` : `No unique name specified`,
-									`Deadline: <t:${t}:d> <t:${t}:t> (<t:${t}:R>)`,
+									`Type: ${ca.type}`,
 									`Static: ${!!ca.static}`,
+									`Deadline: <t:${t}:d> <t:${t}:t> (<t:${t}:R>)`,
 								].join( '\n' ) )
 								.addField( ca.static ? 'Static value' : 'Callback', cb( ca.static ? ca.string : ca.callback ) )
 								.setFooter( `${i + 1 + page * CAPP}/${db.customActivities.length}` )

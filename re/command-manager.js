@@ -322,6 +322,7 @@ class ArgumentParser extends Array {
 				if( flag ){
 					this.flags[flag.name] = this.spliceArgs( i, flag.args.length + 1 )
 					this.flags[flag.name].shift()
+					this.flags[flag.name].specified = true
 				}
 			}
 

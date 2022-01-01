@@ -18,7 +18,7 @@ module.exports = {
 			],
 			callback: ( msg, args ) => {
 				if( args[0] ){
-					if( !msg.channel.nsfw && ( !args.flags.force || !msg.author.isMaster() ) )
+					if( !msg.channel.nsfw && ( !args.flags.force.specified || !msg.author.isMaster() ) )
 						return msg.channel.send( "This isn't an NSFW channel!" )
 					
 					httpGet( "https://nekos.life/api/v2/img/" + args[0].toLowerCase(), body => {

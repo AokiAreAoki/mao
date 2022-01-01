@@ -13,7 +13,7 @@ module.exports = {
 				if( !db.customActivities || db.customActivities.length === 0 )
 					return msg.send( `There's no custom activities` )
 
-				const CAPP = args.flags.capp[0] || 3 // CAs per page
+				const CAPP = ( args.flags.capp.specified && args.flags.capp[0] ) || 5 // CAs per page
 				const pages = Math.ceil( db.customActivities.length / CAPP )
 
 				const pageHandler = ( page = 0 ) => ({

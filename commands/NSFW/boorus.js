@@ -126,10 +126,10 @@ module.exports = {
 			if( tags.some( t => t === maotag ) )
 				return userMsg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
 			
-			const force = args.flags.force && userMsg.author.isMaster()
+			const force = args.flags.force.specified && userMsg.author.isMaster()
 			let sfw = tags.find( v => v === safetag )
 			
-			if( !sfw && args.flags.safe ){
+			if( !sfw && args.flags.safe.specified ){
 				tags.push( safetag )
 				sfw = true
 			}
@@ -155,10 +155,10 @@ module.exports = {
 						return
 					}
 
-					let amount = parseInt( args.flags.x )
+					let amount = parseInt( args.flags.x[0] )
 					amount = isNaN( amount ) ? 1 : clamp( amount, 0, maxPicsPerCommand )
 
-					if( args.flags.pager ){
+					if( args.flags.pager.specified ){
 						userMsg.author.createPaginator()
 							.setPages( pics.length )
 							.onPageChanged( ( page, pages ) => result.embed( pics[page], embed => {

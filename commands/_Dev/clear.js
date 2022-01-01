@@ -29,14 +29,14 @@ module.exports = {
 				const fetchOptions = { limit: 100 }
 				const { after, before } = args.flags
 
-				if( after && isIDLike( after[0] ) ){
-					if( before && isIDLike( before[0] ) )
+				if( after.specified && isIDLike( after[0] ) ){
+					if( before.specified && isIDLike( before[0] ) )
 						return msg.send( "You can't use the \`after\` and the \`before\` flags together" )
 					
-					fetchOptions.after = after
+					fetchOptions.after = after[0]
 				} else {
-					fetchOptions.before = before && isIDLike( before[0] )
-						? before
+					fetchOptions.before = before.specified && isIDLike( before[0] )
+						? before[0]
 						: msg.id
 				}
 				

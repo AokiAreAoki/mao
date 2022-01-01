@@ -18,7 +18,7 @@ module.exports = {
 			callback: async ( msg, args ) => {
 				let url = 'https://lmgtfy.com/?q=',
 					q = args.get_string(),
-					iie = args.flags.iie ? '&iie=1' : '',
+					iie = args.flags.iie.specified ? '&iie=1' : '',
 					whatis = args[-1].toLowerCase().startsWith( 'what' ) ? 'What is ' : '',
 					timeout = 1337 + Math.random() * 3e3
 

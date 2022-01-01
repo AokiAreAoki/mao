@@ -27,7 +27,7 @@ module.exports = {
 									`Deadline: <t:${t}:d> <t:${t}:t> (<t:${t}:R>)`,
 									`Static: ${!!ca.static}`,
 								].join( '\n' ) )
-								.addField( ca.static ? 'Static value' : 'Callback', cb( ca.static ? ca.invoke() : ca.invoke ) )
+								.addField( ca.static ? 'Static value' : 'Callback', cb( ca.static ? ca.string : ca.callback ) )
 								.setFooter( `${i + 1 + page * CAPP}/${db.customActivities.length}` )
 						})
 				})

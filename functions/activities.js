@@ -11,7 +11,8 @@ const activityTypes = {
 function Activity( options ){
 	if( typeof options === 'string' )
 		return {
-			invoke: () => options,
+			static: true,
+			string: options,
 			type: 'PLAYING',
 		}
 
@@ -30,7 +31,7 @@ function Activity( options ){
 
 	if( options.callback instanceof Function ){
 		activity.static = false
-		activity.invoke = options.callback
+		activity.callback = options.callback
 		return activity
 	}
 
@@ -39,11 +40,11 @@ function Activity( options ){
 	
 	if( typeof options.callback === 'string' ){
 		activity.static = true
-		activity.invoke = () => options.callback
+		activity.string = options.callback
 		return activity
 	}
 	
-	throw new Error( `Wrong type of second argument (expected function or string, got ${typeof options.callback}` )
+	throw new Error( `Wrong type of options.callback (expected function or string, got ${typeof options.callback}` )
 }
 
 module.exports = {
@@ -89,9 +90,13 @@ module.exports = {
 					this.id = ++this.id % this.activities.length
 				}
 
-				let activity = this.getCurrentActivity()
+				const activity = this.getCurrentActivity()
 				if( !activity ) return
-				let text = String( activity.invoke( activity ) )
+
+				let text = String( activity.static
+					? activity.string
+					: activity.callback( activity )
+				)
 				
 				if( this.text !== text ){
 					this.text = text
@@ -139,11 +144,10 @@ module.exports = {
 		client.once( 'ready2', () => AM.init( client ) )
 
 		// uptime
-		ActivityManager.pushActivity( 'PLAYING', () => {
-			if( typeof db.totaluptime === 'number' )
-				return `for ${ Math.floor( process.uptime() / 3600 ) }/${ Math.floor( db.totaluptime / 60 ) } hours`
-			return 'bruh'
-		})
+		ActivityManager.pushActivity( 'PLAYING', () => typeof db.totaluptime === 'number'
+			? `for ${ Math.floor( process.uptime() / 3600 ) }/${ Math.floor( db.totaluptime / 60 ) } hours`
+			: 'bruh'
+		)
 		
 		// msg rate
 		const msgrate = []

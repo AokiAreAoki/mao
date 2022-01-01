@@ -1,57 +1,52 @@
-
-const activityTypes = {
-	PLAYING: true,
-	LISTENING: true,
-	WATCHING: true,
-	COMPETING: true,
-	STREAMING: true,
-	CUSTOM_STATUS: false, // for users only
-}
-
-function Activity( options ){
-	if( typeof options === 'string' )
-		return {
-			static: true,
-			string: options,
-			type: 'PLAYING',
-		}
-
-	const activity = {
-		type: options.type ? options.type.toUpperCase() : 'PLAYING',
-	}
-
-	if( !activityTypes[activity.type] )
-		throw Error( `Unknown activity type: "${type}"` )
-
-	if( options.name )
-		activity.name = options.name
-
-	if( options.deadline )
-		activity.deadline = options.deadline
-
-	if( options.callback instanceof Function ){
-		activity.static = false
-		activity.callback = options.callback
-		return activity
-	}
-
-	if( typeof options.callback === 'number' )
-		options.callback = String( options.callback )
-	
-	if( typeof options.callback === 'string' ){
-		activity.static = true
-		activity.string = options.callback
-		return activity
-	}
-	
-	throw new Error( `Wrong type of options.callback (expected function or string, got ${typeof options.callback}` )
-}
-
 module.exports = {
 	requirements: 'client timer db',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
+		const activityTypes = {
+			PLAYING: true,
+			LISTENING: true,
+			WATCHING: true,
+			COMPETING: true,
+			STREAMING: true,
+			CUSTOM_STATUS: false, // for users only
+		}
+		
+		function Activity( options ){
+			if( typeof options === 'string' )
+				return Activity({ callback: options })
+		
+			const activity = {
+				type: options.type ? options.type.toUpperCase() : 'PLAYING',
+			}
+		
+			if( !activityTypes[activity.type] )
+				throw Error( `Unknown activity type: "${type}"` )
+		
+			if( typeof options.name === 'string' )
+				activity.name = options.name
+		
+			if( options.deadline )
+				activity.deadline = Number( options.deadline )
+		
+			if( options.callback instanceof Function ){
+				activity.static = false
+				activity.callback = options.callback
+				return activity
+			}
+		
+			if( typeof options.callback === 'number' )
+				options.callback = String( options.callback )
+			
+			if( typeof options.callback === 'string' ){
+				activity.static = true
+				activity.string = options.callback
+				return activity
+			}
+			
+			throw new Error( `Wrong type of options.callback (expected function or string, got ${typeof options.callback}` )
+		}
+		
 		class ActivityManager {
 			static id = -1
 			static next = 0

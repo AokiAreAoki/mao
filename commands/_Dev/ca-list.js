@@ -23,7 +23,7 @@ module.exports = {
 
 							return Embed()
 								.addField( `Activity`, [
-									ca.name ? `Unique Name: ${ca.name}` : `No unique name specified`,
+									ca.name ? `Unique name: ${ca.name}` : `No unique name specified`,
 									`Deadline: <t:${t}:d> <t:${t}:t> (<t:${t}:R>)`,
 									`Static: ${!!ca.static}`,
 								].join( '\n' ) )

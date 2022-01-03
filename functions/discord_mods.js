@@ -243,11 +243,12 @@ module.exports = {
 			const r = this.reference
 		  
 			if( !r )
-			 	return null
+				 return null
 		  
-			return this.reference.message ??= await client.guilds.fetch( r.guildId )
+			return this.reference.message ??= client.guilds.fetch( r.guildId )
 				.then( g => g.channels.fetch( r.channelId ) )
 				.then( c => c.messages.fetch( r.messageId ) )
+				.then( m => this.reference.message = m )
 				.catch( () => null )
 		}
 

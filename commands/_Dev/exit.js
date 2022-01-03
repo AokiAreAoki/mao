@@ -3,12 +3,12 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
-		client.once( 'ready2', () => {
+		client.once( 'ready2', async () => {
 			if( db.restart ){
-				let timeleft = Date.now() - db.restart.timestamp
-				let channel = client.channels.cache.get( db.restart.channel )
+				const timeleft = Date.now() - db.restart.timestamp
+				const channel = await client.channels.fetch( db.restart.channel )
 
-				if( channel && timeleft < 60e3 ){
+				if( channel && timeleft < 600e3 ){
 					channel.send( Embed()
 						.setTitle( "🚀 Yay, I'm back again!" )
 						.addField( "🏗️ Init",`\`${numsplit( mao.initializationTime )}ms\``, true )
@@ -20,10 +20,12 @@ module.exports = {
 						delete db.restart
 						bakadb.save()
 					}).catch( () => {} )
-					
+
 					channel.messages.fetch( db.restart.message )
 						.then( m => m.purge( 1337 ) )
 						.catch( () => {} )
+
+					channel.cacheLastMessages()
 				}
 			}
 		})
@@ -40,7 +42,7 @@ module.exports = {
 					channel: msg.channel.id,
 					timestamp: Date.now(),
 				}
-				
+
 				await msg.react( '717396565114880020' )
 				_exit( parseInt( args[0] ) )
 			},

@@ -20,16 +20,19 @@ module.exports = {
 					before: msg.id,
 					limit: 100,
 				}).then( async messages => {
-					const message = messages?.find( m => m.author.id === msg.author.id && m.isCommand )
-				
-					if( message ){
-						await msg.react( client.emojis.cache.get( '822881934484832267' ) ?? '👌' )
-						await message.deleteAnswers()
-						await message.channel.bulkDelete( [msg, message] )
-					} else {
-						msg.isCommand = true
-						msg.send( 'No commands found' )
+					const commandMessage = messages?.find( m => m.author.id === msg.author.id && m.isCommand )
+					await msg.react( client.emojis.cache.get( '822881934484832267' ) ?? '👌' )
+					
+					if( commandMessage ){
+						commandMessage.deleteAnswers()
+						msg.channel.purge( [msg, commandMessage], 1337 )
+						return
 					}
+
+					msg.channel.purge([
+						msg,
+						await msg.send( 'No commands found' ),
+					], 3e3 )
 				}).catch( console.log )
 			},
 		})

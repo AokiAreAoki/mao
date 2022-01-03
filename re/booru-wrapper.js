@@ -16,8 +16,24 @@ module.exports = axios_module => {
 		keys = {} // Response keys
 		remove_other_keys = false
 
+		// where's array of pics located at
+		set path_to_pics( path ){
+			this._splitted_path_to_pics = path.split( /\/+/g ).filter( v => !!v )
+		}
+		
+		get path_to_pics(){
+			return this._splitted_path_to_pics.join( '/' )
+		}
+
+		_splitted_path_to_pics = []
+		
 		constructor( options ){
-			for( const prop in this ){
+			const props = [...Object.keys( this ), 'path_to_pics']
+
+			for( const prop of props ){
+				if( prop[0] === '_' )
+					continue
+
 				const defaultValue = this[prop]
 
 				if( defaultValue instanceof Array && options[prop] instanceof Object ){
@@ -61,7 +77,7 @@ module.exports = axios_module => {
 			else
 				throw Error( 'No URL specified' )
 		}
-		
+
 		q( tags, page, limit ){
 			return new Promise( async ( resolve, reject ) => {
 				let qs = {}
@@ -78,11 +94,13 @@ module.exports = axios_module => {
 				
 				axios.get( this.url, {
 					params: qs,
-				}).then( ({ data, status, statusText }) => {
+				}).then( ({ data: pics, status, statusText }) => {
 					if( status !== 200 )
 						return reject( statusText )
 
-					resolve( new BooruResponse( data, {
+					this._splitted_path_to_pics.forEach( e => pics = pics?.[e] )
+
+					resolve( new BooruResponse( pics, {
 						tags,
 						page,
 						limit,

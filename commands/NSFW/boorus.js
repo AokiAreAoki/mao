@@ -137,20 +137,20 @@ module.exports = {
 			if( !sfw && !userMsg.channel.nsfw && !force )
 				return userMsg.send( 'This isn\'t an NSFW channel!' );
 			
-			const botMsg = await userMsg.send( getRandomLoadingPhrase() )
+			const botMsg = userMsg.send( getRandomLoadingPhrase() )
 		
 			this.booru.q( tags )
 				.then( async result => {
 					const pics = result.pics
 
 					if( pics.length === 0 ){
-						botMsg.edit({
+						botMsg.then( m => m.edit({
 							content: null,
 							embeds: [Embed()
 								.setDescription( `Tag(s) \`${result.tags}\` not found :(` )
 								.setColor( 0xFF0000 )
-							]
-						})
+							],
+						}))
 
 						return
 					}
@@ -164,17 +164,17 @@ module.exports = {
 							.onPageChanged( ( page, pages ) => result.embed( pics[page], embed => {
 								embed.setFooter( `(${page + 1}/${pages}) ` + ( embed.footer?.text || '' ) )
 							}))
-							.setMessage( botMsg )
+							.setMessage( await botMsg )
 					} else {
 						const newPics = await getNewPics( result, amount, userMsg )
-						botMsg.edit( result.embed( newPics ) )
+						botMsg.then( m => m.edit( result.embed( newPics ) ) )
 					}
 
 					cd( userMsg.member, amount )
 					delete userMsg.member.antispam
 				})
 				.catch( err => {
-					botMsg.edit( { content: cb( err ), embeds: [] } )
+					botMsg.then( m => m.edit( { content: cb( err ), embeds: [] } ) )
 					console.error( err )
 				})
 		}

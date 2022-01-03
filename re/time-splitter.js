@@ -8,7 +8,7 @@ tu.weeks = 7 * tu.days
 tu.months = tu.weeks * 30 / 7
 tu.years = tu.months * 365.25 / 30
 
-let singularForm = { // useless ig
+const singularForm = {
 	miliseconds: 'milisecond',
 	seconds: 'second',
 	minutes: 'minute',
@@ -17,6 +17,17 @@ let singularForm = { // useless ig
 	weeks: 'week',
 	months: 'month',
 	years: 'year',
+}
+
+const shortForm = {
+	ms: 'miliseconds',
+	s: 'seconds',
+	m: 'minutes',
+	h: 'hours',
+	d: 'days',
+	w: 'weeks',
+	mn: 'months',
+	y: 'years',
 }
 
 function isValidNumber( number ){
@@ -30,18 +41,23 @@ function plural( number ){
 class TimeSplitter {
 	static tu = tu
 	static singularForm = singularForm
+	static shortForm = shortForm
 	
 	constructor( time = {} ){
-		this.timestamp = 0
 		this.tu = []
+		this.timestamp = typeof time === 'string'
+			? TimeSplitter.parseTime( time )
+			: 0
 		
 		for( let u in tu ){
 			this[u] = 0
 			this.tu.push(u)
-			
-			if( isValidNumber( time[u] ) )
-				this.timestamp += time[u] * tu[u]
 		}
+		
+		if( typeof time === 'object' )
+			for( let u in tu )
+				if( isValidNumber( time[u] ) )
+					this.timestamp += time[u] * tu[u]
 				
 		this.fromMS()
 	}
@@ -62,6 +78,23 @@ class TimeSplitter {
 	static convert( value, unitFrom, unitTo ){
 		return value / tu[unitTo] * tu[unitFrom]
 	}
+
+	static parseTime( string ){
+		const iter = string.matchAll( /(\-?\d+(?:[\.,]\d+)?(?:e\d+)?)\s*([a-z]+)/gi )
+		let timestamp = 0
+
+		for( let [, value, unit] of iter ){
+			if( !tu[unit] )
+				unit = TimeSplitter.shortForm[unit] ?? Object.keys( tu ).find( u => u.startsWith( unit ) )
+
+			if( !tu[unit] )
+				continue
+
+			timestamp += Number( value ) * tu[unit]
+		}
+
+		return timestamp
+	}
 	
 	toString({
 		separator = '\n',
@@ -79,7 +112,7 @@ class TimeSplitter {
 
 		for( const u of tu ){
 			if( !ignoreZeros || this[u] !== 0 )
-				units.push( formatter( this[u], this[u] === 1 ? singularForm[u] : u ) )
+				units.push( formatter( this[u], this[u] === 1 ? TimeSplitter.singularForm[u] : u ) )
 
 			if( maxTU > 0 && units.length !== 0 && --maxTU === 0 )
 				break

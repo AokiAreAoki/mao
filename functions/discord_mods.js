@@ -69,6 +69,27 @@ module.exports = {
 		}
 		
 		/// TextChannel ///
+		// TextChannel.cacheLastMessages
+		discord.TextChannel.prototype.cacheLastMessages = async function(){
+			const msgs = await this.messages.fetch({ limit: 100 })
+				.then( msgs => msgs.map( m => m ) )
+
+			for( const msg of msgs ){
+				const ref = await msg.getReferencedMessage()
+
+				if( !ref )
+					continue
+
+				if( ref._answers ){
+					if( !ref._answers.includes( msg ) )
+						ref._answers.push( msg )
+				} else
+					ref._answers = [msg]
+			}
+
+			return msgs
+		}
+
 		// TextChannel.sendTyping
 		discord.TextChannel.prototype.original_sendTyping = discord.TextChannel.prototype.sendTyping
 		discord.TextChannel.prototype.sendTyping = function(){

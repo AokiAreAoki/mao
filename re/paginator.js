@@ -3,12 +3,38 @@ class Paginator {
 	/// Static ///
 	static discord
 	static client
-	static emojis = {
-		left: '⬅️',
-		right: '➡️',
-		lock: '🔒',
-		stop: '⏹️',
-	}
+	static buttons = [
+		{ // prev page
+			id: `left`,
+			label: `Prev`,
+			emoji: `⬅️`,
+		},
+		{ // next page
+			id: `right`,
+			label: `Next`,
+			emoji: `➡️`,
+		},
+		[ // toggle lock
+			function( paginator, buttons ){
+				return buttons[Number( paginator.authorOnly )]
+			},
+			{ // lock
+				id: `lock`,
+				label: `Lock buttons`,
+				emoji: `🔒`,
+			},
+			{ // unlock
+				id: `unlock`,
+				label: `Unlock buttons`,
+				emoji: `🔓`,
+			},
+		],
+		{ // stop pager
+			id:`stop`,
+			label: `Stop`,
+			emoji: `⏹️`,
+		},
+	]
 
 	static init( discord, client ){
 		Paginator.discord = discord
@@ -18,13 +44,44 @@ class Paginator {
 			return new Paginator( this )
 		}
 
-		client.on( 'messageReactionAdd', ( reaction, user ) => {
-			reaction.message.paginator?._react( reaction, user, true )
+		client.on( 'interactionCreate', i => {
+			if( i.isButton() )
+				i.message.paginator?._react(i)
 		})
 
-		client.on( 'messageReactionRemove', ( reaction, user ) => {
-			reaction.message.paginator?._react( reaction, user, false )
-		})
+		function buttonify( button ){
+			if( button instanceof Function )
+				return button
+
+			if( button instanceof Array ){
+				const buttons = button.map( buttonify )
+				
+				if( buttons[0] instanceof Function )
+					buttons.choose = buttons.shift()
+				
+				return buttons
+			}
+
+			return new discord.MessageButton()
+				.setCustomId( button.id )
+				.setLabel( button.label )
+				.setEmoji( button.emoji )
+				.setStyle( button.style ?? `SECONDARY` )
+		}
+		
+		Paginator.buttons = buttonify( Paginator.buttons )
+	}
+	
+	get buttons(){
+		const buttonsRow = new discord.MessageActionRow()
+			.addComponents(
+				Paginator.buttons.map( button => button instanceof Array
+					? button.choose( this, button )
+					: button
+				)
+			)
+
+		return [buttonsRow]
 	}
 
 	/// Instance ///
@@ -60,63 +117,104 @@ class Paginator {
 		if( typeof this.pageChangeHandler !== 'function' )
 			throw Error( `The page change handler is not set` )
 
-		const message = await channel.send( this.getPageContent() )
+		const message = await channel.send({
+			...this.getPageContent(),
+			components: this.buttons,
+		})
+
 		this.setMessage( message, false )
 		return this
 	}
 
-	setMessage( message, doUpdatePage = true ){
+	setMessage( message, isExternalMessage = true ){
 		this.message = message
 		message.paginator = this
 
-		if( doUpdatePage )
-			this.updatePage()
-
-		for( const k in Paginator.emojis )
-			message.react( Paginator.emojis[k] )
+		if( isExternalMessage ){
+			message.edit({
+				...this.getPageContent(),
+				components: this.buttons,
+			})
+		}
 
 		return this
 	}
 
 	// Runtime methods
-	_react( reaction, user, addOrRemove ){
+	_react( interaction ){
+		if( !( interaction instanceof Paginator.discord.ButtonInteraction ) ) return
 		if( this.stopped ) return
-		if( reaction.message.id !== this.message.id ) return
-		if( user.bot || user.id === Paginator.client.user.id ) return
-		if( this.authorOnly && user.id !== this.user.id ) return
+		if( interaction.member.bot ) return
+		
+		switch( interaction.customId ){
+			default:
+				log( `Interaction with unknown custom ID: "${interaction.customId}"` )
+				break
 
-		switch( reaction.emoji.toString() ){
-			case Paginator.emojis.right:
+			case `right`:
+				if( this._cantChangePages( interaction ) )
+					return
+					
 				if( ++this.page >= this.pageAmount )
 					this.page -= this.pageAmount
 				
-				this.updatePage()
+				this.updatePage( interaction )
 				break
 
-			case Paginator.emojis.left:
+			case `left`:
+				if( this._cantChangePages( interaction ) )
+					return
+					
 				if( --this.page < 0 )
 					this.page += this.pageAmount
 
-				this.updatePage()
+				this.updatePage( interaction )
 				break
 
-			case Paginator.emojis.lock:
-				if( user.id === this.user.id )
-					this.authorOnly = addOrRemove
+			case `lock`:
+			case `unlock`:
+				if( interaction.member.id !== this.user.id )
+					return interaction.reply({
+						content: 'Only the initiator is able to toggle the lock',
+						ephemeral: true,
+					})
+
+				this.authorOnly = !this.authorOnly
+
+				interaction.update({
+					components: this.buttons,
+				})
 				break
 			
-			case Paginator.emojis.stop:
-				if( user.id === this.user.id )
-					this.stop()
+			case `stop`:
+				if( interaction.member.id !== this.user.id )
+					return interaction.reply({
+						content: 'Only the initiator is able to stop the pager',
+						ephemeral: true,
+					})
+				
+				this.stop()
 				break
 		}
+	}
+
+	_cantChangePages( interaction ){
+		const cant = this.authorOnly && interaction.member.id !== this.user.id
+		
+		if( cant )
+			interaction.reply({
+				content: `The initiator has locked the pager therefore you can't change pages`,
+				ephemeral: true,
+			})
+
+		return cant
 	}
 
 	getPageContent(){
 		return this.pageChangeHandler( this.page, this.pageAmount )
 	}
 
-	updatePage(){
+	updatePage( interaction = null ){
 		if( this.stopped )
 			return
 
@@ -124,7 +222,7 @@ class Paginator {
 			if( !this.timeout )
 				this.timeout = setTimeout( () => {
 					this.timeout = null
-					this.updatePage()
+					this.updatePage( interaction )
 				}, this.nextChange - Date.now() )
 
 			return
@@ -133,12 +231,16 @@ class Paginator {
 		this.nextChange = Date.now() + 1337
 		const new_content = this.getPageContent()
 		
-		if( new_content )
-			this.message.edit( new_content )
+		if( new_content ){
+			if( interaction instanceof discord.ButtonInteraction )
+				interaction.update( new_content )
+			else
+				this.message.edit( new_content )
+		}
 	}
 
 	stop(){
-		this.message.reactions.removeAll()
+		this.message.edit({ components: [] })
 		this.stopped = true
 	}
 }

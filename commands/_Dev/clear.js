@@ -43,7 +43,6 @@ module.exports = {
 				msg.makeUnpurgable()
 				
 				const user = await msg.guild.members.find( args[1] )
-
 				const messages = await msg.channel.messages.fetch( fetchOptions )
 					.then( messages => Array.from( messages.values() )
 						.filter( m => {
@@ -54,13 +53,14 @@ module.exports = {
 						})
 						.slice( 0, amount )
 					)
+				const actualAmount = amount === messages.length ? amount : `${messages.length}/${amount}`
 
 				if( client.user.bot )
 					msg.channel.purge( messages )
 				else
 					messages.forEach( m => m.delete() )
 
-				const reply = await msg.send( amount + ' message' + ( amount > 1 ? 's have' : ' has' ) + ' been deleted' )
+				const reply = await msg.send( `${actualAmount} message${amount !== 1 ? 's have' : ' has'} been deleted` )
 				msg.channel.purge( [msg, reply], messageDisplayTime )
 			},
 		})

@@ -117,12 +117,7 @@ class Paginator {
 		if( typeof this.pageChangeHandler !== 'function' )
 			throw Error( `The page change handler is not set` )
 
-		const message = await channel.send({
-			...this.getPageContent(),
-			components: this.buttons,
-		})
-
-		this.setMessage( message, false )
+		this.setMessage( await channel.send( this.getPageContent() ), false )
 		return this
 	}
 
@@ -130,13 +125,10 @@ class Paginator {
 		this.message = message
 		message.paginator = this
 
-		if( isExternalMessage ){
-			message.edit({
-				...this.getPageContent(),
-				components: this.buttons,
-			})
-		}
-
+		if( isExternalMessage )
+			message.edit( this.getPageContent() )
+			
+		message.edit({ components: this.buttons })
 		return this
 	}
 
@@ -158,7 +150,8 @@ class Paginator {
 				if( ++this.page >= this.pageAmount )
 					this.page -= this.pageAmount
 				
-				this.updatePage( interaction )
+				interaction.deferUpdate()
+				this.updatePage()
 				break
 
 			case `left`:
@@ -168,7 +161,8 @@ class Paginator {
 				if( --this.page < 0 )
 					this.page += this.pageAmount
 
-				this.updatePage( interaction )
+				interaction.deferUpdate()
+				this.updatePage()
 				break
 
 			case `lock`:
@@ -214,7 +208,7 @@ class Paginator {
 		return this.pageChangeHandler( this.page, this.pageAmount )
 	}
 
-	updatePage( interaction = null ){
+	updatePage(){
 		if( this.stopped )
 			return
 
@@ -222,7 +216,7 @@ class Paginator {
 			if( !this.timeout )
 				this.timeout = setTimeout( () => {
 					this.timeout = null
-					this.updatePage( interaction )
+					this.updatePage()
 				}, this.nextChange - Date.now() )
 
 			return
@@ -231,12 +225,8 @@ class Paginator {
 		this.nextChange = Date.now() + 1337
 		const new_content = this.getPageContent()
 		
-		if( new_content ){
-			if( interaction instanceof discord.ButtonInteraction )
-				interaction.update( new_content )
-			else
-				this.message.edit( new_content )
-		}
+		if( new_content )
+			this.message.edit( new_content )
 	}
 
 	stop(){

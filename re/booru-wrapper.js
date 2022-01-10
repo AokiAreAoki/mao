@@ -1,3 +1,48 @@
+
+function resolveOptions( options, target, keys ){
+	for( const prop of keys ){
+		if( prop[0] === '_' )
+			continue
+
+		const defaultValue = target[prop]
+
+		if( defaultValue instanceof Array && options[prop] instanceof Object ){
+			target[prop] = {}
+			
+			for( const subprop of defaultValue ){
+				if( typeof options[prop][subprop] === 'undefined' ){
+					target[prop][subprop] = subprop
+					continue
+				}
+					
+				if( typeof options[prop][subprop] === 'string' ){
+					target[prop][subprop] = options[prop][subprop].trim()
+					if( !target[prop][subprop] ) target[prop][subprop] = subprop
+					continue
+				}
+
+				target[prop][subprop] = options[prop][subprop]
+			}
+			
+			continue
+		}
+
+		switch( typeof options[prop] ){
+			case 'string':
+				if( target[prop] = options[prop].trim() )
+					break
+			
+			case 'undefined':
+				target[prop] = defaultValue
+				break
+
+			default:
+				target[prop] = options[prop]
+				break
+		}
+	}
+}
+
 module.exports = axios_module => {
 	const axios = axios_module
 	
@@ -6,13 +51,13 @@ module.exports = axios_module => {
 		url = '' // API URL
 		limit = 100 // limit of posts per request
 		page_offset = 1 // page offset
-		qs = [ // query params
+		params = [ // query params
 			'tags',
 			'page',
 			'limit',
 			// * if some params are not specified default param name will be used
 		]
-		const_qs = {} // constant query params
+		const_params = {} // constant query params
 		keys = {} // Response keys
 		remove_other_keys = false
 
@@ -28,49 +73,8 @@ module.exports = axios_module => {
 		_splitted_path_to_pics = []
 		
 		constructor( options ){
-			const props = [...Object.keys( this ), 'path_to_pics']
-
-			for( const prop of props ){
-				if( prop[0] === '_' )
-					continue
-
-				const defaultValue = this[prop]
-
-				if( defaultValue instanceof Array && options[prop] instanceof Object ){
-					this[prop] = {}
-					
-					for( const subprop of defaultValue ){
-						if( typeof options[prop][subprop] === 'undefined' ){
-							this[prop][subprop] = subprop
-							continue
-						}
-							
-						if( typeof options[prop][subprop] === 'string' ){
-							this[prop][subprop] = options[prop][subprop].trim()
-							if( !this[prop][subprop] ) this[prop][subprop] = subprop
-							continue
-						}
-
-						this[prop][subprop] = options[prop][subprop]
-					}
-					
-					continue
-				}
-
-				switch( typeof options[prop] ){
-					case 'string':
-						if( this[prop] = options[prop].trim() )
-							break
-					
-					case 'undefined':
-						this[prop] = defaultValue
-						break
-
-					default:
-						this[prop] = options[prop]
-						break
-				}
-			}
+			const keys = [...Object.keys( this ), 'path_to_pics']
+			resolveOptions( options, this, keys )
 			
 			if( this.url )
 				this.url = this.url.replace( /\/*$/, '' )
@@ -78,43 +82,55 @@ module.exports = axios_module => {
 				throw Error( 'No URL specified' )
 		}
 
-		q( tags, page, limit ){
-			return new Promise( async ( resolve, reject ) => {
-				let qs = {}
+		async q( tags, page, limit ){
+			const params = {}
+			
+			for( const k in this.const_params )
+				params[k] = this.const_params[k]
+			
+			if( tags instanceof Array )
+				tags = tags.join( ' ' )
 				
-				for( let k in this.const_qs )
-					qs[k] = this.const_qs[k]
-				
-				if( tags instanceof Array )
-					tags = tags.join( ' ' )
-					
-				qs[this.qs.tags] = tags
-				qs[this.qs.page] = ( page ?? 0 ) + this.page_offset
-				qs[this.qs.limit] = limit = limit ?? this.limit
-				
-				axios.get( this.url, {
-					params: qs,
-				}).then( ({ data: pics, status, statusText }) => {
-					if( status !== 200 )
-						return reject( statusText )
+			params[this.params.tags] = tags
+			params[this.params.page] = ( page ?? 0 ) + this.page_offset
+			params[this.params.limit] = limit = limit ?? this.limit
+			
+			const {
+				status,
+				statusText,
+				data,
+			} = await axios.get( this.url, { params } )
 
-					this._splitted_path_to_pics.forEach( e => pics = pics?.[e] )
+			if( status !== 200 )
+				throw Error( statusText )
 
-					resolve( new BooruResponse( pics, {
-						tags,
-						page,
-						limit,
-						booru: this,
-					}))
-				})
+			const pics = this._splitted_path_to_pics.reduce( ( data, prop ) => data?.[prop], data )
+
+			return new BooruResponse( pics, {
+				tags,
+				page,
+				limit,
+				booru: this,
 			})
 		}
 	}
 	
 	class BooruResponse {
-		constructor( array_pics, options ){
-			if( !( array_pics instanceof Array ) )
-				array_pics = []
+		_resultKeyName = 'pics'
+
+		get results(){
+			return this[this._resultKeyName]
+		}
+
+		set results( value ){
+			this[this._resultKeyName] = value
+		}
+
+		constructor( array, options, resultKeyName = 'pics' ){
+			this._resultKeyName = resultKeyName || this._resultKeyName
+
+			if( !( array instanceof Array ) )
+				array = []
 			
 			if( !( this.booru = options.booru ) )
 				throw Error( 'No booru specified in options' )
@@ -127,34 +143,34 @@ module.exports = axios_module => {
 			this.limit = options.limit ?? this.booru.limit
 			
 			if( keys instanceof Object ){
-				this.pics = []
+				this.results = []
 				
-				array_pics.forEach( ( old_pic, k ) => {
-					const new_pic = {}
+				array.forEach( oldValue => {
+					const newValue = {}
 					
-					for( let k in old_pic ){
-						if( typeof keys[k] === 'string' )
-							new_pic[keys[k] || k] = old_pic[k]
-						else if( typeof keys[k] === 'function' )
-							keys[k]( old_pic, new_pic, this.tags )
-						else if( !remove_other_keys && k !== keys[k] )
-							new_pic[k] = old_pic[k]
+					for( const key in oldValue ){
+						if( typeof keys[key] === 'string' )
+							newValue[keys[key] || key] = oldValue[key]
+						else if( typeof keys[key] === 'function' )
+							keys[key]( oldValue, newValue, this.tags )
+						else if( !remove_other_keys && key !== keys[key] )
+							newValue[key] = oldValue[key]
 					}
 					
-					this.pics.push( new_pic )
+					this.results.push( newValue )
 				})
 			} else
-				this.pics = array_pics
+				this.results = array
 		}
 		
 		async parseNextPage( limit ){
-			const res = await this.booru.q( this.tags, ++this.page, limit ?? this.limit )
-			this.pics.push( ...res.pics )
-			return res
+			const response = await this.booru.q( this.tags, ++this.page, limit ?? this.limit )
+			this.results.push( ...response.results )
+			return response
 		}
 	}
-
 	Booru.BooruResponse = BooruResponse
+
 	return Booru
 }
 
@@ -169,12 +185,12 @@ const Gelbooru = new Booru({
 	name: 'gelbooru.com',
 	url: 'https://gelbooru.com/index.php',
 	page_offset: 0,
-	qs: {
+	params: {
 		// tags keyword is "tags" by default
 		page: 'pid',
 		// limit keyword is "limit" by default
 	},
-	const_qs: {
+	const_params: {
 		page: 'dapi',
 		s: 'post',
 		q: 'index',
@@ -210,12 +226,12 @@ const Yandere = new Booru({
 	name: 'yande.re',
 	url: 'https://yande.re/post.json',
 	// page_offset is 1 by default
-	qs: {
+	params: {
 		// tags keyword is "tags" by default
 		// page keyword is "page" by default
 		// limit keyword is "limit" by default
 	},
-	// no const qs
+	// no const params
 	limit: 100,
 	keys: {
 		id: ( post, pic ) => {

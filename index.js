@@ -117,7 +117,7 @@ const _tkns = JSON.parse( read( './tokens.json' )
 // Booru wrappers
 Booru.BooruResponse.prototype.embed = function( pics, mapFunction = null ){
 	if( typeof pics === 'number' )
-		pics = this.pics[pics]
+		pics = this.results[pics]
 	
 	if( !( pics instanceof Array ) )
 		pics = [pics]
@@ -183,8 +183,8 @@ const Yandere = new Booru({
 })
 
 // Boorus' proxy access token
-//Gelbooru.const_qs._token = _tkns.booru_proxy
-//Yandere.const_qs._token = _tkns.booru_proxy
+//Gelbooru.const_params._token = _tkns.booru_proxy
+//Yandere.const_params._token = _tkns.booru_proxy
 
 // SauceNAO wrapper
 const sauce = new SauceNAO( axios, {

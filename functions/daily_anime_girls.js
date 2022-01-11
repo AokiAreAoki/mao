@@ -133,57 +133,60 @@ module.exports = {
 			if( doCreateThread )
 				post.thread = new ThreadCreationCanceler()
 
-			Booru.q( tags ).then( async response => {
-				let pic, pics = response.pics.filter( pic => Date.now() - new Date( pic.created_at ) < 86400e3 )
+			Booru.q( tags )
+				.then( async response => {
+					let pic, pics = response.pics.filter( pic => Date.now() - new Date( pic.created_at ) < 86400e3 )
 
-				if( pics.length !== 0 )
-					// Choose a pic with the best score or else the first one
-					pic = pics.reduce( ( final_pic, cur_pic ) => final_pic.score < cur_pic.score ? cur_pic : final_pic, pics[0] )
-				else {
-					pics = response.pics
+					if( pics.length !== 0 )
+						// Choose a pic with the best score or else the first one
+						pic = pics.reduce( ( final_pic, cur_pic ) => final_pic.score < cur_pic.score ? cur_pic : final_pic, pics[0] )
+					else {
+						pics = response.pics
 
-					if( pics.length === 0 ){
-						message.edit( Embed()
-							.setDescription( `Tag(s) \`${tags}\` not found :(` )
-							.setColor( 0xFF0000 )
-						)
-						return
+						if( pics.length === 0 ){
+							message.edit( Embed()
+								.setDescription( `Tag(s) \`${tags}\` not found :(` )
+								.setColor( 0xFF0000 )
+							)
+							return
+						}
+
+						pic = pics[Math.floor( Math.random() * pics.length )]
 					}
 
-					pic = pics[Math.floor( Math.random() * pics.length )]
-				}
-
-				const tagsParam = new RegExp( `[&\\?]${Booru.params.tags}=.*?(?:(&|$))`, 'i' ),
-					// ^to remove `tags` parameter from url
-					title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
-					url = pic.post_url.replace( tagsParam, '' ),
-					messageData = response.embed( pic )
+					const tagsParam = new RegExp( `[&\\?]${Booru.params.tags}=.*?(?:(&|$))`, 'i' ),
+						// ^to remove `tags` parameter from url
+						title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
+						url = pic.post_url.replace( tagsParam, '' ),
+						messageData = response.embed( pic )
+						
+					messageData.embeds[0].setDescription( `[${title}](${url})` )
+					await message.edit( messageData )
 					
-				messageData.embeds[0].setDescription( `[${title}](${url})` )
-				await message.edit( messageData )
-				
-				if( doCreateThread ){
-					const date = new Date()
+					if( doCreateThread ){
+						const date = new Date()
 
-					message.startThread({
-						autoArchiveDuration: 1440, // 1 day
-						name: [
-							String( date.getDate() ).replace( /^(\d)$/, '0$1' ),
-							String( date.getMonth() + 1 ).replace( /^(\d)$/, '0$1' ),
-							String( date.getYear() % 100 ).replace( /^(\d)$/, '0$1' ),
-						].join( '.' ),
-					})
-						.then( thread => {
-							if( post.thread?.canceled )
-								thread.delete()
-							else
-								post.thread = thread
+						message.startThread({
+							autoArchiveDuration: 1440, // 1 day
+							name: [
+								String( date.getDate() ).replace( /^(\d)$/, '0$1' ),
+								String( date.getMonth() + 1 ).replace( /^(\d)$/, '0$1' ),
+								String( date.getYear() % 100 ).replace( /^(\d)$/, '0$1' ),
+							].join( '.' ),
 						})
-						.catch( console.error )
-				}
-			}).catch( err => {
-				message.edit( { content: cb( err ), embeds: [] } )
-			})
+							.then( thread => {
+								if( post.thread?.canceled )
+									thread.delete()
+								else
+									post.thread = thread
+							})
+							.catch( console.error )
+					}
+				})
+				.catch( err => message.edit({
+					content: cb( err.stack ),
+					embeds: [],
+				}))
 		}
 
 		// Undo function

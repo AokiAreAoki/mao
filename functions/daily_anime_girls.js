@@ -153,7 +153,7 @@ module.exports = {
 					pic = pics[Math.floor( Math.random() * pics.length )]
 				}
 
-				const tagsParam = new RegExp( `[&\\?]${Booru.qs.tags}=.*?(?:(&|$))`, 'i' ),
+				const tagsParam = new RegExp( `[&\\?]${Booru.params.tags}=.*?(?:(&|$))`, 'i' ),
 					// ^to remove `tags` parameter from url
 					title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
 					url = pic.post_url.replace( tagsParam, '' ),

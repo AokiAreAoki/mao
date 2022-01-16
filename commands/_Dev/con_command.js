@@ -5,6 +5,10 @@ module.exports = {
 
 		function callback( msg, args ){
 			const string_command = args.get_string()
+
+			if( !string_command )
+				return this.sendHelp( msg )
+
 			const loading = String( client.emojis.resolve( '822881934484832267' ) ?? 'Executing...' )
 			const promise = msg.send( loading )
 

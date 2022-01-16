@@ -48,18 +48,6 @@ module.exports = {
 			},
 		})
 		
-		addCmd({
-			aliases: 'cond',
-			description: {
-				single: 'executes console command and removes the message',
-				usages: [
-					['<console command...>', "executes $1. As if you'd type it in a real console."],
-				],
-			},
-			callback: ( msg, args ) => {
-				msg.delete()
-				exec( msg, args.get_string(), 11 )
-			},
 		})
 	}
 }

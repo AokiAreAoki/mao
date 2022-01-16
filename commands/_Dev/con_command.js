@@ -1,40 +1,105 @@
 module.exports = {
-	requirements: 'cp',
+	requirements: 'client cp',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
-		function exec( channel, command, delete_delay ){
-			cp.exec( command, { timeout: 15e3 }, ( error, stdout, stderr ) => {
-				const deleteMessage = m => m.delete( delete_delay * 1e3 )
 
-				if( error ){
-					let m = channel.send( 'Error:' + cb( error.toString()
+		function callback( msg, args ){
+			const string_command = args.get_string()
+			const loading = String( client.emojis.resolve( '822881934484832267' ) ?? 'Executing...' )
+			const promise = msg.send( loading )
+
+			let finished = false
+			let terminated = false
+			let timeout
+
+			const command = cp.spawn( args.shift(), args, {
+				timeout: 60e3,
+				detached: true,
+			})
+			
+			let stdout = '', stderr = ''
+			command.stdout.on( 'data', chunk => stdout += chunk )
+			command.stderr.on( 'data', chunk => stderr += chunk )
+			
+			command.once( 'error', error => {
+				if( terminated )
+					return
+
+				finished = true
+				clearTimeout( timeout )
+				
+				promise.then( m => m.edit( 'Error:' + cb( error.toString()
+					.replace( /error:\s*/i, '' )
+					.replace( /\u001b\[\??[\d+;]*\w/gi, '' )
+				)))
+			})
+
+			command.once( 'exit', async error => {
+				if( terminated )
+					return
+
+				finished = true
+				clearTimeout( timeout )
+				let message = await promise
+
+				if( message.deleted ){
+					message = await message.send( `\`${args.get_string()}\` finished execution.` )
+					await new Promise( resolve => setTimeout( resolve, 3e3 ) )
+					message.delete( 8e3 )
+					msg = message
+				}
+
+				if( error )
+					return message.edit( 'Error:' + cb( error.toString()
 						.replace( /error:\s*/i, '' )
 						.replace( /\u001b\[\??[\d+;]*\w/gi, '' )
 					))
 
-					if( typeof delete_delay === 'number' )
-						m.then( deleteMessage )
-				} else {
-					stdout = stdout
-						? cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) )
-						: '`nothing`'
+				message.edit( 'stdout:' + ( stdout
+					? cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) )
+					: '`nothing`'
+				))
 
-					let m1 = channel.send( 'stdout:' + stdout ),
-						m2 = stderr && channel.send( 'stderr:' + cb( stderr
-							.replace( /error:\s*/i, '' )
-							.replace( /\u001b\[\??[\d+;]*\w/gi, '' )
-						))
+				if( stderr )
+					msg.send( 'stderr:' + cb( stderr
+						.replace( /error:\s*/i, '' )
+						.replace( /\u001b\[\??[\d+;]*\w/gi, '' )
+					))
+			})
+
+			promise.then( message => {
+				if( finished )
+					return
+
+				let nextMessageUpdate = Date.now() + 5e3
+
+				function updateOutput(){
+					if( finished )
+						return
 					
-					if( typeof delete_delay === 'number' ){
-						m1.then( deleteMessage )
-						if( m2 ) m2.then( deleteMessage )
+					if( message.deleted ){
+						terminated = true
+						command.kill( 'SIGINT' )
+						message.send( `\`${string_command}\` has been terminated.` )
+							.then( m => m.purge( 3e3 ) )
+						return
+					}
+					
+					timeout = setTimeout( updateOutput, 100 )
+
+					if( nextMessageUpdate < Date.now() ){
+						nextMessageUpdate = Date.now() + 5e3
+						
+						message.edit( loading + ( stdout.trim()
+							? '\n' + cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) )
+							: ''
+						))
 					}
 				}
+				updateOutput()
 			})
 		}
-		mao.exec = exec
-		
+
 		addCmd({
 			aliases: 'con',
 			description: {
@@ -43,11 +108,7 @@ module.exports = {
 					['<console command...>', "executes $1. As if you'd type it in a real console."],
 				],
 			},
-			callback: ( msg, args ) => {
-				exec( msg, args.get_string() )
-			},
-		})
-		
+			callback,
 		})
 	}
 }

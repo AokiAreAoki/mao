@@ -576,17 +576,19 @@ const evalFlagsParser = new EvalFlagsParser([
 	'whats',
 	'keys',
 	'dontawait',
+	'ref',
 ])
 
 MM.unshiftHandler( 'eval', true, async msg => {
 	let ismaster = msg.author instanceof discord.User && msg.author.isMaster()
 
 	if( ismaster ){
-		let said = msg.content,
-			here = msg.channel,
-			mem = msg.member,
-			me = msg.author,
-			prefix = said.matchFirst( eval_prefix )
+		let said = msg.content
+		let here = msg.channel
+		let mem = msg.member
+		let me = msg.author
+		let prefix = said.matchFirst( eval_prefix )
+		let ref = msg.getReferencedMessage()
 
 		if( prefix )
 			said = said.substring( prefix.length )
@@ -598,6 +600,9 @@ MM.unshiftHandler( 'eval', true, async msg => {
 		if( evalflags.dev )
 			evalflags.iom = { value: 'dev' }
 
+		if( evalflags.ref )
+			ref = await ref
+
 		if( evalflags.iom && evalflags.iom.value !== null ){
 			if( evalflags.iom.value !== db.token && evalflags.iom.value !== '*' )
 				return
@@ -608,7 +613,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 			await msg.delete()
 
 		code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s, it => code = it )
-		
+
 		let __printerr = !!prefix
 		let abortHandlersQueue = false
 		let abortHQ = () => abortHandlersQueue = true
@@ -618,7 +623,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 				return
 
 			let evaled, __output = ''
-		
+
 			function print( ...args ){
 				if( __output )
 					__output += '\n'

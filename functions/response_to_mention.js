@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'MM',
+	requirements: 'client MM discord',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 		
@@ -11,8 +11,16 @@ module.exports = {
 			`?`,
 		]
 		
+		const emojis = [
+			'928644275145691186',
+		]
+		
 		function getRandomResponse( member ){
-			let r = Math.floor( Math.random() * responses.length )
+			const r = Math.floor( Math.random() * responses.length )
+
+			if( responses[r] instanceof discord.Emoji )
+				return responses[r].toString()
+
 			return responses[r]
 				.replace( /\((.+?)\)\?/g, ( matched, s ) => Math.random() < 0.5 ? s : '' )
 				.replace( /\((.+?)\|(.+?)\)/g, ( matched, a, b ) => Math.random() < 0.5 ? a : b )
@@ -24,6 +32,13 @@ module.exports = {
 		
 		client.on( 'ready', () => {
 			mentionRE = new RegExp( `^(?:mao|мао|<@!?(${client.user.id})>)`, 'i' )
+
+			emojis.forEach( id => {
+				const emoji = client.emojis.resolve( id )
+
+				if( emoji )
+					responses.push( emoji )
+			})
 		})
 		
 		MM.pushHandler( 'mention_response', false, msg => {

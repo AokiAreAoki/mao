@@ -23,7 +23,7 @@ function start( itsRestart ){
 		if( code === 0 )
 			start( true )
 		else
-			setTimeout( start, 7331 )
+			setTimeout( start, 1337 )
 	})
 }
 

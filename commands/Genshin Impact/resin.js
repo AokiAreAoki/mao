@@ -56,8 +56,8 @@ module.exports = {
 
 				let timeleft = ts.toString({
 					separator: ', ',
-					ignoreZeroValues: true,
-					absOrder: true,
+					ignoreZeros: true,
+					formatter: ( v, u ) => `\`${v} ${u}\``,
 				})
 
 				if( oneArg )

@@ -58,7 +58,6 @@ module.exports = {
 					separator: ', ',
 					ignoreZeroValues: true,
 					absOrder: true,
-					formatter: ( value, unit, units ) => `\`${value} ${units}\``
 				})
 
 				if( oneArg )

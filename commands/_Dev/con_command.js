@@ -20,18 +20,23 @@ module.exports = {
 				timeout: 60e3,
 				detached: true,
 			})
-			
-			let stdout = '', stderr = ''
-			command.stdout.on( 'data', chunk => stdout += chunk )
+
+			let stdout = '', stdoutChanged = false
+			command.stdout.on( 'data', chunk => {
+				stdout += chunk
+				stdoutChanged = true
+			})
+
+			let stderr = ''
 			command.stderr.on( 'data', chunk => stderr += chunk )
-			
+
 			command.once( 'error', error => {
 				if( terminated )
 					return
 
 				finished = true
 				clearTimeout( timeout )
-				
+
 				promise.then( m => m.edit( 'Error:' + cb( error.toString()
 					.replace( /error:\s*/i, '' )
 					.replace( /\u001b\[\??[\d+;]*\w/gi, '' )
@@ -80,7 +85,7 @@ module.exports = {
 				function updateOutput(){
 					if( finished )
 						return
-					
+
 					if( message.deleted ){
 						terminated = true
 						command.kill( 'SIGINT' )
@@ -88,16 +93,13 @@ module.exports = {
 							.then( m => m.purge( 3e3 ) )
 						return
 					}
-					
+
 					timeout = setTimeout( updateOutput, 100 )
 
-					if( nextMessageUpdate < Date.now() ){
+					if( stdoutChanged && stdout.trim() && nextMessageUpdate < Date.now() ){
 						nextMessageUpdate = Date.now() + 1.2e3
-						
-						message.edit( loading + ( stdout.trim()
-							? '\n' + cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) )
-							: ''
-						))
+						message.edit( `${loading}\n${cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) )}` )
+							.then( m => message = m )
 					}
 				}
 				updateOutput()

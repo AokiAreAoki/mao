@@ -75,7 +75,7 @@ module.exports = {
 				if( finished )
 					return
 
-				let nextMessageUpdate = Date.now() + 5e3
+				let nextMessageUpdate = Date.now() + 1.2e3
 
 				function updateOutput(){
 					if( finished )
@@ -92,7 +92,7 @@ module.exports = {
 					timeout = setTimeout( updateOutput, 100 )
 
 					if( nextMessageUpdate < Date.now() ){
-						nextMessageUpdate = Date.now() + 5e3
+						nextMessageUpdate = Date.now() + 1.2e3
 						
 						message.edit( loading + ( stdout.trim()
 							? '\n' + cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) )

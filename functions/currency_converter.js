@@ -1,8 +1,9 @@
 module.exports = {
 	requirements: '_tkns axios MM numsplit Embed',
 	init: ( requirements, mao ) => {
+		// return
 		requirements.define( global )
-		
+
 		const convertRE = /\b(\d[\d\s_,]*(?:\.[\d\s_,]+)?(?:e-?\d+)?)?\s*(\w{3})\s*to\s*(\w{3})\b/gi
 		const numSplitterRE = /[\s_,]+/g
 
@@ -12,19 +13,19 @@ module.exports = {
 
 		async function getCurrencies(){
 			if( currenciesNextFetch < Date.now() || !currencies ){
-				const { data } = await axios.get( `https://free.currconv.com/api/v7/currencies`, {
+				currenciesNextFetch = Date.now() + 86400e3
+
+				return currencies = axios.get( `https://free.currconv.com/api/v7/currencies`, {
 					params: {
 						apiKey: _tkns.currency_converter,
 					}
 				})
-
-				currencies = data.results
-				currenciesNextFetch = Date.now() + 86400e3
+					.then( response => currencies = response.data.results )
 			}
 
 			return currencies
 		}
-		
+
 		async function getRatio( a, b ){
 			if( a === b )
 				return 1
@@ -37,7 +38,7 @@ module.exports = {
 					unknownRatios.push(a)
 				}
 			}
-			
+
 			if( b !== 'USD' ){
 				if( !ratios[b] || ratios[b].timeout < Date.now() ){
 					ratios[b] = null
@@ -65,24 +66,29 @@ module.exports = {
 		}
 
 		MM.pushHandler( 'currency-converter', false, async msg => {
-			const iter = msg.content.matchAll( convertRE )
+			const expressions = Array.from( msg.content.matchAll( convertRE ) )
 
-			if( !iter )
+			if( expressions.length === 0 )
 				return
 
 			const filter = {}
 			const currencies = await getCurrencies()
+				.catch( err => {
+					msg.send( `Something went wrong :(\nI can't convert currency right now` )
+					throw err
+				})
+
 			const exchangeRates = ( await Promise.all(
-				Array.from( iter, async ([, value, a, b]) => {
+				expressions.map( async ([, value, a, b]) => {
 					a = a.toUpperCase()
 					b = b.toUpperCase()
-					
+
 					if( !currencies[a] || !currencies[b] )
 						return
-					
+
 					value = value == null ? 1 : Number( value.replace( numSplitterRE, '' ) )
 					const ratio = await getRatio( a, b )
-					
+
 					if( isNaN( value ) || isNaN( ratio ) )
 						return
 
@@ -101,7 +107,7 @@ module.exports = {
 					return isFirst
 				})
 				.join( '\n' )
-			
+
 			if( exchangeRates )
 				msg.send( exchangeRates )
 		})

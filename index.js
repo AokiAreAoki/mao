@@ -435,21 +435,54 @@ client.once( 'ready', () => {
 		log( "I'm back" )
 		lch = client.channels.cache.get( '721667351648403507' )
 	})
-	
-	process.on( 'unhandledRejection', async reason => {
-		if( reason.message === 'Unknown Message' )
+
+	const URs = {} // Unhandled Rejections
+
+	function sendUnhandledRejection( rejection ){
+		const ur = String( rejection )
+
+		client.channels.fetch( config['log-channel'] )
+			.then( channel => {
+				URs[ur].messagePromise = channel.send( Embed()
+					.addField( `Unhandled rejection: (x${URs[ur].time})`, cb( rejection.stack ) )
+				)
+				URs[ur].messagePromise?.then( m => m.delete() )
+			})
+			.catch( () => log( '`log-channel` is not specified or not found' ) )
+	}
+
+	process.on( 'unhandledRejection', async rejection => {
+		if( rejection.message === 'Unknown Message' )
 			return
 
-		log( 'Unhandled rejection:', reason.stack )
-		
+		log( 'Unhandled rejection:', rejection.stack )
+
 		if( !config['log-channel'] )
 			return log( '`log-channel` is not specified or not found' )
 
-		client.channels.fetch( config['log-channel'] )
-			.then( channel => channel.send( Embed()
-				.addField( `Unhandled rejection:`, cb( reason.stack ) )
-			))
-			.catch( () => log( '`log-channel` is not specified or not found' ) )
+		const ur = String( rejection )
+
+		if( URs[ur] ){
+			++URs[ur].time
+		} else {
+			URs[ur] = {
+				time: 1,
+				nextMessage: 0,
+			}
+		}
+
+		if( URs[ur].timeout )
+			return
+
+		sendUnhandledRejection( rejection )
+		const time = URs[ur].time
+
+		URs[ur].timeout = setTimeout( () => {
+			URs[ur].timeout = null
+
+			if( time !== URs[ur].time )
+				sendUnhandledRejection( rejection )
+		}, 3e3 )
 	})
 })
 

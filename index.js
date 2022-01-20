@@ -443,10 +443,10 @@ client.once( 'ready', () => {
 
 		client.channels.fetch( config['log-channel'] )
 			.then( channel => {
+				URs[ur].messagePromise?.then( m => m.delete() )
 				URs[ur].messagePromise = channel.send( Embed()
 					.addField( `Unhandled rejection: (x${URs[ur].time})`, cb( rejection.stack ) )
 				)
-				URs[ur].messagePromise?.then( m => m.delete() )
 			})
 			.catch( () => log( '`log-channel` is not specified or not found' ) )
 	}

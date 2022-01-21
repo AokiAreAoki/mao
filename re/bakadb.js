@@ -41,16 +41,16 @@ class BakaDB extends events {
 	init( path, shit ){
 		if( path instanceof Object )
 			shit = path
-			
+
 		if( shit instanceof Object )
 			for( let k in shit ) global[k] = shit[k]
-		
+
 		this.path = ( typeof path === 'string' && path ) ? path.replace( /^(?!\.[\/\\])[\/\\]?([\w\s_-]+)(?!:)/, './$1' ) : './bdb'
 		let data = {}
 
 		if( exists( this.path ) ){
 			let saves = fs.readdirSync( this.path )
-			
+
 			saves.forEach( ( file, k ) => {
 				if( /\D/.test( file ) )
 					delete saves[k]
@@ -80,7 +80,7 @@ class BakaDB extends events {
 
 		this.db = data.db ? this._decode( data.db ) : {}
 
-		process.on( 'exit', () => this.save() )
+		process.on( 'exit', () => this.save( true ) )
 
 		this.emit( 'initialized' )
 		return true
@@ -89,7 +89,7 @@ class BakaDB extends events {
 	get( ...path ){
 		let props = [],
 			value = this.db
-			
+
 		path.forEach( key => key.split( /[\/\.]+/ ).forEach( key => {
 			if( key ) props.push( key )
 		}))
@@ -97,10 +97,10 @@ class BakaDB extends events {
 		for( let i = 0; i < props.length; ++i ){
 			let prop = props[i]
 			if( !prop ) continue
-			
+
 			if( typeof value[prop] === 'undefined' )
 				return
-			
+
 			value = value[prop]
 		}
 
@@ -114,7 +114,7 @@ class BakaDB extends events {
 		let props = [],
 			value = path.pop(),
 			object = this.db
-			
+
 		path.forEach( key => key.split( /[\/\.]+/ ).forEach( key => {
 			if( key ) props.push( key )
 		}))
@@ -124,10 +124,10 @@ class BakaDB extends events {
 		for( let i = 0; i < props.length; ++i ){
 			let prop = props[i]
 			if( !prop ) continue
-			
+
 			if( typeof object[prop] === 'undefined' )
 				object[prop] = {}
-			
+
 			object = object[prop]
 		}
 
@@ -136,7 +136,7 @@ class BakaDB extends events {
 
 	delete( ...path ){
 		let props = []
-			
+
 		path.forEach( key => key.split( /[\/\.]+/ ).forEach( key => {
 			if( key ) props.push( key )
 		}))
@@ -172,7 +172,7 @@ class BakaDB extends events {
 
 	_encode( table, _path='/' ){
 		let encoded
-		
+
 		if( table instanceof Array )
 			encoded = []
 		else if( table instanceof Object )
@@ -189,34 +189,34 @@ class BakaDB extends events {
 
 	_decode( table, _path='/' ){
 		let decoded
-		
+
 		if( table instanceof Array )
 			decoded = []
 		else if( table instanceof Object )
 			decoded = {}
 		else
 			return this._decodeValue( table, _path )
-		
+
 		this._foreach( table, ( val, k ) => {
 			decoded[k] = this._decodeValue( val, _path )
 		})
 
 		return decoded
 	}
-	
+
 	_encodeValue( val, _path='/' ){
 		if( typeof val === 'undefined' || val == null )
 			return
-		
+
 		if( typeof val === 'number' || typeof val === 'boolean' )
 			return val
-		
+
 		if( typeof val === 'string' )
 			return 'String:' + val
 
 		let type = val.constructor.name
 		let coder = this.coders[type]
-		
+
 		// redirect
 		if( typeof coder === 'string' )
 			coder = this.coders[coder]
@@ -226,11 +226,11 @@ class BakaDB extends events {
 		else
 			this.emit( 'missing-encoder', type, join( _path, k ) )
 	}
-	
+
 	_decodeValue( val, _path='/' ){
 		if( typeof val === 'number' || typeof val === 'boolean' )
 			return val
-		
+
 		if( typeof val === 'string' ){
 			let type = val.match( /^(\w*?):/ )
 
@@ -240,7 +240,7 @@ class BakaDB extends events {
 				this.emit( 'type-not-found', val )
 				return
 			}
-			
+
 			val = val.substring( type.length + 1 )
 
 			if( type === 'String' )
@@ -260,7 +260,16 @@ class BakaDB extends events {
 			return this._decode( val )
 	}
 
-	save(){
+	save( force = false ){
+		if( !force && Date.now() - this.lastSave < 100 ){
+			this.saveTimeout ??= setTimeout( () => {
+				this.save( true )
+				delete this.saveTimeout
+			}, Date.now() - this.lastSave )
+
+			return
+		}
+
 		this.emit( 'save' )
 
 		try {
@@ -299,10 +308,10 @@ class BakaDB extends events {
 	_getConstructorName( constructor ){
 		return typeof constructor === 'string' ? constructor : ( typeof constructor === 'function' ? constructor : constructor.constructor ).name
 	}
-	
+
 	createCoder( constructor, encoder, decoder ){
 		constructor = this._getConstructorName( constructor )
-		
+
 		this.coders[constructor] = {
 			encode: encoder,
 			decode: decoder,

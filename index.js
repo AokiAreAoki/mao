@@ -205,8 +205,8 @@ async function _exit( code ){
 
 	if( code == null )
 		code = 0
-	
-	bakadb.save()
+
+	bakadb.save( true )
 	await client.destroy()
 
 	code = isFinite( code ) ? Math.floor( code ) : NaN

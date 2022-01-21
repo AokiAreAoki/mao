@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'client httpGet db bakadb Gelbooru Yandere discord Embed',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		db.dag ??= {
 			GMT: 3,
 			postAt: 21,
@@ -12,11 +12,11 @@ module.exports = {
 			gelbooru: Gelbooru,
 			yandere: Yandere,
 		}
-		
+
 		function capitalize( text ){
 			return text[0].toUpperCase() + text.substring(1)
 		}
-		
+
 		function getDate( date = Date.now() ){
 			const GMT = db.dag.GMT ?? 0
 			const postAt = db.dag.postAt ?? 0
@@ -26,17 +26,17 @@ module.exports = {
 		function parseXML( xml ){
 			let posts = xml.match( /<post\s+(.+?)\/>/gm )
 			let result = []
-			
+
 			posts.forEach( post => {
 				let post_data = {}
-				
+
 				post.replace( /([\w_-]+)="(.+?)"/g, ( _, k, v ) => {
 					post_data[k] = v
 				})
-				
+
 				result.push( post_data )
 			})
-			
+
 			return result
 		}
 
@@ -49,7 +49,7 @@ module.exports = {
 		}
 
 		// Main function
-		async function postAnimeGirls( channel ){
+		async function postAnimeGirls( channel, printDisabledNotification = true ){
 			// "*" passed
 			if( channel === '*' ){
 				const guilds = bakadb.get( 'dag/data' )
@@ -59,7 +59,7 @@ module.exports = {
 
 					for( let guild_id in guilds )
 						if( guild = await client.guilds.fetch( guild_id ) )
-							postAnimeGirls( guild )
+							postAnimeGirls( guild, false )
 
 					return true
 				}
@@ -74,7 +74,7 @@ module.exports = {
 
 				if( channels ){
 					for( let channel_id in channels )
-						postAnimeGirls( channel_id )
+						postAnimeGirls( channel_id, false )
 
 					return true
 				}
@@ -94,44 +94,52 @@ module.exports = {
 					throw new Error( 'The channel have no guild' )
 			} else
 				throw new Error( 'The channel arg must be an instance of Discord.TextChannel or an ID of a channel' )
-			
+
+			const today = getDate()
 			const dailyData = bakadb.get( 'dag/data', channel.guild.id, channel.id )
 
 			if( !dailyData )
 				throw new Error( 'This channel have no dailies setup' )
 
-			const {
-				src: source,
-				doCreateThread
-			} = dailyData
-			
+			if( dailyData.disabled ){
+				if( printDisabledNotification ){
+					const message = await channel.send( `Dailies are disabled in this channel` )
+
+					dailyData.last_posts.push({
+						channel_id: message.channel.id,
+						message_id: message.id,
+						date: today,
+					})
+					bakadb.save()
+				}
+
+				return
+			}
+
 			const tags = dailyData.tags ?? ''
+			const source = dailyData.src
 			const Booru = sources[source]
 
 			if( !Booru )
 				throw new Error( `ERROR: Unknown source "${source}"` )
-			
+
 			const message = await channel.send( Embed()
 				.addField( 'Parsing daily anime girls...', `${tags ? `Tags: \`${tags}\`` : 'No tags'}` )
 				.setFooter( 'Powered by ' + Booru.name )
 			)
 
-			const today = getDate()
-			
-			if( channel.last_posts )
+			if( dailyData.last_posts )
 				undoAnimeGirls( channel, today )
 			else
-				channel.last_posts = []
+				dailyData.last_posts = []
 
-			const post = {
+			const postData = {
 				channel_id: channel.id,
 				message_id: message.id,
 				date: today,
 			}
-			channel.last_posts.push( post )
-
-			if( doCreateThread )
-				post.thread = new ThreadCreationCanceler()
+			dailyData.last_posts.push( postData )
+			bakadb.save()
 
 			Booru.q( tags )
 				.then( async response => {
@@ -159,11 +167,11 @@ module.exports = {
 						title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
 						url = pic.post_url.replace( tagsParam, '' ),
 						messageData = response.embed( pic )
-						
+
 					messageData.embeds[0].setDescription( `[${title}](${url})` )
 					await message.edit( messageData )
-					
-					if( doCreateThread ){
+
+					if( dailyData.doCreateThread ){
 						const date = new Date()
 
 						message.startThread({
@@ -174,13 +182,12 @@ module.exports = {
 								String( date.getYear() % 100 ).replace( /^(\d)$/, '0$1' ),
 							].join( '.' ),
 						})
-							.then( thread => {
-								if( post.thread?.canceled )
-									thread.delete()
-								else
-									post.thread = thread
+							.then( () => postData.hasThread = true )
+							.catch( err => {
+								delete postData.hasThread
+								console.error( err )
 							})
-							.catch( console.error )
+							.then( () => bakadb.save() )
 					}
 				})
 				.catch( err => message.edit({
@@ -235,9 +242,11 @@ module.exports = {
 					throw new Error( 'The channel have no guild' )
 			} else
 				throw new Error( 'The channel arg must be an instance of Discord.TextChannel or an ID of a channel' )
-			
-			if( channel.last_posts ){
-				let posts = channel.last_posts.filter( post => post.date === date )
+
+			const dailyData = bakadb.get( 'dag/data', channel.guild.id, channel.id )
+
+			if( dailyData.last_posts ){
+				let posts = dailyData.last_posts.filter( post => post.date === date )
 				// postS in case if smth bad happen and there will be more than 1 post at the same day
 
 				if( posts.length > 0 ){
@@ -251,18 +260,20 @@ module.exports = {
 							)
 
 							msg.delete( 1337 )
-							post.thread?.delete()
+							msg.thread?.delete()
 						}
 					})
 
-					channel.last_posts = channel.last_posts.filter( post => post.date !== date )
+					dailyData.last_posts = dailyData.last_posts.filter( post => post.date !== date )
+					bakadb.save()
 					return true
 				}
 
 				return false
 			}
 
-			channel.last_posts = []
+			dailyData.last_posts = []
+			bakadb.save()
 			return false
 		}
 
@@ -282,21 +293,21 @@ module.exports = {
 				bakadb.save()
 			},
 		}
-		
+
 		// Poster
 		async function check(){
 			const today = getDate()
-			
+
 			if( bakadb.get( 'dag/last_post' ) === today )
 				return
 
 			bakadb.set( 'dag/last_post', today )
 			bakadb.save()
-			
+
 			postAnimeGirls( '*' )
 				.catch( console.log )
 		}
-		
+
 		client.on( 'ready2', () => {
 			timer.create( 'daily_anime_girls', 30, 0, check )
 			check()

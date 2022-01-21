@@ -17,7 +17,7 @@ require( './methods' )
 		'--flags',
 		'--imports-watcher',
 	]
-		
+
 	list_of_flags.forEach( f => flags[f] = f.replace( /^-+/, '' ) )
 
 	process.argv.slice(2).forEach( flag => {
@@ -28,7 +28,7 @@ require( './methods' )
 			noflags = false
 			return
 		}
-		
+
 		throw new Error( `Unknown flag "${flag}". Run Mao with "--flags" flag to see all flags` )
 	})
 
@@ -118,15 +118,15 @@ const _tkns = JSON.parse( read( './tokens.json' )
 Booru.BooruResponse.prototype.embed = function( pics, mapFunction = null ){
 	if( typeof pics === 'number' )
 		pics = this.results[pics]
-	
+
 	if( !( pics instanceof Array ) )
 		pics = [pics]
-	
+
 	const videos = []
 	const embeds = pics.map( pic => {
 		if( pic.unsupportedExtention )
 			videos.push( pic.full )
-		
+
 		return Embed()
 			.setDescription( `[${this.tags ? 'Tags: ' + this.tags : 'No tags'}](${pic.post_url.replace( /\)/g, '%29' )})` )
 			.setImage( pic.sample )
@@ -155,7 +155,7 @@ const Gelbooru = new Booru({
 			pic.hasSample = post.sample == 1
 			pic.sample = post.file_url
 			pic.full = post.file_url
-			
+
 			if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
 				pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
 					? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
@@ -248,26 +248,26 @@ function tts( table, maxtab = 4, tab = 0 ){
 		return 'null\n'
 
 	let isarray = table && table instanceof Array
-	
+
 	if( tab >= maxtab )
 		return ( isarray ? '[ ... ]' : '{ ... }' ) + '\n'
-	
+
 	if( typeof table !== 'object' )
 		return `here's ur ${typeof table} for u:\n	${String( table )}`
-	
+
 	let str = ''
-	
+
 	if( tab === 0 )
 		__duplicates = []
-	
+
 	++tab
-	
+
 	for( let k in table ){
 		const value = table[k]
-		
+
 		if( typeof value == 'object' ){
 			str += tabstr(tab)
-			
+
 			if( value !== null ){
 				if( __duplicates.includes( value ) ){
 					str += `Duplicate of ${value.constructor.name}\n`
@@ -275,19 +275,19 @@ function tts( table, maxtab = 4, tab = 0 ){
 				} else
 					__duplicates.push( value )
 			}
-			
+
 			str += `${k}: ${tts( value, maxtab, tab )}`
 		} else {
 			if( isarray && !k.match( /^[0-9]*$/ ) )
 				continue
-			
+
 			let val
 
 			switch( typeof value ){
 				case 'string':
 					val = `"${value}"`
 					break
-				
+
 				case 'function':
 					//val = String( value ).split( '{' )[0] + '{ ... }'
 					val = String( value ).replace( /^((async\s+)?(.+?=>\s*|function\s*[\w_]*\(.*?\)\s*))\{.*\}$/, '$1{ ... }' )
@@ -301,15 +301,15 @@ function tts( table, maxtab = 4, tab = 0 ){
 			str = str + tabstr( tab ) + k + `: ${val}\n`
 		}
 	}
-	
+
 	str = ( isarray ? '[' : '{' ) + ( str ? '\n' + str + tabstr( tab - 1 ) : '' ) + ( isarray ? ']' : '}' )
 	--tab
-	
+
 	if( tab === 0 )
 		__duplicates = []
 	else
 		str += '\n'
-	
+
 	return str
 }
 
@@ -334,14 +334,14 @@ function decodeHTMLEntities( string ){
 function httpGet( options, callback, errcallback ){
 	const promise = new Promise( ( resolve, reject ) => {
 		let protocol, url = options.path ?? options
-		
+
 		if( url.startsWith( 'https' ) )
 			protocol = https
 		else if( url.startsWith( 'http' ) )
 			protocol = http
 		else
 			return reject( 'Wrong protocol' )
-		
+
 		protocol.get( options, resp => {
 			let data = ''
 			resp.on( 'data', chunk => data += chunk )
@@ -430,7 +430,7 @@ client.once( 'ready', () => {
 		isOnlineOrInitialized = true
 
 	lch = client.channels.cache.get( '721667351648403507' )
-	
+
 	client.on( 'ready', () => {
 		log( "I'm back" )
 		lch = client.channels.cache.get( '721667351648403507' )
@@ -492,7 +492,7 @@ client.on( 'messageDelete', msg => {
 
 client.once( 'ready2', () => {
 	/// Here the bot is fully initialized ///
-	
+
 	log( 'Logged in as ' + client.user.tag )
 })
 
@@ -524,7 +524,7 @@ function include( path, overwrites ){
 	if( overwrites instanceof Object )
 		for( let k in overwrites )
 			requirements[k] = overwrites[k]
-	
+
 	requirements.define = local_global => {
 		for( let k in requirements )
 			local_global[k] = requirements[k]
@@ -683,9 +683,6 @@ MM.unshiftHandler( 'eval', true, async msg => {
 				? eval( code )
 				: await eval( code )
 
-			if( evalflags.silent )
-				return abortHQ()
-
 			const printEvaled = !!( () => {
 				if( evalflags.whats ){
 					let type = typeof evaled
@@ -707,13 +704,13 @@ MM.unshiftHandler( 'eval', true, async msg => {
 						evaled = `\`${String( evaled )}\` has no keys`
 						return true
 					}
-					
+
 					evaled = Object.keys( evaled ).join( '` `' )
 					evaled = evaled ? `keys: \`${evaled}\`` : 'no keys'
 					evalflags.tts = false
 					return true
 				}
-				
+
 				if( evalflags.tts ){
 					evaled = typeof evaled === 'object'
 						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled, evalflags.tts.value )}`
@@ -721,7 +718,10 @@ MM.unshiftHandler( 'eval', true, async msg => {
 
 					return true
 				}
-				
+
+				if( evalflags.silent )
+					return false
+
 				switch( typeof evaled ){
 					case 'undefined':
 						evaled = 'undefined'
@@ -750,12 +750,12 @@ MM.unshiftHandler( 'eval', true, async msg => {
 					case 'object':
 						if( !__printerr )
 							return
-								
+
 						if( evaled === null ){
 							evaled = 'null'
 							return true
 						}
-						
+
 						switch( evaled.constructor?.name ){
 							case 'MessageEmbed':
 							case 'Jimp':
@@ -771,20 +771,20 @@ MM.unshiftHandler( 'eval', true, async msg => {
 								break
 						}
 						break
-						
+
 					case 'function':
 						let funcbody = String( evaled )
 						let indent = funcbody.matchFirst( /\n(\s+)[^\n]+$/ )
-						
+
 						if( indent ){
 							indent = ( indent.match( /\t/g )?.length ?? 0 ) + ( indent.match( /\s{4}/g )?.length ?? 0 )
 							funcbody = funcbody.replace( new RegExp( `^(\\t|[^\\t\\S]{4}){${indent}}`, 'gm' ), '' )
 						}
-						
+
 						evaled = funcbody
 						evalflags.cb = { value: 'js' }
 						break
-						
+
 					default:
 						evaled = `Result parse error: unknown type "${typeof evaled}" of evaled`
 						break
@@ -793,10 +793,12 @@ MM.unshiftHandler( 'eval', true, async msg => {
 				return true
 			})()
 
-			if( typeof evaled !== 'string' )
-				return
-			else if( !evalflags.cb && evaled.indexOf( '\n' ) !== -1 )
-				evalflags.cb = true
+			if( printEvaled ){
+				if( typeof evaled !== 'string' )
+					return
+				else if( !evalflags.cb && evaled.indexOf( '\n' ) !== -1 )
+					evalflags.cb = true
+			}
 
 			if( __output ){
 				if( printEvaled )
@@ -812,7 +814,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 				msg.isCommand = true
 				return abortHQ()
 			}
-			
+
 			return abortHQ()
 		} catch( err ){
 			if( __printerr ){
@@ -838,7 +840,7 @@ CM.on( 'cant-access', ( msg, command ) => {
 	console.log( `[CM] User "${msg.author.username}" (${msg.author.id}) tried to access "${command.name}" command` )
 
 	msg.author.nextWeirdReaction ??= Date.now() + 1337
-	
+
 	if( msg.author.nextWeirdReaction < Date.now() ){
 		msg.author.nextWeirdReaction = Date.now() + 13370
 		msg.send( ':/' )

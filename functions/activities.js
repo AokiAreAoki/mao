@@ -11,42 +11,42 @@ module.exports = {
 			STREAMING: true,
 			CUSTOM_STATUS: false, // for users only
 		}
-		
+
 		function Activity( options ){
 			if( typeof options === 'string' )
 				return Activity({ callback: options })
-		
+
 			const activity = {
 				type: options.type ? options.type.toUpperCase() : 'PLAYING',
 			}
-		
+
 			if( !activityTypes[activity.type] )
 				throw Error( `Unknown activity type: "${type}"` )
-		
+
 			if( typeof options.name === 'string' )
 				activity.name = options.name
-		
+
 			if( options.deadline )
 				activity.deadline = Number( options.deadline )
-		
+
 			if( options.callback instanceof Function ){
 				activity.static = false
 				activity.callback = options.callback
 				return activity
 			}
-		
+
 			if( typeof options.callback === 'number' )
 				options.callback = String( options.callback )
-			
+
 			if( typeof options.callback === 'string' ){
 				activity.static = true
 				activity.string = options.callback
 				return activity
 			}
-			
+
 			throw new Error( `Wrong type of options.callback (expected function or string, got ${typeof options.callback}` )
 		}
-		
+
 		class ActivityManager {
 			static id = -1
 			static next = 0
@@ -92,13 +92,13 @@ module.exports = {
 					? activity.string
 					: activity.callback( activity )
 				)
-				
+
 				if( this.text !== text ){
 					this.text = text
 					client.user.setActivity( text, { type: activity.type } )
 				}
 			}
-			
+
 			static reset(){
 				this.id = -1
 				this.text = ''
@@ -110,31 +110,22 @@ module.exports = {
 				this.activities.push( Activity({ type, callback }) )
 			}
 
-			// add custom activity
-			static addCA( name, deadline, type, callback ){
+			// set custom activity
+			static setCA( name, deadline, type, callback ){
 				db.customActivities ??= []
 
 				const activity = Activity({ name, deadline, type, callback })
-				db.customActivities.push( activity )
-				db.customActivities.sort( ( a, b ) => a.deadline - b.deadline )
-			}
-
-			// edit custom activity
-			static editCA( name, deadline, type, callback ){
-				db.customActivities ??= []
-
 				const index = db.customActivities.findIndex( a => a.name === name )
 
 				if( index === -1 )
-					return false
+					db.customActivities.push( activity )
+				else
+					db.customActivities[index] = activity
 
-				const activity = Activity({ name, deadline, type, callback })
-				db.customActivities[index] = activity
 				db.customActivities.sort( ( a, b ) => a.deadline - b.deadline )
-				return true
 			}
 		}
-		
+
 		mao.AM = ActivityManager
 		client.once( 'ready2', () => AM.init( client ) )
 
@@ -143,10 +134,10 @@ module.exports = {
 			? `for ${ Math.floor( process.uptime() / 3600 ) }/${ Math.floor( db.totaluptime / 60 ) } hours`
 			: 'bruh'
 		)
-		
+
 		// msg rate
 		const msgrate = []
-		
+
 		client.on( 'messageCreate', msg => {
 			if( msg.member && !msg.author.bot )
 				msgrate.push( Date.now() + 60e3 )
@@ -156,7 +147,7 @@ module.exports = {
 			while( msgrate.length !== 0 && msgrate[0] < Date.now() )
 				msgrate.shift()
 		}, 1337 )
-		
+
 		ActivityManager.pushActivity( 'PLAYING', () => `${msgrate.length} msg${msgrate.length === 1 ? '' : 's'}/min` )
 	}
 }

@@ -51,15 +51,19 @@ module.exports = {
 					.join( '\n' )
 				)
 
+			let abortHQ = false
+
 			if( links ){
-				const promise = msg.send( links )
-
-				if( reaction )
-					Promise.all([ promise, reaction ])
-						.then( () => msg.reactions.removeAll() )
-
-				return true
+				await msg.send( links )
+				abortHQ = true
 			}
+
+			if( reaction ){
+				await reaction
+				msg.reactions.removeAll()
+			}
+
+			return abortHQ
 		})
 	}
 }

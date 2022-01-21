@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'client MM discord',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		const responses = [
 			`%user`,
 			`(Hi|Yes), (%user|cutie)~`,
@@ -10,11 +10,11 @@ module.exports = {
 			`nya(~)?`,
 			`?`,
 		]
-		
+
 		const emojis = [
 			'928644275145691186',
 		]
-		
+
 		function getRandomResponse( member ){
 			const r = Math.floor( Math.random() * responses.length )
 
@@ -26,10 +26,10 @@ module.exports = {
 				.replace( /\((.+?)\|(.+?)\)/g, ( matched, a, b ) => Math.random() < 0.5 ? a : b )
 				.replace( /%user/gi, member.displayName.replace( /@/g, '#' ) )
 		}
-		
+
 		let mentionRE = /^(mao|мао)/i
 		// = /^(mao|мао)([~_\-\s]((ch|s)an|чан|сан|тян))?~?\s*((stupid|shit)\s+bot|baka|бака|дура|дурында)\s*~?[!.]?$/i
-		
+
 		client.on( 'ready', () => {
 			mentionRE = new RegExp( `^(?:mao|мао|<@!?(${client.user.id})>)`, 'i' )
 
@@ -40,7 +40,7 @@ module.exports = {
 					responses.push( emoji )
 			})
 		})
-		
+
 		MM.pushHandler( 'mention_response', false, msg => {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
@@ -68,7 +68,7 @@ module.exports = {
 					? msg.member.displayName.replace( /@/g, '#' ) + postfix
 					: getRandomResponse( msg.member )
 
-				msg.send( response, 0 )
+				return msg.send( response, 0 )
 			}
 		})
 	}

@@ -108,8 +108,10 @@ module.exports = {
 				})
 				.join( '\n' )
 
-			if( exchangeRates )
+			if( exchangeRates ){
 				msg.send( exchangeRates )
+				return true
+			}
 		})
 	}
 }

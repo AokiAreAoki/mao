@@ -23,6 +23,10 @@ module.exports = {
 			return Math.floor( ( Number( date ) + ( GMT - postAt ) * 3600e3 ) / 86400e3 )
 		}
 
+		function getDateStart( date = getDate() ){
+			return date * 86400e3
+		}
+
 		function parseXML( xml ){
 			let posts = xml.match( /<post\s+(.+?)\/>/gm )
 			let result = []
@@ -143,7 +147,11 @@ module.exports = {
 
 			Booru.q( tags )
 				.then( async response => {
-					let pic, pics = response.pics.filter( pic => Date.now() - new Date( pic.created_at ) < 86400e3 )
+					const startOfTheDay = getDateStart( today )
+					let pic, pics = response.pics.filter( pic => {
+						const postedAt = new Date( pic.created_at )
+						return startOfTheDay > postedAt && startOfTheDay - postedAt < 86400e3
+					})
 
 					if( pics.length !== 0 )
 						// Choose a pic with the best score or else the first one

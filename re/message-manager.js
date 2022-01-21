@@ -5,7 +5,7 @@ function listTypes( types ){
 
 	if( types.length !== 0 )
 		return `${types.join( ', ' )} or ${lastType}`
-	
+
 	return lastType
 }
 
@@ -15,7 +15,7 @@ function checkTypes( variables, types, throwError = false ){
 
 	for( let name in variables ){
 		const value = variables[name]
-		
+
 		if( types.every( type => {
 			if( typeof type === 'string' ){
 				if( typeof value !== type )
@@ -27,7 +27,7 @@ function checkTypes( variables, types, throwError = false ){
 		}) ){
 			if( throwError )
 				throw TypeError( `arg ${name} expected to be an instance of a ${listTypes( types )}, got ${value?.constructor.name ?? typeof value}` )
-			
+
 			return false
 		}
 	}
@@ -40,7 +40,7 @@ class MessageManager {
 	handleEdits
 	handleDeletion
 	handlers = []
-	
+
 	constructor({
 		discord,
 		client,
@@ -57,8 +57,9 @@ class MessageManager {
 
 		discord.Message.prototype.deleteAnswers = async function(){
 			if( this._answers instanceof Array && this._answers.length !== 0 ){
-				this._answers = this._answers.filter( m => !m.deleted )
-				return await this.channel.bulkDelete( this._answers )
+				const answers = this._answers.filter( m => !m.deleted )
+				this._answers = []
+				return this.channel.bulkDelete( answers )
 			}
 		}
 
@@ -71,11 +72,10 @@ class MessageManager {
 
 		if( this.handleEdits )
 			this.client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
-				oldMsg.waiter?.cancel()
-				newMsg.hasBeenEdited = true
-
 				if( oldMsg.content !== newMsg.content ){
-					oldMsg.deleteAnswers()
+					newMsg.waiter?.cancel()
+					newMsg.deleteAnswers()
+					newMsg.hasBeenEdited = true
 					this.handleMessage( newMsg, true )
 				}
 			})
@@ -105,13 +105,15 @@ class MessageManager {
 		return true
 	}
 
-	async handleMessage( message ){
-		message._answers = []
+	async handleMessage( message, hasBeenEdited = false ){
+		if( !hasBeenEdited )
+			message._answers = []
+
 		message.isCommand = false
 
 		if( ResponseWaiter.handleMessage( message ) )
 			return
-		
+
 		for( let i = 0; i < this.handlers.length; ++i ){
 			const handler = this.handlers[i]
 
@@ -142,14 +144,14 @@ class ResponseWaiter {
 	static interval
 	static collectGarbage = false
 	static waiters = []
-	
+
 	static find( user, channel ){
 		return ResponseWaiter.waiters.find( waiter => waiter.userMessage.author.id === user.id && waiter.userMessage.channel.id === channel.id && !waiter.finished )
 	}
 
 	static init( discord ){
 		ResponseWaiter.discord = discord
-		
+
 		discord.Message.prototype.awaitResponse = function( options ){
 			options = options ?? {}
 			options.userMessage = this
@@ -169,7 +171,7 @@ class ResponseWaiter {
 		})
 
 		let closestTimeout = 0
-		
+
 		clearInterval( ResponseWaiter.interval )
 		ResponseWaiter.interval = setInterval( () => {
 			const now = Date.now()
@@ -204,10 +206,10 @@ class ResponseWaiter {
 
 	static handleMessage( message ){
 		const waiter = ResponseWaiter.find( message.author, message.channel )
-		
+
 		if( waiter )
 			return waiter.handleResponse( message )
-		
+
 		return false
 	}
 
@@ -230,14 +232,14 @@ class ResponseWaiter {
 			throw Error( `ResponseWaiter must be initialized first` )
 
 		const discord = ResponseWaiter.discord
-		
+
 		checkTypes( { userMessage }, discord.Message, true )
 		checkTypes( { displayMessage }, [discord.Message, 'undefined'], true )
 
 		this.userMessage = userMessage
 		this.displayMessage = displayMessage
 		this.deadline = Date.now() + ( typeof timeout === 'number' ? timeout * 1e3 : 30e3 )
-		
+
 		userMessage.waiter?.cancel()
 		userMessage.waiter = this
 		ResponseWaiter.waiters.push( this )

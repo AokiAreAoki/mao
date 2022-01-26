@@ -221,10 +221,10 @@ class Paginator {
 
 			return
 		}
-			
-		this.nextChange = Date.now() + 1337
+
+		this.nextChange = Date.now() + 2e3
 		const new_content = this.getPageContent()
-		
+
 		if( new_content )
 			this.message.edit( new_content )
 	}

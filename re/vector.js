@@ -73,32 +73,32 @@ let FunctionsForVM = {
 	},
 	fromHex: hex => {
 		let array = []
-		
+
 		while( hex > 0 && array.length < 4 ){
 			array.push( hex % 256 )
 			hex = Math.floor( hex / 256 )
 		}
-		
+
 		return vec.fromArray( array.reverse() )
 	},
 	fromArray: array => {
 		let v = vec()
-		
+
 		for( let i = 0; i < 4; ++i )
 			if( typeof array[i] == 'number' )
 				v[ 'xyzw'[i] ] = array[i]
-		
+
 		return v
 	},
 	fromTable: table => {
 		let v = vec()
-		
+
 		for( let i = 0; i < 4; ++i ){
 			let axis = 'xyzw'[i]
 			if( typeof table[axis] == 'number' )
 				v[axis] = table[axis]
 		}
-		
+
 		return v
 	},
 }
@@ -138,7 +138,7 @@ class Vector {
 		else
 			this.axes = 2
 	}
-	
+
 	forEach( axes, cb ){
 		if( typeof axes == 'function' ){
 			cb = axes
@@ -187,7 +187,7 @@ class Vector {
 
 		throw new Error( 'Argiment #1 must be a vector or number' )
 	}
-	
+
 	sub( vector ){
 		if( v( vector ) ){
 			let axes = Math.min( this.axes, vector.axes )
@@ -205,7 +205,7 @@ class Vector {
 
 		throw new Error( 'Argiment #1 must be a vector or number' )
 	}
-	
+
 	mul( vector ){
 		if( v( vector ) ){
 			let axes = Math.min( this.axes, vector.axes )
@@ -223,7 +223,7 @@ class Vector {
 
 		throw new Error( 'Argiment #1 must be a vector or number' )
 	}
-	
+
 	div( vector ){
 		if( v( vector ) ){
 			let axes = Math.min( this.axes, vector.axes )
@@ -318,14 +318,14 @@ class Vector {
 
 		return this
 	}
-	
+
 	remixAxes( axes ){
 		axes = axes.toLowerCase().replace( /[^xyzw]/, '' )
 		let copy = this.copy()
-		
+
 		for( let i = 0; i < Math.min( axes.length, 4 ); ++i )
 			this[ 'xyzw'[i] ] = copy[ axes[i] ]
-		
+
 		return this
 	}
 
@@ -333,7 +333,7 @@ class Vector {
 
 	copy( axes ){
 		var copy = vec()
-		
+
 		this.forEach( axes, ( value, axis ) => {
 			copy[axis] = value
 		})
@@ -375,10 +375,14 @@ class Vector {
 		return total / amount
 	}
 
-	scalar( axes ){
+	scalarNoSqrt( axes ){
 		let scalar = 0
-		this.forEach( axes, axis => { scalar += axis ** 2 } )
-		return Math.sqrt( scalar )
+		this.forEach( axes, axis => { scalar += axis * axis } )
+		return scalar
+	}
+
+	scalar( axes ){
+		return Math.sqrt( this.scalarNoSqrt( axes ) )
 	}
 
 	angFromNormal( doReturnDegrees=false ){
@@ -389,7 +393,7 @@ class Vector {
 	ang( doReturnDegrees=false ){
 		return this.copy().normalize().angFromNormal( doReturnDegrees )
 	}
-	
+
 	toHex(){
 		let hex = 0
 		this.forEach( v => hex = hex * 256 + v )

@@ -82,6 +82,7 @@ logw( 'Requiring custom modules...' )
 	const List = require( './re/list' )
 	const MessageManager = require( './re/message-manager' )
 	//const MyLang = require( './re/MyLang' )
+	const NH = new ( require( 'nhentai-api' ) ).API()
 	const Paginator = require( './re/paginator' )
 	const SauceNAO = require( './re/saucenao-wrapper' )
 	const timer = require( './re/timer' )
@@ -675,7 +676,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 				code = code
 					.replace( /<@!?(\d+)>/gi, `( here.guild.members.cache.get('$1') || client.users.cache.get('$1') )` ) // Member || User
 					.replace( /<#(\d+)>/gi, `client.channels.cache.get('$1')` ) // Channel
-					.replace( /<\w*:[\w_]+:(\d+)>/gi, `client.emojis.cache.get('$1')` ) // Emoji
+					.replace( /<\w*:[\w_]+:(\d+)>/gi, `client.emojis.resolve('$1')` ) // Emoji
 					.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Role
 			}
 

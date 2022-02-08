@@ -46,7 +46,7 @@ module.exports = {
 			}
 
 			const links = await Promise.all( utils.map( util => util( msg, react ) ) )
-				.then( links => links
+				.then( links => [].concat( ...links )
 					.filter( link => !!link )
 					.join( '\n' )
 				)

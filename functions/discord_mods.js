@@ -68,7 +68,15 @@ module.exports = {
 			return cutIfLimit( options )
 		}
 
+		/// Collection ///
+
+		// Collection.toArray
+		discord.Collection.prototype.toArray = function(){
+			return Array.from( this.values() )
+		}
+
 		/// TextChannel ///
+
 		// TextChannel.cacheLastMessages
 		discord.TextChannel.prototype.cacheLastMessages = async function(){
 			const msgs = await this.messages.fetch({ limit: 100 })
@@ -143,6 +151,7 @@ module.exports = {
 		}
 
 		/// Message ///
+
 		// Message.reply
 		discord.Message.prototype.original_reply = discord.Message.prototype.reply
 		discord.Message.prototype.reply = function( content, options, mention = false ){
@@ -279,7 +288,7 @@ module.exports = {
 				.catch( () => null )
 		}
 
-		// advanced setActivity
+		/// Advanced setActivity
 		let repeat,
 			quota = 0,
 			quotaReset = 0,
@@ -311,6 +320,7 @@ module.exports = {
 			return false
 		}
 
+		/// Third party emoji resolver
 		discord.BaseGuildEmojiManager.prototype.original_resolve = discord.BaseGuildEmojiManager.prototype.resolve
 		discord.BaseGuildEmojiManager.prototype.resolve = function( emojiID, data ){
 			const emoji = this.original_resolve( emojiID )

@@ -7,7 +7,7 @@ module.exports = {
 			return string.replace( /_/g, ' ' ).replace( /\b((\w)(\w*))/g, ( match, word, firstLetter, rest ) => {
 				if( word === 'id' )
 					return 'ID'
-					
+
 				return firstLetter.toUpperCase() + rest
 			})
 		}
@@ -17,7 +17,7 @@ module.exports = {
 			const messagePromise = msg.send( Embed()
 				.setTitle( emoji.toString() )
 			)
-			
+
 			const sauces = await sauce.find( url, false )
 				.catch( () => null )
 
@@ -34,7 +34,7 @@ module.exports = {
 				for( const k in data ){
 					if( k.endsWith( '_id' ) || k === 'ext_urls' )
 						continue
-						
+
 					if( !data[k] )
 						continue
 
@@ -60,7 +60,7 @@ module.exports = {
 					.setImage( header.thumbnail )
 					.setFooter( `Page: ${page + 1}/${sauces.length}` )
 			})
-			
+
 			messagePromise.then( message => {
 				msg.sauceMessage = message
 				msg.author.createPaginator()
@@ -72,15 +72,21 @@ module.exports = {
 
 		addCmd({
 			aliases: 'saucenao sauce',
-			description: 'WIP',
+			description: '// TODO',
 			callback: async ( msg, args ) => {
 				if( args[0] )
 					return sendSauce( msg, args[0] )
-				
-				const msgs = await msg.channel.messages.fetch({ limit: 100 })
-					.catch( () => new Collection() )
 
-				if( msgs.size === 0 )
+				const msgs = await msg.channel.messages.fetch({ limit: 100 })
+					.then( c => c.toArray() )
+					.catch( () => [] )
+
+				const ref = await msg.getReferencedMessage()
+
+				if( ref )
+					msgs.unshift( ref )
+
+				if( msgs.length === 0 )
 					return msg.send( 'No messages found :(' )
 
 				let url

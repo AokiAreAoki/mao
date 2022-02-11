@@ -64,10 +64,10 @@ module.exports = {
 				options.content = cb( options.content )
 				delete options.cb
 			}
-			
+
 			return cutIfLimit( options )
 		}
-		
+
 		/// TextChannel ///
 		// TextChannel.cacheLastMessages
 		discord.TextChannel.prototype.cacheLastMessages = async function(){
@@ -108,7 +108,7 @@ module.exports = {
 			return this.sendTyping()
 				.then( () => this.original_send( handleArgs( content, options ) ) )
 		}
-		
+
 		// TextChannel.sendcb
 		discord.TextChannel.prototype.sendcb = function( content, options ){
 			options = handleArgs( content, options )
@@ -135,11 +135,11 @@ module.exports = {
 				messages.each( m => m.makeUnpurgable?.( delay ) )
 			else
 				messages.forEach?.( m => m.makeUnpurgable?.( delay ) )
-			
+
 			if( delay )
 				await new Promise( resolve => setTimeout( resolve, delay ) )
 
-			return this.bulkDelete( messages )			
+			return this.bulkDelete( messages )
 		}
 
 		/// Message ///
@@ -176,10 +176,10 @@ module.exports = {
 				replyLvl = options
 				options = {}
 			}
-			
+
 			if( cb )
 				options.cb = true
-			
+
 			if( replyLvl > 0 && !this.deleted )
 				return this.reply( content, options, replyLvl !== 1 )
 
@@ -191,7 +191,7 @@ module.exports = {
 					return m
 				})
 		}
-		
+
 		// Message.edit
 		discord.Message.prototype.original_edit = discord.Message.prototype.edit
 		discord.Message.prototype.edit = function( content, options = {} ){
@@ -218,7 +218,7 @@ module.exports = {
 			this.deletion = this.original_delete().catch( () => this )
 			await this.deletion
 			delete this.deletion
-			
+
 			this.deleted = true
 			return this
 		}
@@ -241,10 +241,10 @@ module.exports = {
 		// Message.getReferencedMessage
 		discord.Message.prototype.getReferencedMessage = async function(){
 			const r = this.reference
-		  
+
 			if( !r )
 				 return null
-		  
+
 			return this.reference.message ??= client.guilds.fetch( r.guildId )
 				.then( g => g.channels.fetch( r.channelId ) )
 				.then( c => c.messages.fetch( r.messageId ) )
@@ -265,7 +265,7 @@ module.exports = {
 				return null
 
 			const id = name.matchFirst( /\d+/ )
-			
+
 			if( id ){
 				const memberFetchedByID = await this.fetch( id )
 					.catch( () => null )
@@ -292,12 +292,12 @@ module.exports = {
 				quotaReset = Date.now() + 21e3
 				quota = 0
 			}
-			
+
 			let nextRequest = quotaReset - Date.now() + 1
 
 			if( quota < 5 ){
 				nextRequest = lastRequest + 3500 - Date.now()
-				
+
 				if( nextRequest < 0 ){
 					this.original_setActivity( name, options )
 					++quota
@@ -305,10 +305,21 @@ module.exports = {
 					return true
 				}
 			}
-				
+
 			clearTimeout( repeat )
 			repeat = setTimeout( () => this.setActivity( name, options ), nextRequest )
 			return false
+		}
+
+		discord.BaseGuildEmojiManager.prototype.original_resolve = discord.BaseGuildEmojiManager.prototype.resolve
+		discord.BaseGuildEmojiManager.prototype.resolve = function( emojiID, data ){
+			const emoji = this.original_resolve( emojiID )
+
+			if( emoji )
+				return emoji
+
+			const [, a, name, id] = data.match( /<(a)?:([\w_-]+):(\d+)>/ )
+			return new discord.Emoji( client, { animated: !!a, name, id } )
 		}
 	}
 }

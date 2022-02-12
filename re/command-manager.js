@@ -3,7 +3,7 @@ const { Collection } = require( '../node_modules/discord.js' )
 
 String.prototype.matchFirst = function( re, cb ){
 	let matched = this.match( re )
-	
+
 	if( matched )
 		matched = matched[1] ?? matched[0]
 
@@ -69,7 +69,7 @@ class CommandManager extends require( 'events' ) {
 	findCommandAndArgs( string_args ){
 		if( typeof string_args !== 'string' )
 			return []
-			
+
 		const subcommands = string_args.split( /\s+/ )
 		const deleteAfterDelay = subcommands[0].toLowerCase() === 'd'
 		let command = deleteAfterDelay
@@ -101,7 +101,7 @@ class CommandManager extends require( 'events' ) {
 			if( m?.deleteAfterDelay )
 				m.delay?.expand()
 		})
-		
+
 		// Ignore bots and itself
 		if( msg.author.id == this.client.user.id || msg.author.bot )
 			return
@@ -114,11 +114,11 @@ class CommandManager extends require( 'events' ) {
 				return
 
 			prefix = msg.content.matchFirst( new RegExp( `^<@!?${client.user.id}>\s*` ) )
-		
+
 			if( !prefix )
 				return
 		}
-			
+
 		// If prefix found
 		const [
 			command,
@@ -126,7 +126,7 @@ class CommandManager extends require( 'events' ) {
 			string_args,
 			deleteAfterDelay,
 		] = this.findCommandAndArgs( msg.content.substring( prefix.length ) )
-		
+
 		if( command ){
 			if( !this.canAccessModule( msg.author, command.module ) )
 				return this.emit( 'cant-access', msg, command )
@@ -151,7 +151,7 @@ class CommandManager extends require( 'events' ) {
 				command.callback.call( command, msg, args, args.get_string )
 			else
 				log( `Error: callback of "${command}" command is a ${typeof command.callback}, a function expected` )
-			
+
 			return true
 		}
 	}
@@ -219,7 +219,7 @@ class Command {
 	static recursiveSubcommandsList = false
 	subcommands = new SubcommandsArray()
 	parent = null
-	
+
 	constructor( options ){
 		let {
 			module,
@@ -246,7 +246,7 @@ class Command {
 				this.flags.set( flag.name, flag )
 			}
 		})
-		
+
 		this.hasFlags = this.flags.size !== 0
 
 		if( !this.hasFlags )
@@ -275,7 +275,7 @@ class Command {
 						this.cm.client.once( 'ready', () => {
 							setTimeout( () => {
 								console.log()
-								
+
 								prop_warns.forEach( warn => {
 									console.warn( `(${warn.command}).${warn.property} property must be at (${warn.command}).description.${warn.property}` )
 								})
@@ -384,9 +384,11 @@ class ArgumentParser extends Array {
 				const flag = command.flags.get( arg.substr( prefix.length ) )
 
 				if( flag ){
-					this.flags[flag.name] = this.spliceArgs( i, flag.args.length + 1 )
-					this.flags[flag.name].shift()
-					this.flags[flag.name].specified = true
+					const flagInstance = this.spliceArgs( i, flag.args.length + 1 )
+					flagInstance.shift()
+					flagInstance.class = flag
+					flagInstance.specified = true
+					this.flags[flag.name] = flagInstance
 				}
 			}
 
@@ -491,7 +493,7 @@ class ArgumentParser extends Array {
 				arg += char
 			}
 		}
-		
+
 		if( arg ){
 			this.push( arg )
 			this.pos.push( pos )
@@ -534,10 +536,10 @@ class SubcommandsArray extends Array {
 		return this.map( ( command, index ) => {
 			const last = index === this.length - 1
 			let description = `${tab}${index === this.length - 1 ? '└─' : '├─'} ${command.name} :: ${command.description.short}`
-			
+
 			if( command.subcommands.length !== 0 )
 				description += '\n' + command.subcommands.listCommands( tab + ( last ? '   ' : '│  ' ) )
-			
+
 			return description
 		}).join( '\n' )
 	}
@@ -568,7 +570,7 @@ class CommandDescription {
 		} else {
 			this.short = short ?? this.short
 			this.full = full ?? this.full
-			
+
 			if( this.full instanceof Array )
 				this.full = this.full.join( '\n' )
 		}
@@ -582,7 +584,7 @@ class CommandDescription {
 			else if( args instanceof Array )
 				this.usages.push( new Usage( args ) )
 		})
-		
+
 		examples?.forEach( args => {
 			if( typeof args === 'string' )
 				this.examples.push( args )
@@ -597,14 +599,14 @@ class CommandDescription {
 
 		return text[0].toUpperCase() + text.substr(1)
 	}
-	
+
 	uncapitalize( text ){
 		if( typeof text !== 'string' || text.length === 0 )
 			return null
 
 		return text[0].toLowerCase() + text.substr(1)
 	}
-	
+
 	toString(){
 		/// Single new line ///
 		let array = [
@@ -636,7 +638,7 @@ class CommandDescription {
 				].map( arg => {
 					if( arg[0] === '\n' )
 						return `\n   \`${arg.substr(1)}\``
-					
+
 					return `\`${arg}\``
 				})
 
@@ -677,14 +679,14 @@ function Usage( args ){
 
 		return matched
 	}))
-	
+
 	this.description = description?.replace( /(@@|\$\d+)/g, ( matched, placeholder ) => {
 		if( placeholder === '@@' )
 			return '`@user`'
 
 		if( placeholder[0] === '$' ){
 			const arg = args[parseInt( placeholder.substr(1) ) - 1]
-			
+
 			if( arg )
 				return `\`${arg}\``
 		}
@@ -703,14 +705,14 @@ function Example( args ){
 
 		return matched
 	}))
-	
+
 	this.description = description?.replace( /(@@|\$\d+)/g, ( matched, placeholder ) => {
 		if( placeholder === '@@' )
 			return '@someuser#1337'
 
 		if( placeholder[0] === '$' ){
 			const arg = args[parseInt( placeholder.substr(1) ) - 1]
-			
+
 			if( arg )
 				return `\`${arg}\``
 		}
@@ -752,7 +754,7 @@ class Module {
 				const tab = index === this.commands.length - 1 ? '   ' : '│  '
 				description += '\n' + command.subcommands.listCommands( tab )
 			}
-			
+
 			return description
 		}).join( '\n' )
 	}

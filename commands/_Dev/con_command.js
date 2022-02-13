@@ -3,107 +3,113 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
-		function callback( msg, args ){
+		async function callback( msg, args ){
 			const string_command = args.get_string()
 
 			if( !string_command )
 				return this.sendHelp( msg )
 
 			const loading = String( client.emojis.resolve( '822881934484832267' ) ?? 'Executing...' )
-			const promise = msg.send( loading )
-
-			let finished = false
-			let terminated = false
+			const message = await msg.send( loading )
+			const ac = new AbortController()
 			let timeout
 
-			const command = cp.spawn( args.shift(), args, {
-				timeout: 60e3,
-				detached: true,
-			})
+			const cut = '\n...\n'
 
-			let stdout = '', stdoutChanged = false
-			command.stdout.on( 'data', chunk => {
-				stdout += chunk
-				stdoutChanged = true
-			})
-
-			let stderr = ''
-			command.stderr.on( 'data', chunk => stderr += chunk )
-
-			command.once( 'error', error => {
-				if( terminated )
-					return
-
-				finished = true
-				clearTimeout( timeout )
-
-				promise.then( m => m.edit( 'Error:' + cb( error.toString()
-					.replace( /error:\s*/i, '' )
-					.replace( /\u001b\[\??[\d+;]*\w/gi, '' )
-				)))
-			})
-
-			command.once( 'exit', async error => {
-				if( terminated )
-					return
-
-				finished = true
-				clearTimeout( timeout )
-				let message = await promise
-
-				if( message.deleted ){
-					message = await message.send( `\`${args.get_string()}\` finished execution.` )
-					await new Promise( resolve => setTimeout( resolve, 3e3 ) )
-					message.delete( 8e3 )
-					msg = message
+			function std( std, limit = 1024 ){
+				if( std.length > limit ){
+					const cb = std.matchFirst( /^```\n?/ ) || ''
+					std = std.substring( std.length - limit + cb.length + cut.length + 1 )
+					std = cb.replace( /\n/g, '' ) + cut + std.substring( std.indexOf( '\n' ) + 1 )
 				}
 
-				if( error )
-					return message.edit( 'Error:' + cb( error.toString()
-						.replace( /error:\s*/i, '' )
-						.replace( /\u001b\[\??[\d+;]*\w/gi, '' )
-					))
+				return std
+			}
 
-				message.edit( 'stdout:' + ( stdout
-					? cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) )
-					: '`nothing`'
-				))
+			function editMessage( error, stdout, stderr, finished = false ){
+				const embeds = [Embed()
+					.addField( 'stdout:', stdout
+						? cb( std( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) )
+						: '`nothing`'
+					)
+					.setColor( 0x80FF00 )
+				]
 
 				if( stderr )
-					msg.send( 'stderr:' + cb( stderr
-						.replace( /error:\s*/i, '' )
-						.replace( /\u001b\[\??[\d+;]*\w/gi, '' )
-					))
-			})
+					embeds.push( Embed()
+						.addField( 'stderr:', cb( std( stderr.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) ) )
+						.setColor( 0xFF8000 )
+					)
 
-			promise.then( message => {
+				const options = { embeds }
+
 				if( finished )
-					return
+					options.content = null
 
-				let nextMessageUpdate = Date.now() + 1.2e3
+				const footer = ( () => {
+					if( !finished )
+						return `Executing...`
 
-				function updateOutput(){
-					if( finished )
-						return
+					if( !error )
+						return `Done`
 
-					if( message.deleted ){
-						terminated = true
-						command.kill( 'SIGINT' )
-						message.send( `\`${string_command}\` has been terminated.` )
-							.then( m => m.purge( 3e3 ) )
-						return
-					}
+					if( error.code )
+						return `Exit code: ${error.code}`
 
-					timeout = setTimeout( updateOutput, 100 )
+					return `Signal: ${error.signal}`
+				})()
 
-					if( stdoutChanged && stdout.trim() && nextMessageUpdate < Date.now() ){
-						nextMessageUpdate = Date.now() + 1.2e3
-						message.edit( `${loading}\n${cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) )}` )
-							.then( m => message = m )
-					}
-				}
-				updateOutput()
+				embeds[embeds.length - 1].setFooter( footer )
+
+				if( message.deleted )
+					msg.send( options )
+						.then( m => m.delete( 8e3 ) )
+				else
+					message.edit( options )
+			}
+
+			const command = cp.exec( args.get_string(), {
+				timeout: 60e3,
+				signal: ac.signal,
+				detached: true,
+			}, async ( err, stdout, stderr ) => {
+				clearTimeout( timeout )
+				editMessage( err, stdout, stderr, true )
+
+				// const message = await message.send( `\`${args.get_string()}\` finished execution.` )
+				// await new Promise( resolve => setTimeout( resolve, 3e3 ) )
+				// message.delete( 8e3 )
 			})
+
+			let stdout = '',
+				stderr = '',
+				stdChanged = false
+
+			command.stdout.on( 'data', chunk => {
+				stdout += chunk
+				stdChanged = true
+			})
+
+			command.stderr.on( 'data', chunk => {
+				stderr += chunk
+				stdChanged = true
+			})
+
+			let nextMessageUpdate = 0
+
+			async function updateOutput(){
+				if( message.deleted )
+					return ac.abort()
+
+				if( stdChanged && nextMessageUpdate < Date.now() ){
+					stdChanged = false
+					nextMessageUpdate = Date.now() + 1.2e3
+					editMessage( null, stdout, stderr )
+				}
+
+				timeout = setTimeout( updateOutput, 50 )
+			}
+			updateOutput()
 		}
 
 		addCmd({

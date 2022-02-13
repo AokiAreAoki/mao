@@ -565,8 +565,7 @@ class EvalFlagsParser {
 	}
 
 	parseAndCutFirstFlag( code ){
-		let flag = null,
-			value = null
+		let flag = null, value = null
 
 		code.matchFirst( /^\s*([A-Za-z]+)(?:[\s:])/, matched => {
 			matched = matched.toLowerCase()
@@ -676,7 +675,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 				code = code
 					.replace( /<@!?(\d+)>/gi, `( here.guild.members.cache.get('$1') || client.users.cache.get('$1') )` ) // Member || User
 					.replace( /<#(\d+)>/gi, `client.channels.cache.get('$1')` ) // Channel
-					.replace( /<\w*:[\w_]+:(\d+)>/gi, `client.emojis.resolve('$1')` ) // Emoji
+					.replace( /(<\w*:[\w_]+:(\d+)>)/gi, `client.emojis.resolve('$2','$1')` ) // Emoji
 					.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Role
 			}
 

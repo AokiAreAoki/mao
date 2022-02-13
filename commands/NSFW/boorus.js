@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'client Embed Gelbooru Yandere clamp tts',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		const boorus = [
 			{
 				booru: Gelbooru,
@@ -53,25 +53,25 @@ module.exports = {
 
 		function cd( user, x ){
 			const id = user.id || user
-			
+
 			if( typeof id !== 'string' )
 				return
-			
+
 			if( typeof x === 'number' )
 				return cooldown[id] = Math.max( cd( user ), Date.now() ) + Math.sin( x * Math.PI / maxPicsPerCommand / 2 ) * 5e3
-			
+
 			return cooldown[id] ?? 0
 		}
-		
+
 		async function getNewPics( booruResponse, amount, msg ){
 			let { pics } = booruResponse
-			
+
 			if( !usedPics[msg.guild.id] )
 				usedPics[msg.guild.id] = {}
-			
+
 			const used = usedPics[msg.guild.id]
 			const unused = []
-			
+
 			while( unused.length < amount ){
 				unused.push( ...pics.filter( pic => !used[pic.id] || Date.now() - used[pic.id] > 3600e3 ) )
 
@@ -85,18 +85,18 @@ module.exports = {
 			}
 
 			const newPics = []
-			
+
 			for( let i = 0; i < amount; ++i ){
 				const unusedPic = unused.shift()
-				
+
 				if( unusedPic ){
 					newPics.push( unusedPic )
 					used[unusedPic.id] = Date.now()
 					continue
 				}
-				
+
 				const oldestPic = pics.reduce( ( prev, pic ) => used[pic.id] < used[prev.id] ? pic : prev, pics[Math.floor( Math.random() * pics.length )] )
-				
+
 				if( oldestPic ){
 					newPics.push( oldestPic )
 					used[oldestPic.id] = Date.now()
@@ -111,10 +111,10 @@ module.exports = {
 				userMsg.member.antispam = Date.now() + 1337
 			else
 				return userMsg.react( '❌' )
-			
+
 			if( cd( userMsg.member ) > Date.now() )
 				return userMsg.send( `**Cool down, baka!** \`${Math.floor( cd( userMsg.member, 1 ) - Date.now() ) / 1e3}\` seconds left` )
-	
+
 			if( !this.booru ){
 				userMsg.send( `Internal error happaned: unknown booru: "${args[-1]}"` )
 				console.warn( `unknown booru: "${args[-1]}"` )
@@ -122,38 +122,36 @@ module.exports = {
 			}
 
 			const tags = args.map( t => t.toLowerCase().replace( /\s/g, '_' ) )
-			
+
 			if( tags.some( t => t === maotag ) )
 				return userMsg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
-			
+
 			const force = args.flags.force.specified && userMsg.author.isMaster()
 			let sfw = tags.find( v => v === safetag )
-			
+
 			if( !sfw && args.flags.safe.specified ){
 				tags.push( safetag )
 				sfw = true
 			}
-			
+
 			if( !sfw && !userMsg.channel.nsfw && !force )
 				return userMsg.send( 'This isn\'t an NSFW channel!' );
-			
+
 			const botMsg = userMsg.send( getRandomLoadingPhrase() )
-		
+			const s = tags.length === 1 ? '' : 's'
+
 			this.booru.q( tags )
 				.then( async result => {
 					const pics = result.pics
 
-					if( pics.length === 0 ){
-						botMsg.then( m => m.edit({
+					if( pics.length === 0 )
+						return botMsg.then( m => m.edit({
 							content: null,
 							embeds: [Embed()
-								.setDescription( `Tag(s) \`${result.tags}\` not found :(` )
+								.setDescription( `Nothing found by \`${result.tags}\` tag${s} :(` )
 								.setColor( 0xFF0000 )
 							],
 						}))
-
-						return
-					}
 
 					let amount = parseInt( args.flags.x[0] )
 					amount = isNaN( amount ) ? 1 : clamp( amount, 0, maxPicsPerCommand )
@@ -167,7 +165,17 @@ module.exports = {
 							.setMessage( await botMsg )
 					} else {
 						const newPics = await getNewPics( result, amount, userMsg )
-						botMsg.then( m => m.edit( result.embed( newPics ) ) )
+
+						botMsg.then( m => m.edit( newPics.length === 0
+							? {
+								content: null,
+								embeds: [Embed()
+									.setDescription( `No new pics found by \`${result.tags}\` tag${s}` )
+									.setColor( 0xFF0000 )
+								],
+							}
+							: result.embed( newPics )
+						))
 					}
 
 					cd( userMsg.member, amount )

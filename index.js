@@ -497,6 +497,10 @@ client.once( 'ready2', () => {
 	log( 'Logged in as ' + client.user.tag )
 })
 
+function processing( alt = 'Loading...' ){
+	return String( client.emojis.resolve( '822881934484832267' ) ?? alt )
+}
+
 //////////  Initializing Paginator  //////////
 Paginator.init( discord, client )
 

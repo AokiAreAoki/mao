@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'MM',
+	requirements: 'MM processing',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -21,7 +21,7 @@ module.exports = {
 
 				if( commandMessage ){
 					commandMessage.deleteAnswers()
-					const message = await commandMessage.send( `Repeating the command... ${client.emojis.resolve( '822881934484832267' ) ?? ''}` )
+					const message = await commandMessage.send( `Repeating the command... ${processing('')}` )
 					await MM.handleMessage( commandMessage, true )
 					message.edit( `Repeating the command... ✅` )
 					msg.delete()

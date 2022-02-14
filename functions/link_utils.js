@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'client MM cp',
+	requirements: 'client MM cp processing',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -42,7 +42,7 @@ module.exports = {
 			let reaction = null
 
 			function react(){
-				reaction ??= msg.react( client.emojis.resolve( '822881934484832267' ) )
+				reaction ??= msg.react( processing( '👌' ) )
 			}
 
 			const links = await Promise.all( utils.map( util => util( msg, react ) ) )

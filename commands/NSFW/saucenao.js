@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'sauce Embed Collection',
+	requirements: 'sauce Embed Collection processing',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -13,9 +13,8 @@ module.exports = {
 		}
 
 		async function sendSauce( msg, url ){
-			const emoji = client.emojis.resolve( '822881934484832267' )
 			const messagePromise = msg.send( Embed()
-				.setTitle( emoji.toString() )
+				.setTitle( processing() )
 			)
 
 			const sauces = await sauce.find( url, false )

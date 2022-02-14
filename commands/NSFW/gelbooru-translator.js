@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'join axios decodeHTMLEntities Jimp Gelbooru clamp',
+	requirements: 'join axios decodeHTMLEntities Jimp Gelbooru clamp processing',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -89,8 +89,7 @@ module.exports = {
 				],
 			},
 			callback: async ( msg, args ) => {
-				const emoji = client.emojis.resolve( '822881934484832267' )
-				const message = await msg.send( emoji ? emoji.toString() : '👌' )
+				const message = await msg.send( processing( '👌' ) )
 
 				let tags = ''
 

@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'NH client',
+	requirements: 'NH client processing',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -20,8 +20,7 @@ module.exports = {
 				if( !id )
 					return msg.send( `Provide a doujinshi ID` )
 
-				const loading = client.emojis.resolve( '822881934484832267' ).toString()
-				const promise = msg.send( loading )
+				const promise = msg.send( processing() )
 				const book = await NH.getBook( id )
 				const pages = book.pages.map( page => NH.getImageURL( page ) )
 				const cover = pages.shift()
@@ -62,7 +61,7 @@ module.exports = {
 
 					++i
 					if( i % 5 === 0 && i !== pages.length )
-						message.edit({ content: `${i}/${pages.length} ${loading}` })
+						message.edit({ content: `${i}/${pages.length} ${processing()}` })
 				}
 
 				message.edit({ embeds, content: null })

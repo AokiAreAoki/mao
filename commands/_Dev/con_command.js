@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'client cp',
+	requirements: 'client cp processing',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -9,8 +9,7 @@ module.exports = {
 			if( !string_command )
 				return this.sendHelp( msg )
 
-			const loading = String( client.emojis.resolve( '822881934484832267' ) ?? 'Executing...' )
-			const message = await msg.send( loading )
+			const message = await msg.send( processing() )
 			const ac = new AbortController()
 			let timeout
 

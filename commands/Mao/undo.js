@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'client',
+	requirements: 'client processing',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -10,7 +10,7 @@ module.exports = {
 				msg.isCommand = false
 
 				if( msg.hasBeenEdited ){
-					await msg.react( client.emojis.resolve( '822881934484832267' ) ?? '👌' )
+					await msg.react( processing( '👌' ) )
 					await msg.deleteAnswers()
 					await msg.delete()
 					return
@@ -21,7 +21,7 @@ module.exports = {
 					limit: 100,
 				}).then( async messages => {
 					const commandMessage = messages?.find( m => m.author.id === msg.author.id && m.isCommand )
-					await msg.react( client.emojis.resolve( '822881934484832267' ) ?? '👌' )
+					await msg.react( processing( '👌' ) )
 
 					if( commandMessage ){
 						commandMessage.deleteAnswers()

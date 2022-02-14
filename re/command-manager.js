@@ -212,9 +212,6 @@ class ExpandableDelay {
 }
 CommandManager.ExpandableDelay = ExpandableDelay
 
-let prop_warns = false // disable prop check
-//prop_warns = [] // enable prop check
-
 class Command {
 	static recursiveSubcommandsList = false
 	subcommands = new SubcommandsArray()
@@ -263,33 +260,8 @@ class Command {
 			this.description = new CommandDescription( description )
 		}
 
-		if( prop_warns ){
-			[ // missplaced properties
-				'short',
-				'full',
-				'usages',
-				'examples',
-			].forEach( property => {
-				if( options[property] ){
-					if( prop_warns.length === 0 ){
-						this.cm.client.once( 'ready', () => {
-							setTimeout( () => {
-								console.log()
-
-								prop_warns.forEach( warn => {
-									console.warn( `(${warn.command}).${warn.property} property must be at (${warn.command}).description.${warn.property}` )
-								})
-
-								console.log()
-								prop_warns = false
-							}, 1337 )
-						})
-					}
-
-					prop_warns.push({ command: this.fullName, property })
-				}
-			})
-		}
+		if( this.cm.propChecker instanceof Function )
+			this.cm.propChecker( this, options )
 	}
 
 	get parentTree(){

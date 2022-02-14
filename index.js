@@ -841,6 +841,40 @@ const CM = new CommandManager( client, /^(-|(mao|мао)\s+)/i, true )
 CM.setModuleAccessor( ( user, module ) => !module.isHidden || user.isMaster() )
 MM.unshiftHandler( 'commands', true, ( ...args ) => CM.handleMessage( ...args ) )
 
+if( __flags.dev ){
+	const missplaced_props = []
+	let print = ( command, property ) => missplaced_props.push( [command, property] )
+
+	client.once( 'ready2', () => {
+		print = ( command, property ) => {
+			console.log()
+			console.log( '[CM] Warning: misplaced properties found:' )
+			console.warn(
+				`    command(\`${command.fullName}\`):\n        \`.${property}\` must be at \`.description.${property}\``
+			)
+			console.log()
+		}
+
+		missplaced_props.forEach( warn => print( ...warn ) )
+	})
+
+	const description_props = [
+		'single',
+		'short',
+		'full',
+		'usage',
+		'example',
+	]
+	description_props.push( ...description_props.map( prop => prop + 's' ) )
+
+	CM.propChecker = ( command, options ) => {
+		description_props.forEach( property => {
+			if( options[property] )
+				print( command, property )
+		})
+	}
+}
+
 CM.on( 'cant-access', ( msg, command ) => {
 	console.log( `[CM] User "${msg.author.username}" (${msg.author.id}) tried to access "${command.name}" command` )
 

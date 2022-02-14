@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'discord bakadb db List',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		bakadb.createCoder( List, perms => 'List:' + perms.toString(), list => new List( list ) )
 
 		if( db.perms ){
@@ -13,7 +13,7 @@ module.exports = {
 					delete db.perms[k]
 				else {
 					let empty = true
-					
+
 					for( let k in perms ){
 						empty = false
 						break
@@ -53,7 +53,7 @@ module.exports = {
 		discord.GuildMember.prototype.removeAllPerms = function(){
 			this.user.removeAllPerms()
 		}
-		
+
 		// hasPerm
 		discord.User.prototype.hasPerm = function( permission ){
 			if( !permission ) return
@@ -73,23 +73,13 @@ module.exports = {
 			return this.user.isMaster()
 		}
 
-		async function findMemberID( guild, username ){
-			const id = username.matchFirst( /^<@!?(\d+)>$/i )
-
-			if( id )
-				return id
-			
-			const member = await guild.members.find( username )
-			return member ? member.id : null
-		}
-
 		const cmd = addCmd({
 			aliases: 'perm perms',
 			description: 'manages bot permissions',
 		})
 
 		// Commands
-		
+
 		cmd.addSubcommand({
 			aliases: 'get',
 			description: {
@@ -98,36 +88,26 @@ module.exports = {
 					['<@@>', 'displays all permissions $1 has'],
 				]
 			},
-			callback: async ( msg, args ) => {
-				let username = args.shift()
-				
-				if( username ){
-					let id = await findMemberID( msg, username )
+			async callback( msg, args ){
+				let id = args.shift()
 
-					if( id ){
-						let list = '',
-							user = client.users.cache.get( id )
-						
-						if( db.perms[id] )
-							for( let k in db.perms[id] )
-								if( db.perms[id][k] == true ){
-									if( list ) list += ', '
-									list += `\`${k}\``
-								}
-						
-						if( list )
-							msg.send( `\`${user.tag}\`'s permissions: ` + list )
-						else
-							msg.send( `User \`${user.tag}\` has no permissions` )
-						
-						return
-					}
-				}
+				if( !id )
+					return this.sendHelp( msg )
 
-				msg.send( 'User not found' )
+				const member = await client.users.find( id )
+
+				if( !member )
+					return msg.send( 'User not found' )
+
+				const list = db.perms[member.id]?.pretty()
+
+				if( list )
+					msg.send( `\`${member.tag}\`'s permissions: ${list}` )
+				else
+					msg.send( `User \`${member.tag}\` has no permissions` )
 			},
 		})
-		
+
 		cmd.addSubcommand({
 			aliases: 'set',
 			description: {
@@ -136,23 +116,32 @@ module.exports = {
 					['<@@>', '<permissions...>', 'sets $2 permissions for $1'],
 				],
 			},
-			callback: async ( msg, args ) => {
-				let username = args.shift()
+			async callback( msg, args ){
+				let id = args.shift()
 
-				if( args.length > 0 ){
-					let id = await findMemberID( msg, username )
+				if( !id )
+					return this.sendHelp( msg )
 
-					if( id ){
-						if( db.perms[id] ) db.perms[id].add( args )
-						else db.perms[id] = new List( args )
-						
-						msg.send( `Setted next permissions for user \`${client.users.cache.get( id ).tag}\`: \`${args.join( '`, `' )}\`` )
-					} else msg.send( 'User not found' )
-				} else
-					msg.send( 'You did not provide permissions' )
+				if( args.length === 0 )
+					return msg.send( `You didn't provide any permissions` )
+
+				const member = await client.users.find( id )
+
+				if( !member )
+					return msg.send( 'User not found' )
+
+				args = new List( args )
+
+				if( db.perms[member.id] )
+					db.perms[member.id].add( args )
+				else
+					db.perms[member.id] = args
+
+				bakadb.save()
+				msg.send( `Granted \`${member.tag}\` next permissions: ${args.pretty()}` )
 			},
 		})
-		
+
 		cmd.addSubcommand({
 			aliases: 'remove',
 			description: {
@@ -161,20 +150,28 @@ module.exports = {
 					['<@@>', '<permissions...>', 'removes $2 permissions from $1'],
 				],
 			},
-			callback: async ( msg, args ) => {
-				let username = args.shift()
+			async callback( msg, args ){
+				let id = args.shift()
 
-				if( args.length > 0 ){
-					let id = await findMemberID( msg, username )
+				if( !id )
+					return this.sendHelp( msg )
 
-					if( id ){
-						if( db.perms[id] ) db.perms[id].remove( args )
-						else db.perms[id] = new List( args )
-						
-						msg.send( `Removed next permissions for user \`${client.users.cache.get( id ).tag}\`: \`${args.join( '`, `' )}\`` )
-					} else msg.send( 'User not found' )
-				} else
-					msg.send( 'You did not provide permissions' )
+				if( args.length === 0 )
+					return msg.send( `You didn't provide any permissions` )
+
+				const member = await client.users.find( id )
+
+				if( !member )
+					return msg.send( 'User not found' )
+
+				args = new List( args )
+
+				if( !db.perms[member.id] )
+					return msg.send( `\`${member.tag}\` has no permissions` )
+
+				db.perms[member.id].remove( args )
+				bakadb.save()
+				msg.send( `Revoked from \`${member.tag}\` next permissions: ${args.pretty()}` )
 			},
 		})
 	}

@@ -1,31 +1,47 @@
 class List {
 	constructor( items ){
-		if( items ) this.add( items )
+		if( items )
+			this.add( items )
 	}
 
 	add( items ){
+		if( items instanceof List )
+			return this.add( Object.keys( items ) )
+
 		if( items instanceof Array )
-			items.forEach( item => this[item.toLowerCase()] = true )
-		else if( typeof items === 'string' )
-			items.toLowerCase().trim().split( /\s+/ ).forEach( item => this[item] = true )
+			return items.forEach( item => this[item.toLowerCase()] = true )
+
+		if( typeof items === 'string' )
+			return items.toLowerCase().trim().split( /\s+/ ).forEach( item => this[item] = true )
 	}
 
 	remove( items ){
+		if( items instanceof List )
+			return this.remove( Object.keys( items ) )
+
 		if( items instanceof Array )
-			items.forEach( item => delete this[item.toLowerCase()] )
-		else if( typeof items === 'string' )
-			items.toLowerCase().trim().split( /\s+/ ).forEach( item => delete this[item] )
+			return items.forEach( item => delete this[item.toLowerCase()] )
+
+		if( typeof items === 'string' )
+			return items.toLowerCase().trim().split( /\s+/ ).forEach( item => delete this[item] )
+	}
+
+	map( mappingFunction ){
+		return Object.keys( this ).map( mappingFunction )
+	}
+
+	join( separator ){
+		return Object.keys( this ).join( separator )
+	}
+
+	pretty(){
+		return this
+			.map( v => `\`${v}\`` )
+			.join( ', ' )
 	}
 
 	toString(){
-		let str = ''
-
-		for( let k in this ){
-			if( str ) str += ' '
-			str += k
-		}
-
-		return str
+		return this.join( ' ' )
 	}
 }
 

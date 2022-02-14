@@ -78,10 +78,10 @@ module.exports = {
 
 				const url = await msg.findLastPic()
 
-				if( url )
-					sendSauce( msg, url )
-				else
-					msg.send( 'No messages found :(' )
+				if( !url )
+					return msg.send( `No media found or provided` )
+
+				sendSauce( msg, url )
 			},
 		})
 	}

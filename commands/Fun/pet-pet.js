@@ -16,7 +16,7 @@ module.exports = {
 				let url = args[0] || await msg.findLastPic()
 
 				if( !url )
-					return this.sendHelp( msg )
+					return msg.send( `No media found or provided` )
 
 				const message = msg.send( processing() )
 				const embed = Embed()

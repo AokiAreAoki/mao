@@ -76,31 +76,12 @@ module.exports = {
 				if( args[0] )
 					return sendSauce( msg, args[0] )
 
-				const msgs = await msg.channel.messages.fetch({ limit: 100 })
-					.then( c => c.toArray() )
-					.catch( () => [] )
+				const url = await msg.findLastPic()
 
-				const ref = await msg.getReferencedMessage()
-
-				if( ref )
-					msgs.unshift( ref )
-
-				if( msgs.length === 0 )
-					return msg.send( 'No messages found :(' )
-
-				let url
-				const found = msgs.some( msg => {
-					if( url = msg.content.matchFirst( /(https?:\/\/\S+\.(jpe?g|png|webm|gif|bmp))/i ) )
-						return true
-
-					if( url = msg.attachments.find( a => a.contentType.indexOf( 'image' ) !== -1 )?.url )
-						return true
-
-					return false
-				})
-
-				if( found )
+				if( url )
 					sendSauce( msg, url )
+				else
+					msg.send( 'No messages found :(' )
 			},
 		})
 	}

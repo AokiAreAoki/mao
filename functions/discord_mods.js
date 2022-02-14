@@ -261,10 +261,54 @@ module.exports = {
 				.catch( () => null )
 		}
 
+		// Message.findLastPic
+		discord.Message.prototype.findLastPic = async function(){
+			const msgs = await this.channel.messages.fetch({ limit: 100 })
+				.then( c => c.toArray() )
+				.catch( () => [] )
+
+			const ref = await this.getReferencedMessage()
+
+			if( ref )
+				msgs.unshift( ref )
+
+			if( msgs.length === 0 )
+				return null
+
+			let url
+
+			for( const msg of msgs ){
+				if( url = msg.content.matchFirst( /(https?:\/\/\S+\.(jpe?g|png|webm|gif|bmp))/i ) )
+					return url
+
+				if( url = msg.attachments.find( a => a.contentType.indexOf( 'image' ) !== -1 )?.url )
+					return url
+			}
+
+			return null
+		}
+
 		// Message.toString: url to message instead of its content
 		discord.Message.prototype.toString = function(){
 			return this.url
 		}
+
+		/// UserManager ///
+
+		// UserManager.find: finds single user
+		discord.UserManager.prototype.find = async function( id ){
+			if( typeof id === 'number' )
+				id = String( id )
+			else if( typeof id !== 'string' )
+				return null
+
+			id = id.matchFirst( /\d+/ )
+
+			return !id ? null : this.fetch( id )
+				.catch( () => null )
+		}
+
+		/// GuildMemberManager ///
 
 		// GuildMemberManager.find: finds single member
 		discord.GuildMemberManager.prototype.find = async function( name ){
@@ -283,7 +327,7 @@ module.exports = {
 					return memberFetchedByID
 			}
 
-			return this.fetch({ query: name })
+			return this.fetch({ query: name, limit: 1 })
 				.then( members => members.first() )
 				.catch( () => null )
 		}

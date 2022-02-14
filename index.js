@@ -71,6 +71,7 @@ logw( 'Requiring modules...' )
 		  ytdl.search = require( 'ytsr' )
 
 	const kym = require( 'nodeyourmeme' )
+	const pet = require( 'pet-pet-gif' )
 log( 'OK' )
 
 // Including my modules

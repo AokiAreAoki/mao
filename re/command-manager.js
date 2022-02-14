@@ -133,6 +133,11 @@ class CommandManager extends require( 'events' ) {
 
 			msg.isCommand = true
 
+			if( !( command.callback instanceof Function ) ){
+				command.sendHelp( msg )
+				return true
+			}
+
 			// Parsing arguments
 			const args = ArgumentParser.new( string_args, command, command_name )
 
@@ -147,11 +152,7 @@ class CommandManager extends require( 'events' ) {
 				})
 			}
 
-			if( command.callback instanceof Function )
-				command.callback.call( command, msg, args, args.get_string )
-			else
-				log( `Error: callback of "${command}" command is a ${typeof command.callback}, a function expected` )
-
+			command.callback.call( command, msg, args, args.get_string )
 			return true
 		}
 	}

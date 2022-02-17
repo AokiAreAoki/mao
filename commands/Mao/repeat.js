@@ -10,7 +10,10 @@ module.exports = {
 				msg.isCommand = false
 				let commandMessage = await msg.getReferencedMessage()
 
-				if( !commandMessage ){
+				if( commandMessage ){
+					if( commandMessage.author.id !== msg.author.id && !msg.author.isMaster() )
+						return msg.send( `That's not yours` )
+				} else {
 					const messages = await msg.channel.messages.fetch({
 						before: msg.id,
 						limit: 100,

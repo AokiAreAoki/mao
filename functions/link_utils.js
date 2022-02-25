@@ -6,7 +6,7 @@ module.exports = {
 		const utils = [
 			// Discord CDN link fixer
 			async ( msg, react ) => {
-				const badURLs = msg.content.match( /https?:\/\/media\.discordapp\.net\/\S+\.(?:mp4|webm)/g )
+				const badURLs = msg.content.match( /https?:\/\/media\.discordapp\.net\/\S+\.(?:mp4|webm)/gi )
 
 				if( badURLs && badURLs.length !== 0 )
 					return badURLs.map( url => url.replace( /^https?:\/\/media\.discordapp\.net/, 'https://cdn.discordapp.com' ) )

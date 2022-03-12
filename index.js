@@ -377,7 +377,7 @@ const client = new discord.Client({
 		MessageManager: {
 			sweepInterval: 300,
 			sweepFilter: discord.LimitedCollection.filterByLifetime({
-				lifetime: 3600,
+				lifetime: 3600*4,
 				getComparisonTimestamp: e => e.editedTimestamp ?? e.createdTimestamp,
 			}),
 		},

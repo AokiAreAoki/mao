@@ -149,6 +149,7 @@ module.exports = {
 
 			return this.bulkDelete( messages )
 		}
+		discord.ThreadChannel.prototype.purge = discord.TextChannel.prototype.purge
 
 		/// Message ///
 

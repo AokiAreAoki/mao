@@ -142,6 +142,8 @@ module.exports = {
 				message_id: message.id,
 				date: today,
 			}
+
+			dailyData.last_posts = dailyData.last_posts.filter( p => today - p.date < 7 )
 			dailyData.last_posts.push( postData )
 			bakadb.save()
 

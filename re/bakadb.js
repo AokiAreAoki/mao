@@ -265,7 +265,7 @@ class BakaDB extends events {
 			this.saveTimeout ??= setTimeout( () => {
 				this.save( true )
 				delete this.saveTimeout
-			}, Date.now() - this.lastSave )
+			}, this.lastSave + 100 - Date.now() )
 
 			return
 		}

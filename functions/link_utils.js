@@ -12,25 +12,28 @@ module.exports = {
 					return badURLs.map( url => url.replace( /^https?:\/\/media\.discordapp\.net/, 'https://cdn.discordapp.com' ) )
 			},
 
-			// Twitter direct video link provider
+			// Twitter/Reddit direct links provider
 			async ( msg, react ) => {
-				let tweetIDs = Array.from( msg.content.matchAll( /https?:\/\/twitter\.com\/[^\/\s]+\/status\/\d+/gmi ) )
+				let links = [].concat( ...[
+					/https?:\/\/twitter\.com\/[^\/\s]+\/status\/\d+/gmi,
+					/https?:\/\/(?:\w+\.)?reddit.com\/r\/\S+/gmi,
+				].map( re => Array.from( msg.content.matchAll( re ) ) ) )
 
-				if( tweetIDs.length === 0 )
+				if( links.length === 0 )
 					return
 
 				react()
 
-				tweetIDs = await Promise.all(
-					tweetIDs.map( url => new Promise( resolve => {
-						const ytdl = cp.exec( 'youtube-dl --get-url ' + url )
+				links = await Promise.all(
+					links.map( url => new Promise( resolve => {
+						const ytdl = cp.spawn( 'youtube-dl', ['--get-url', url[0]] )
 						let stdout = ''
 						ytdl.stdout.on( 'data', chunk => stdout += chunk )
 						ytdl.once( 'exit', code => resolve( code === 0 ? stdout : null ) )
 					}))
 				)
 
-				return tweetIDs
+				return links
 					.map( url => url?.matchFirst( /https?\S+/ ) )
 			},
 		]

@@ -103,7 +103,7 @@ module.exports = {
 			const dailyData = bakadb.get( 'dag/data', channel.guild.id, channel.id )
 
 			if( !dailyData )
-				throw new Error( 'This channel have no dailies setup' )
+				throw new Error( 'This channel have no dailies set up' )
 
 			if( dailyData.disabled ){
 				if( printDisabledNotification ){

@@ -130,7 +130,7 @@ Booru.BooruResponse.prototype.embed = function( pics, mapFunction = null ){
 			videos.push( pic.full )
 
 		return Embed()
-			.setDescription( `[${this.tags ? 'Tags: ' + this.tags : 'No tags'}](${pic.post_url.replace( /\)/g, '%29' )})` )
+			.setDescription( `[${this.tags ? 'Tags: ' + this.tags : 'No tags'}](${pic.post_url})` )
 			.setImage( pic.sample )
 			.setFooter( 'Powered by ' + ( this.booru.name ?? 'unknown website' ) )
 	})
@@ -150,7 +150,7 @@ const Gelbooru = new Booru({
 		id: ( post, pic, tags ) => {
 			tags = tags.replace( /\s+/g, '+' )
 			pic.id = post.id
-			pic.post_url = `https://gelbooru.com/index.php?page=post&s=view&id=${pic.id}&tags=${tags}`
+			pic.post_url = `https://gelbooru.com/index.php?page=post&s=view&id=${pic.id}&tags=${tags.replace( /\)/g, '%29' )}`
 		},
 		score: '',
 		file_url: ( post, pic ) => {

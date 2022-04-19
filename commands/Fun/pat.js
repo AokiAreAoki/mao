@@ -4,12 +4,12 @@ module.exports = {
 		requirements.define( global )
 
 		addCmd({
-			aliases: 'pet-pet pet',
+			aliases: 'pat pet',
 			description: {
-				single: 'pets ppl',
+				single: 'pats ppl',
 				examples: [
-					['<@@>', 'pets $1'],
-					['<url>', 'pets $1'],
+					['<@@>', 'pats $1'],
+					['<url>', 'pats $1'],
 				],
 			},
 			async callback( msg, args ){
@@ -20,7 +20,7 @@ module.exports = {
 
 				const message = msg.send( processing() )
 				const embed = Embed()
-					.setImage( 'attachment://pet.gif' )
+					.setImage( 'attachment://pat.gif' )
 
 				if( !url.matchFirst( /^https?:\/\// ) ){
 					const member = await msg.guild.members.find( url )
@@ -42,7 +42,7 @@ module.exports = {
 					content: null,
 					embeds: [embed],
 					files: [
-						new discord.MessageAttachment( gif, 'pet.gif' )
+						new discord.MessageAttachment( gif, 'pat.gif' )
 					],
 				})
 			},

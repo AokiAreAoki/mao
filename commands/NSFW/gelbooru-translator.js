@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'join axios decodeHTMLEntities Jimp Gelbooru clamp processing',
+	requirements: 'fs join axios decodeHTMLEntities Jimp Gelbooru Embed clamp processing',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
@@ -93,10 +93,8 @@ module.exports = {
 
 				let tags = ''
 
-				if( !args[0] ){
-					message.edit( `Please provide a link to a gelbooru post or a link to a picture stored on gelbooru CDN` )
-					return
-				}
+				if( !args[0] )
+					return message.edit( `Please provide a link to a gelbooru post or a link to a picture stored on gelbooru CDN` )
 
 				let id = args[0].matchFirst( /^\d+$/ )
 
@@ -107,35 +105,29 @@ module.exports = {
 					tags = `id:${id}`
 				else {
 					const md5 = args[0].matchFirst( imageRE )
-					if( md5 ) tags = `md5:${md5}`
+					if( md5 )
+						tags = `md5:${md5}`
 				}
 
-				if( !tags ){
-					message.edit( `Post ID or image MD not found` )
-					return
-				}
+				if( !tags )
+					return message.edit( `Post ID or image MD not found` )
 
-				let pic
+				const pic = await Gelbooru.q( tags )
+					.then( r => r.pics[0] )
 
-				await Gelbooru.q( tags ).then( ({ pics }) => {
-					pic = pics[0]
-				})
-
-				if( !pic ){
-					message.edit( `Failed to parse picture` )
-					return
-				}
+				if( !pic )
+					return message.edit( `Failed to parse picture` )
 
 				const translations = await parseTranslation( id )
-					.catch( err => {
-						message.edit( cb( err ) )
+					.catch( async err => {
+						await message.edit( cb( err ) )
 						throw err
 					})
 
 				if( !translations )
 					return message.edit( `No translations found for this picture` )
 
-				Jimp.read( pic.full ?? pic.sample ).then( async image => {
+				return Jimp.read( pic.full ?? pic.sample ).then( async image => {
 					const font = await loadAddaptiveFont( image.bitmap.height )
 
 					translations.forEach( async ({ x, y, width, height, text }) => {
@@ -157,18 +149,31 @@ module.exports = {
 							alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
 						}, textWidth, textHeight )
 					})
+					
+					let path; do
+						path = `/tmp/glbr-tr/${Date.now()}.jpg`
+					while( fs.existsSync( path ) )
+					
+					try {
+						await image.writeAsync( path )
 
-					image.getBuffer( Jimp.AUTO, async ( err, buffer ) => {
-						if( err ){
-							message.edit( cb( err ) )
-							return
-						}
-
-						await msg.send({ files: [buffer] })
-						message.delete()
-					})
+						return message.edit({
+							content: null,
+							embeds: [Embed()
+								.setDescription( `[Original](${pic.post_url})` )
+								.setImage( 'attachment://tr.jpg' )
+								.setFooter( 'Powered by ' + Gelbooru.name )
+							],
+							files: [
+								new discord.MessageAttachment( path, 'tr.jpg' )
+							],
+						})
+							.finally( () => fs.unlinkSync( path ) )
+					} catch( err ){
+						return message.edit( cb( err ) )
+					}
 				}) // Jimp.read
-			},
+			}, // callback
 		}) // addCmd
-	}
+	} // init
 }

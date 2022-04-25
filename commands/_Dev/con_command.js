@@ -3,6 +3,8 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
+		const EXEC_TIMEOUT = 60e3
+
 		async function callback( msg, args ){
 			const string_command = args.get_string()
 
@@ -12,38 +14,37 @@ module.exports = {
 			const message = await msg.send( processing() )
 			const ac = new AbortController()
 			let timeout
-
 			const cut = '\n...\n'
 
-			function std( std, limit = 1024 ){
-				if( std.length > limit ){
-					const cb = std.matchFirst( /^```\n?/ ) || ''
-					std = std.substring( std.length - limit + cb.length + cut.length + 1 )
-					std = cb.replace( /\n/g, '' ) + cut + std.substring( std.indexOf( '\n' ) + 1 )
+			function cropOutput( output, limit = 1024 ){
+				if( output.length > limit ){
+					const cb = output.matchFirst( /^```\n?/ ) || ''
+					output = output.substring( output.length - limit + cb.length + cut.length + 1 )
+					output = cb.replace( /\n/g, '' ) + cut + output.substring( output.indexOf( '\n' ) + 1 )
 				}
 
-				return std
+				return output
 			}
 
 			function editMessage( error, stdout, stderr, finished = false ){
-				const embeds = [Embed()
-					.addField( 'stdout:', stdout
-						? cb( std( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) )
-						: '`nothing`'
+				const embeds = []
+				
+				if( stdout )
+					embeds.push( Embed()
+						.addField( 'stdout:', cropOutput( cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) ) )
+						.setColor( 0x80FF00 )
 					)
-					.setColor( 0x80FF00 )
-				]
 
 				if( stderr )
 					embeds.push( Embed()
-						.addField( 'stderr:', cb( std( stderr.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) ) )
+						.addField( 'stderr:', cropOutput( cb( stderr.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) ) )
 						.setColor( 0xFF8000 )
 					)
 
 				const options = { embeds }
 
 				if( finished )
-					options.content = null
+					options.content = embeds.length === 0 ? 'nothing' : null
 
 				const footer = ( () => {
 					if( !finished )
@@ -58,7 +59,7 @@ module.exports = {
 					return `Signal: ${error.signal}`
 				})()
 
-				embeds[embeds.length - 1].setFooter( footer )
+				embeds.at(-1)?.setFooter( footer )
 
 				if( message.deleted )
 					msg.send( options )
@@ -68,7 +69,7 @@ module.exports = {
 			}
 
 			const command = cp.exec( args.get_string(), {
-				timeout: 60e3,
+				timeout: EXEC_TIMEOUT,
 				signal: ac.signal,
 				detached: true,
 			}, async ( err, stdout, stderr ) => {
@@ -95,6 +96,7 @@ module.exports = {
 			})
 
 			let nextMessageUpdate = 0
+			const deadline = Date.now() + EXEC_TIMEOUT
 
 			async function updateOutput(){
 				if( message.deleted )
@@ -106,7 +108,8 @@ module.exports = {
 					editMessage( null, stdout, stderr )
 				}
 
-				timeout = setTimeout( updateOutput, 50 )
+				if( deadline > Date.now() )
+					timeout = setTimeout( updateOutput, 50 )
 			}
 			updateOutput()
 		}

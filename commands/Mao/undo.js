@@ -24,6 +24,7 @@ module.exports = {
 					await msg.react( processing( '👌' ) )
 
 					if( commandMessage ){
+						commandMessage.isCommand = false
 						commandMessage.deleteAnswers()
 						msg.channel.purge( [msg, commandMessage], 1337 )
 						return

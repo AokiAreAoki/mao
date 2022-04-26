@@ -22,33 +22,34 @@ module.exports = {
 			},
 			callback: async ( msg, args ) => {
 				const amount = args[0] ? Math.min( parseInt( args[0] ), MAX ) : 1
-				
+
 				if( isNaN( amount ) || amount <= 0 )
 					return msg.send( 'You entered invalid number or number is ≤ 0' )
-					
+
 				const fetchOptions = { limit: 100 }
 				const { after, before } = args.flags
 
 				if( after.specified && isIDLike( after[0] ) ){
 					if( before.specified && isIDLike( before[0] ) )
 						return msg.send( "You can't use the \`after\` and the \`before\` flags together" )
-					
+
 					fetchOptions.after = after[0]
 				} else {
 					fetchOptions.before = before.specified && isIDLike( before[0] )
 						? before[0]
 						: msg.id
 				}
-				
+
+				msg.isCommand = false
 				msg.makeUnpurgable()
-				
+
 				const user = await msg.guild.members.find( args[1] )
 				const messages = await msg.channel.messages.fetch( fetchOptions )
 					.then( messages => Array.from( messages.values() )
 						.filter( m => {
 							if( m.unpurgable && m.unpurgable > Date.now() )
 								return false
-							
+
 							return !user || m.author.id === user.id
 						})
 						.slice( 0, amount )

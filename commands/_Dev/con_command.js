@@ -41,11 +41,6 @@ module.exports = {
 						.setColor( 0xFF8000 )
 					)
 
-				const options = { embeds }
-
-				if( finished )
-					options.content = embeds.length === 0 ? 'nothing' : null
-
 				const footer = ( () => {
 					if( !finished )
 						return `Executing...`
@@ -59,7 +54,13 @@ module.exports = {
 					return `Signal: ${error.signal}`
 				})()
 
-				embeds.at(-1)?.setFooter( footer )
+				const options = { embeds }
+
+				if( finished )
+					options.content = embeds.length === 0 ? `Nothing have been outputed\n${footer}` : null
+
+				if( embeds.length !== 0 )
+					embeds.at(-1).setFooter( footer )
 
 				if( message.deleted )
 					msg.send( options )

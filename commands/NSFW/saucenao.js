@@ -29,6 +29,7 @@ module.exports = {
 				const description = [
 					['Similarity', header.similarity],
 				]
+				const urls = []
 
 				for( const k in data ){
 					if( k.endsWith( '_id' ) || k === 'ext_urls' )
@@ -40,22 +41,31 @@ module.exports = {
 					description.push( [prettify(k), data[k]] )
 				}
 
-				const ids = Object.keys( data ).filter( k => k.endsWith( '_id' ) )
+				const ids = Object.keys( data )
+					.filter( k => k.endsWith( '_id' ) )
 
 				data?.ext_urls?.forEach?.( ( url, i ) => {
-					const sourceName = ids[i] ? prettify( ids[i] ) : ''
-					const sourceID = ids[i] ? data[ids[i]] : url.matchFirst( /https?:\/\/([\w\._-]+)\// )
-					description.push( [sourceName, sourceID, url.replace( /\)/g, '%29' )] )
+					if( !ids[i] )
+						return urls.push( url )
+
+					const sourceName = prettify( ids[i] )
+					const sourceID = data[ids[i]]
+					description.push( [sourceName, sourceID, url?.replace( /\)/g, '%29' )] )
 				})
+
+				let stringDescription = description.map( ([ key, value, url ]) => {
+					if( url )
+						value = `[${value}](${url})`
+
+					return `**${key}**: ${value}`
+				}).join( '\n' )
+
+				if( urls.length !== 0 )
+					stringDescription += '\n' + urls.join( '\n' )
 
 				return Embed()
 					.setTitle( header.index_name )
-					.setDescription( description.map( ([ key, value, url ]) => {
-						if( url )
-							value = `[${value}](${url})`
-
-						return `**${key || 'Sauce'}**: ${value}`
-					}).join( '\n' ) )
+					.setDescription( stringDescription )
 					.setImage( header.thumbnail )
 					.setFooter( `Page: ${page + 1}/${sauces.length}` )
 			})

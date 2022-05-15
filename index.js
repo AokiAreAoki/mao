@@ -741,7 +741,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 						break
 
 					case 'number':
-						if( !__printerr && !evalflags.cb && /^\+?([a-z_]\w+|(\d+)?(\.\d+)?)$/i.test( code ) )
+						if( !__printerr && !evalflags.cb && /^[+-]?([\w_]+|(\d+)?(\.\d+)?(e\d+)?)$/i.test( code ) )
 							return
 						evaled = numsplit( evaled )
 						break

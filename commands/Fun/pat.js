@@ -29,7 +29,7 @@ module.exports = {
 						return ( await message ).edit( 'User not found' )
 
 					url = member.user.avatarURL({ format: 'jpg' })
-					embed.setDescription( `${member.toString()} must be really happy rn` )
+					embed.setDescription( `You are patting ${member}\nThey must be really happy rn` )
 				}
 
 				const gif = await pet( url )

@@ -21,7 +21,12 @@ module.exports = {
 			if( !regexp )
 				return
 
-			const replacement = s.substring( regexp.length + 1 )
+			let replacement = s.substring( regexp.length + 1 )
+				.replace( /\\n/g, '\n' )
+				.replace( /\\t/g, '\t' )
+
+			if( `"'\``.indexOf( replacement[0] ) !== -1 && replacement.at(0) === replacement.at(-1) )
+				replacement = replacement.substring( 1, replacement.length - 1 )
 
 			try {
 				regexp = new RegExp( regexp, flags ?? '' )

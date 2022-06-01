@@ -3,7 +3,7 @@ module.exports = {
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 
-		const EXEC_TIMEOUT = 60e3
+		const EXEC_TIMEOUT = 600e3
 
 		async function callback( msg, args ){
 			const string_command = args.get_string()
@@ -105,7 +105,7 @@ module.exports = {
 
 				if( stdChanged && nextMessageUpdate < Date.now() ){
 					stdChanged = false
-					nextMessageUpdate = Date.now() + 1.2e3
+					nextMessageUpdate = Date.now() + 1.5e3
 					editMessage( null, stdout, stderr )
 				}
 

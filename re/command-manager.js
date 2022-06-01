@@ -55,6 +55,9 @@ class CommandManager extends require( 'events' ) {
 		let command = this.commands.get( subcommands.shift() )
 
 		for( const subcommand_name of subcommands ){
+			if( !command )
+				return null
+
 			const subcommand = command.subcommands.get( subcommand_name )
 
 			if( !subcommand )

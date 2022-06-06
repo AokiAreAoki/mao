@@ -18,7 +18,7 @@ module.exports = {
 
 		const maxPicsPerCommand = 10
 		const maotag = 'amatsuka_mao'
-		const safetag = 'rating:safe'
+		const safetag = 'rating:general'
 		const usedPics = {}
 		const cooldown = {}
 
@@ -192,7 +192,7 @@ module.exports = {
 				aliases: settings.aliases,
 				flags: [
 					['force', `force post ignoring the only NSFW channel restiction (master only)`],
-					['safe', 'alias for `rating:safe` tag'],
+					['safe', 'alias for `rating:general` tag'],
 					['x', `<amount>`, `$1 of pics to post (max: ${maxPicsPerCommand})`],
 					['pager', 'pagination'],
 				],
@@ -201,8 +201,8 @@ module.exports = {
 					full: [
 						`Searches and posts pics from \`${settings.url}\``,
 						`This is NSFW command and only available in NSFW channels`,
-						`* Add \`--safe\` flag or \`rating:safe\` tag to use it in non-NSFW channel`,
-						`~~** tho it doesn't guarantee any safety~~`,
+						`* Add \`--safe\` flag or \`rating:general\` tag to use it in non-NSFW channel`,
+						`~~** tho i do not guarantee any safety~~`,
 					],
 					usages: [
 						['[tags]', 'searches for pics by $1'],

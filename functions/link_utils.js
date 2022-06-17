@@ -39,7 +39,7 @@ module.exports = {
 					.map( url => url?.matchFirst( /https?\S+/ ) )
 			},
 
-			// Reddit direct links provider
+			// Reddit files provider
 			async ( msg, react ) => {
 				let links = [
 					/https?:\/\/(?:\w+\.)?reddit.com\/r\/\S+/gmi,

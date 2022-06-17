@@ -33,7 +33,7 @@ module.exports = {
 					return
 
 				react()
-				links = await Promise.all( links.map( url => spawnAsync( 'youtube-dl', '--get-url', url[0] ) ) )
+				links = await Promise.all( links.map( url => spawnAsync( 'youtube-dl', ['--get-url', url[0]] ) ) )
 
 				return links
 					.map( url => url?.matchFirst( /https?\S+/ ) )

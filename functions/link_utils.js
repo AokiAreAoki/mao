@@ -51,7 +51,7 @@ module.exports = {
 					return
 
 				react()
-				const files = await Promise.all( links.map( url => spawnAsync( 'youtube-dl', ['--get-filename', '-o', '/tmp/%(id)s.%(ext)s', url[0]], { cwd: "/tmp" } ) ) )
+				const files = await Promise.all( links.map( url => spawnAsync( 'youtube-dl', ['--get-filename', '-o', '%(id)s.%(ext)s', url[0]], { cwd: "/tmp" } ) ) )
 
 				return files
 					.filter( s => !!s )

@@ -33,7 +33,7 @@ module.exports = {
 					return
 
 				react()
-				links = await Promise.all( links.map( url => spawnAsync( 'youtube-dl', ['--get-url', url[0]] ) ) )
+				links = await Promise.all( links.map( url => spawnAsync( 'yt-dlp', ['--get-url', url[0]] ) ) )
 
 				return links
 					.map( url => url?.matchFirst( /https?\S+/ ) )
@@ -51,7 +51,7 @@ module.exports = {
 					return
 
 				react()
-				const files = await Promise.all( links.map( url => spawnAsync( 'youtube-dl', ['--get-filename', '-o', '%(id)s.%(ext)s', url[0]], { cwd: "/tmp" } ) ) )
+				const files = await Promise.all( links.map( url => spawnAsync( 'yt-dlp', ['--get-filename', '-o', '%(id)s.%(ext)s', url[0]], { cwd: "/tmp" } ) ) )
 
 				return files
 					.filter( s => !!s )

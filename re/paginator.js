@@ -1,39 +1,50 @@
 
+const clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
+
 class Paginator {
 	/// Static ///
 	static discord
 	static client
-	static buttons = [
-		{ // prev page
-			id: `left`,
-			label: `Prev`,
-			emoji: `⬅️`,
-		},
-		{ // next page
-			id: `right`,
-			label: `Next`,
-			emoji: `➡️`,
-		},
-		[ // toggle lock
-			function( paginator, buttons ){
-				return buttons[Number( paginator.authorOnly )]
+	static buttonRows = [
+		[ // first row
+			{ // prev page
+				id: `left`,
+				label: `Prev`,
+				emoji: `⬅️`,
 			},
-			{ // lock
-				id: `lock`,
-				label: `Lock buttons`,
-				emoji: `🔒`,
+			{ // set page
+				id: `set`,
+				label: `Set page`,
+				emoji: `🔢`,
 			},
-			{ // unlock
-				id: `unlock`,
-				label: `Unlock buttons`,
-				emoji: `🔓`,
+			{ // next page
+				id: `right`,
+				label: `Next`,
+				emoji: `➡️`,
 			},
 		],
-		{ // stop pager
-			id:`stop`,
-			label: `Stop`,
-			emoji: `⏹️`,
-		},
+		[ // second row
+			[ // toggle lock
+				function( paginator, buttons ){
+					return buttons[Number( paginator.authorOnly )]
+				},
+				{ // lock
+					id: `lock`,
+					label: `Lock buttons`,
+					emoji: `🔒`,
+				},
+				{ // unlock
+					id: `unlock`,
+					label: `Unlock buttons`,
+					emoji: `🔓`,
+				},
+			],
+			{ // stop pager
+				id:`stop`,
+				label: `Stop`,
+				emoji: `⏹️`,
+			},
+		],
 	]
 
 	static init( discord, client ){
@@ -55,10 +66,10 @@ class Paginator {
 
 			if( button instanceof Array ){
 				const buttons = button.map( buttonify )
-				
+
 				if( buttons[0] instanceof Function )
 					buttons.choose = buttons.shift()
-				
+
 				return buttons
 			}
 
@@ -68,20 +79,18 @@ class Paginator {
 				.setEmoji( button.emoji )
 				.setStyle( button.style ?? `SECONDARY` )
 		}
-		
-		Paginator.buttons = buttonify( Paginator.buttons )
+
+		Paginator.buttonRows = buttonify( Paginator.buttonRows )
 	}
-	
-	get buttons(){
-		const buttonsRow = new discord.MessageActionRow()
-			.addComponents(
-				Paginator.buttons.map( button => button instanceof Array
+
+	getButtons(){
+		return Paginator.buttonRows
+			.map( buttons => new discord.MessageActionRow().addComponents(
+				buttons.map( button => button instanceof Array
 					? button.choose( this, button )
 					: button
 				)
-			)
-
-		return [buttonsRow]
+			))
 	}
 
 	/// Instance ///
@@ -128,12 +137,12 @@ class Paginator {
 		if( isExternalMessage )
 			message.edit( this.getPageContent() )
 			
-		message.edit({ components: this.buttons })
+		message.edit({ components: this.getButtons() })
 		return this
 	}
 
 	// Runtime methods
-	_react( interaction ){
+	async _react( interaction ){
 		if( !( interaction instanceof Paginator.discord.ButtonInteraction ) ) return
 		if( this.stopped ) return
 		if( interaction.member.bot ) return
@@ -157,13 +166,37 @@ class Paginator {
 			case `left`:
 				if( this._cantChangePages( interaction ) )
 					return
-					
+
 				if( --this.page < 0 )
 					this.page += this.pageAmount
 
 				interaction.deferUpdate()
 				this.updatePage()
 				break
+
+			case `set`:
+				if( this._cantChangePages( interaction ) ) return
+				if( this.waiter && !this.waiter.finished ) return
+				
+				const removeWaiter = () => delete this.waiter
+				const ref = await this.message.getReferencedMessage()
+					.then( m => m ?? this.message )
+				
+				this.waiter = ref.awaitResponse({
+					displayMessage: await ref.send( `Enter a page number:`, 0 )
+				})
+					.if( msg => /^\d+$/.test( msg.content ) )
+					.then( async ( msg, waiter ) => {
+						this.page = clamp( parseInt( msg.content ), 1, this.pageAmount ) - 1
+						this.updatePage()
+						waiter.stop()
+						msg.channel.purge( [msg, waiter.displayMessage], 2 )
+					})
+					.onCancel( removeWaiter )
+					.onTimeout( removeWaiter )
+				
+				interaction.deferUpdate()
+			break
 
 			case `lock`:
 			case `unlock`:
@@ -176,7 +209,7 @@ class Paginator {
 				this.authorOnly = !this.authorOnly
 
 				interaction.update({
-					components: this.buttons,
+					components: this.getButtons(),
 				})
 				break
 			
@@ -187,6 +220,7 @@ class Paginator {
 						ephemeral: true,
 					})
 				
+				interaction.deferUpdate()
 				this.stop()
 				break
 		}
@@ -231,6 +265,7 @@ class Paginator {
 
 	stop(){
 		this.message.edit({ components: [] })
+		this.waiter?.cancel()
 		this.stopped = true
 	}
 }

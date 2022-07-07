@@ -142,7 +142,7 @@ module.exports = {
 
 			this.booru.q( tags )
 				.then( async result => {
-					const pics = result.pics
+					let pics = result.pics
 
 					if( pics.length === 0 )
 						return botMsg.then( m => m.edit({
@@ -164,9 +164,11 @@ module.exports = {
 							}))
 							.setMessage( await botMsg )
 					} else {
-						const newPics = await getNewPics( result, amount, userMsg )
+						pics = pics.length === 1
+							? pics
+							: await getNewPics( result, amount, userMsg )
 
-						botMsg.then( m => m.edit( newPics.length === 0
+						botMsg.then( m => m.edit( pics.length === 0
 							? {
 								content: null,
 								embeds: [Embed()
@@ -174,7 +176,7 @@ module.exports = {
 									.setColor( 0xFF0000 )
 								],
 							}
-							: result.embed( newPics )
+							: result.embed( pics )
 						))
 					}
 

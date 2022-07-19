@@ -39,10 +39,11 @@ module.exports = {
 					.map( url => url?.matchFirst( /https?\S+/ ) )
 			},
 
-			// Reddit files provider
+			// Reddit/TikTok files provider
 			async ( msg, react ) => {
 				let links = [
-					/https?:\/\/(?:\w+\.)?reddit.com\/r\/\S+/gmi,
+					/https?:\/\/(?:\w+\.)?reddit\.com\/r\/\S+/gmi,
+					/https?:\/\/(?:\w+\.)?tiktok\.com\/(\w+)/gmi,
 				]
 					.map( re => Array.from( msg.content.matchAll( re ) ) )
 					.flat(1)
@@ -51,14 +52,20 @@ module.exports = {
 					return
 
 				react()
-				const files = await Promise.all( links.map( url => spawnAsync( 'yt-dlp', ['--get-filename', '-o', '%(id)s.%(ext)s', url[0]], { cwd: "/tmp" } ) ) )
 
-				return files
-					.filter( s => !!s )
-					.map( paths => paths.split( '\n' ) )
-					.flat(1)
-					.filter( s => !!s )
-					.map( path => new discord.MessageAttachment( join( '/tmp', path ), path ) )
+				return Promise.all( links.map( async url => {
+					const args = ['-o', '%(id)s.%(ext)s', url[0]]
+					await spawnAsync( 'yt-dlp', args, { cwd: "/tmp" } )
+
+					args.unshift( '--get-filename' )
+					return spawnAsync( 'yt-dlp', args, { cwd: "/tmp" } )
+				}))
+					.then( files => files
+						.map( paths => paths?.split( '\n' ) )
+						.flat(1)
+						.filter( s => !!s )
+						.map( path => new discord.MessageAttachment( join( '/tmp', path ), path ) )
+					)
 			},
 		]
 

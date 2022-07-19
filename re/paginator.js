@@ -175,15 +175,19 @@ class Paginator {
 				break
 
 			case `set`:
-				if( this._cantChangePages( interaction ) ) return
-				if( this.waiter && !this.waiter.finished ) return
+				if( this._cantChangePages( interaction ) )
+					return
+				
+				if( this.waiter && !this.waiter.finished )
+					return interaction.deferUpdate()
 				
 				const removeWaiter = () => delete this.waiter
 				const ref = await this.message.getReferencedMessage()
 					.then( m => m ?? this.message )
 				
 				this.waiter = ref.awaitResponse({
-					displayMessage: await ref.send( `Enter a page number:`, 0 )
+					user: interaction.member.user,
+					displayMessage: await ref.send( `Enter a page number:`, 0 ),
 				})
 					.if( msg => /^\d+$/.test( msg.content ) )
 					.then( async ( msg, waiter ) => {

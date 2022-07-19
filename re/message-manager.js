@@ -146,7 +146,7 @@ class ResponseWaiter {
 	static waiters = []
 
 	static find( user, channel ){
-		return ResponseWaiter.waiters.find( waiter => waiter.userMessage.author.id === user.id && waiter.userMessage.channel.id === channel.id && !waiter.finished )
+		return ResponseWaiter.waiters.find( waiter => ( waiter.user ?? waiter.invokerMessage.author ).id === user.id && waiter.invokerMessage.channel.id === channel.id && !waiter.finished )
 	}
 
 	static init( discord ){
@@ -154,7 +154,7 @@ class ResponseWaiter {
 
 		discord.Message.prototype.awaitResponse = function( options ){
 			options = options ?? {}
-			options.userMessage = this
+			options.invokerMessage = this
 			return new ResponseWaiter( options )
 		}
 
@@ -224,7 +224,8 @@ class ResponseWaiter {
 	}
 
 	constructor({
-		userMessage,
+		user,
+		invokerMessage,
 		displayMessage,
 		timeout,
 	}){
@@ -233,15 +234,16 @@ class ResponseWaiter {
 
 		const discord = ResponseWaiter.discord
 
-		checkTypes( { userMessage }, discord.Message, true )
+		checkTypes( { invokerMessage }, discord.Message, true )
 		checkTypes( { displayMessage }, [discord.Message, 'undefined'], true )
 
-		this.userMessage = userMessage
+		this.user = user
+		this.invokerMessage = invokerMessage
 		this.displayMessage = displayMessage
 		this.deadline = Date.now() + ( typeof timeout === 'number' ? timeout * 1e3 : 30e3 )
 
-		userMessage.waiter?.cancel()
-		userMessage.waiter = this
+		invokerMessage.waiter?.cancel()
+		invokerMessage.waiter = this
 		ResponseWaiter.waiters.push( this )
 	}
 
@@ -312,7 +314,7 @@ class ResponseWaiter {
 	}
 
 	toString(){
-		return `[an instance of ResponseWaiter of Message(${this.userMessage.id})]`
+		return `[an instance of ResponseWaiter of Message(${this.invokerMessage.id})]`
 	}
 }
 

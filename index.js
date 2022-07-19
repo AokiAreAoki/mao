@@ -168,6 +168,8 @@ const Gelbooru = new Booru({
 	},
 	remove_other_keys: false,
 })
+Gelbooru.const_params.api_key = _tkns.gelbooru.api_key
+Gelbooru.const_params.user_id = _tkns.gelbooru.user_id
 
 const Yandere = new Booru({
 	...config.boorus.yandere,

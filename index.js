@@ -373,6 +373,7 @@ bakadb.on( 'missing-decoder', decoder => log( `[WARNING] Missing "${decoder}" de
 
 //////////  Creating client  //////////
 const client = new discord.Client({
+	restRequestTimeout: 60e3,
 	makeCache: discord.Options.cacheWithLimits({
 		MessageManager: {
 			sweepInterval: 300,
@@ -389,7 +390,6 @@ const client = new discord.Client({
 			}),
 		},
 	}),
-
 	intents: [
 		'GUILDS',
 		//'GUILD_MEMBERS',

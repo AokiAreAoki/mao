@@ -268,16 +268,11 @@ module.exports = {
 				.then( c => c.toArray() )
 				.catch( () => [] )
 
-			const ref = await this.getReferencedMessage()
-
-			if( ref )
-				msgs.unshift( ref )
-
-			if( msgs.length === 0 )
-				return null
+			msgs.unshift( msg )
+			await this.getReferencedMessage()
+				.then( ref => msgs.unshift( ref ) )
 
 			let url
-
 			for( const msg of msgs ){
 				if( url = msg.content.matchFirst( /(https?:\/\/\S+\.(jpe?g|png|webm|gif|bmp))/i ) )
 					return url

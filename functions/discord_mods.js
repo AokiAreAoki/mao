@@ -268,7 +268,7 @@ module.exports = {
 				.then( c => c.toArray() )
 				.catch( () => [] )
 
-			msgs.unshift( msg )
+			msgs.unshift( this )
 			await this.getReferencedMessage()
 				.then( ref => msgs.unshift( ref ) )
 

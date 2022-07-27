@@ -284,6 +284,9 @@ module.exports = {
 
 				if( url = msg.attachments.find( a => a.contentType.indexOf( 'image' ) !== -1 )?.url )
 					return url
+
+				if( url = msg.embeds.find( e => !!e.image )?.image.url )
+					return url
 			}
 
 			return null

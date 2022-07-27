@@ -270,7 +270,7 @@ module.exports = {
 
 			msgs.unshift( this )
 			await this.getReferencedMessage()
-				.then( ref => msgs.unshift( ref ) )
+				.then( ref => ref && msgs.unshift( ref ) )
 
 			let url
 			for( const msg of msgs ){

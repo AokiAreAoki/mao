@@ -116,7 +116,7 @@ module.exports = {
 		}
 
 		addCmd({
-			aliases: 'con',
+			aliases: 'shell sh',
 			description: {
 				single: 'executes console command',
 				usages: [

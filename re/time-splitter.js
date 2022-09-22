@@ -42,26 +42,26 @@ class TimeSplitter {
 	static tu = tu
 	static singularForm = singularForm
 	static shortForm = shortForm
-	
+
 	constructor( time = {} ){
 		this.tu = []
 		this.timestamp = typeof time === 'string'
 			? TimeSplitter.parseTime( time )
 			: 0
-		
+
 		for( let u in tu ){
 			this[u] = 0
 			this.tu.push(u)
 		}
-		
+
 		if( typeof time === 'object' )
 			for( let u in tu )
 				if( isValidNumber( time[u] ) )
 					this.timestamp += time[u] * tu[u]
-				
+
 		this.fromMS()
 	}
-	
+
 	fromMS( ms = this.timestamp ){
 		for( let i = this.tu.length - 1; i >= 0; --i ){
 			let u = this.tu[i]
@@ -70,11 +70,11 @@ class TimeSplitter {
 			//console.log(this[u])
 		}
 	}
-	
+
 	static fromMS( miliseconds = Date.now() ){
 		return new TimeSplitter({ miliseconds })
 	}
-	
+
 	static convert( value, unitFrom, unitTo ){
 		return value / tu[unitTo] * tu[unitFrom]
 	}
@@ -95,7 +95,7 @@ class TimeSplitter {
 
 		return timestamp
 	}
-	
+
 	toString({
 		separator = '\n',
 		ignoreZeros = false,
@@ -111,8 +111,10 @@ class TimeSplitter {
 			tu = tu.reverse()
 
 		for( const u of tu ){
-			if( !ignoreZeros || this[u] !== 0 )
-				units.push( formatter( this[u], this[u] === 1 ? TimeSplitter.singularForm[u] : u ) )
+			if( !ignoreZeros || this[u] !== 0 ){
+				const single = TimeSplitter.singularForm[u]
+				units.push( formatter( this[u], single, this[u] === 1 ? single : u ) )
+			}
 
 			if( maxTU > 0 && units.length !== 0 && --maxTU === 0 )
 				break
@@ -120,13 +122,13 @@ class TimeSplitter {
 
 		if( and === true )
 			and = ' and '
-		
+
 		if( typeof and === 'string' && units.length > 1 )
 			and += units.pop()
 		else
 			and = ''
 
-		return units.join( separator || '\n' ) + and
+		return units.join( separator ?? '\n' ) + and
 	}
 }
 

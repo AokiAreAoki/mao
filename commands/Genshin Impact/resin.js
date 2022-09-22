@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'TimeSplitter',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		const maxResin = 160
 		const minutesPerResin = 8
 
@@ -40,10 +40,10 @@ module.exports = {
 					to = maxResin
 				else if( isNaN( to = parseInt( to ) ) )
 					return msg.send( 'Provide a valid number' )
-				
+
 				if( from < 0 )
 					return msg.send( "start value can't be lower than zero" )
-					
+
 				if( from > to )
 					return msg.send( "How is your start value bigger than end value?" )
 
@@ -57,7 +57,7 @@ module.exports = {
 				let timeleft = ts.toString({
 					separator: ', ',
 					ignoreZeros: true,
-					formatter: ( v, u ) => `\`${v} ${u}\``,
+					formatter: ( v, _, u ) => `\`${v} ${u}\``,
 				})
 
 				if( oneArg )

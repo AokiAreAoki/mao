@@ -5,7 +5,23 @@ module.exports = {
 
 		const cacheTimeout = 2 * 24 * 3600e3
 
-		class TempCache {
+		function Entry({
+			value,
+			key,
+			timeout,
+			cache,
+		}){
+			this.value = value
+			this.key = key
+			this.timeout = timeout
+			this.cache = cache
+
+			for( const k in this )
+				if( this[k] == null && k !== 'value' )
+					throw TypeError( `options.${k} must be a valid value` )
+		}
+
+		class TempCache extends Map {
 			static globalCache = []
 
 			static sortGlobal(){
@@ -18,26 +34,23 @@ module.exports = {
 			}
 
 			static {
-				// setInterval( () => {
-				// 	let first
+				setInterval( () => {
+					let first
 
-				// 	console.clear()
-				// 	console.log( printify( this.globalCache ) )
-
-				// 	while( ( first = this.globalCache[0] ) && first.timeout < Date.now() )
-				// 		this.globalCache.shift()
-				// }, 600 /*e3*/ )
+					while( ( first = this.globalCache[0] ) && first.timeout < Date.now() ){
+						const deletedEntry = this.globalCache.shift()
+						deletedEntry.cache.delete( deletedEntry.key )
+					}
+				}, 60e3 )
 			}
 
-			timeout
-			entries = new Map()
-
 			constructor( cacheTimeout ){
+				super()
 				this.timeout = cacheTimeout
 			}
 
 			set( key, value ){
-				const entry = this.entries.get( key )
+				const entry = super.get( key )
 
 				if( entry ){
 					entry.timeout = Date.now() + this.timeout
@@ -46,18 +59,19 @@ module.exports = {
 					return
 				}
 
-				const newEntry = {
+				const newEntry = new Entry({
 					value,
+					key,
 					timeout: Date.now() + this.timeout,
 					cache: this,
-				}
+				})
 
-				this.entries.set( key, newEntry )
+				super.set( key, newEntry )
 				TempCache.insertGlobal( newEntry )
 			}
 
 			get( key ){
-				return this.entries.get( key )
+				return super.get( key )
 			}
 		}
 
@@ -90,7 +104,7 @@ module.exports = {
 				if( links.length === 0 )
 					return
 
-				const immediate = setImmediate( react )
+				react()
 
 				links = await Promise.all( links.map( async url => {
 					const key = url[1] + '/' + url[2]
@@ -106,8 +120,6 @@ module.exports = {
 						return directLink
 					})
 				}))
-
-				clearImmediate( immediate )
 
 				return links
 					.map( url => url?.matchFirst( /https?\S+/ ) )
@@ -125,7 +137,8 @@ module.exports = {
 				if( links.length === 0 )
 					return
 
-				const immediate = setImmediate( react )
+				react()
+
 				const files = await Promise.all( links.map( async url => {
 					const key = url[1] + '/' + url[2]
 
@@ -149,8 +162,6 @@ module.exports = {
 					})
 				}))
 
-				clearImmediate( immediate )
-
 				return files
 					.map( paths => paths?.split( '\n' ) )
 					.flat(1)
@@ -166,10 +177,13 @@ module.exports = {
 			if( msg.author.bot || msg.author.id === client.user.id )
 				return
 
+			let immediate = null
 			let reaction = null
 
 			function react(){
-				reaction ??= msg.react( processing( '👌' ) )
+				immediate ??= setImmediate( () => {
+					reaction ??= msg.react( processing( '👌' ) )
+				})
 			}
 
 			const files = []
@@ -188,6 +202,7 @@ module.exports = {
 				)
 				.then( s => s || null )
 
+			clearImmediate( immediate )
 			const hasSomething = content || files.length !== 0
 
 			if( hasSomething )

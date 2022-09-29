@@ -245,13 +245,6 @@ function cb( text, lang = '' ){
 	return '```' + lang + '\n' + text + '```'
 }
 
-
-
-
-	}
-
-}
-
 function instanceOf( object, constructorName ){
 	return typeof object === 'object' && object !== null && object.constructor.name === constructorName
 }

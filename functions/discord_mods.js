@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'discord cb tts clamp',
+	requirements: 'discord cb clamp',
 	evaluations: {
 		Jimp: 'Jimp ?? null'
 	},
@@ -29,33 +29,28 @@ module.exports = {
 
 			if( typeof content === 'object' ){
 				switch( content?.constructor ){
-				/*case Array:
-					options.content = tts( content, 1 )
-					options.cb = true
-					break*/
+					case discord.MessageEmbed:
+						options.embeds = [content]
+						break
 
-				case discord.MessageEmbed:
-					options.embeds = [content]
-					break
+					case Jimp:
+						content.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
+							if( err )
+								options.embeds.push( Embed()
+									.setColor( 0xFF0000 )
+									.setDescription( 'Looks like i got to send a picture but something went wrong' )
+									.addField( 'Error:', cb( err ) )
+								)
+							else
+								options.files.push( buffer )
+						})
+						break
 
-				case Jimp:
-					content.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
-						if( err )
-							options.embeds.push( Embed()
-								.setColor( 0xFF0000 )
-								.setDescription( 'Looks like i got to send a picture but something went wrong' )
-								.addField( 'Error:', cb( err ) )
-							)
-						else
-							options.files.push( buffer )
-					})
-					break
-
-				default:
-					options = content
-					options.allowedMentions ??= {}
-					options.allowedMentions.repliedUser ??= false
-					break
+					default:
+						options = content
+						options.allowedMentions ??= {}
+						options.allowedMentions.repliedUser ??= false
+						break
 				}
 			} else
 				options.content = String( content )

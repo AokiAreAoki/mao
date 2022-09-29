@@ -85,6 +85,7 @@ logw( 'Requiring custom modules...' )
 	//const MyLang = require( './re/MyLang' )
 	const NH = new ( require( 'nhentai-api' ) ).API()
 	const Paginator = require( './re/paginator' )
+	const printify = require( './re/printifier' )
 	const SauceNAO = require( './re/saucenao-wrapper' )
 	const timer = require( './re/timer' )
 	const tree = require( './re/tree-printer' )
@@ -242,79 +243,11 @@ function cb( text, lang = '' ){
 	return '```' + lang + '\n' + text + '```'
 }
 
-let __duplicates,
-	tabstr = amount => ' '.repeat( amount * 4 )
 
-function tts( table, maxtab = 4, tab = 0 ){
-	maxtab = maxtab ?? 4
 
-	if( table === null )
-		return 'null\n'
 
-	let isarray = table && table instanceof Array
-
-	if( tab >= maxtab )
-		return ( isarray ? '[ ... ]' : '{ ... }' ) + '\n'
-
-	if( typeof table !== 'object' )
-		return `here's ur ${typeof table} for u:\n	${String( table )}`
-
-	let str = ''
-
-	if( tab === 0 )
-		__duplicates = []
-
-	++tab
-
-	for( let k in table ){
-		const value = table[k]
-
-		if( typeof value == 'object' ){
-			str += tabstr(tab)
-
-			if( value !== null ){
-				if( __duplicates.includes( value ) ){
-					str += `Duplicate of ${value.constructor.name}\n`
-					continue
-				} else
-					__duplicates.push( value )
-			}
-
-			str += `${k}: ${tts( value, maxtab, tab )}`
-		} else {
-			if( isarray && !k.match( /^[0-9]*$/ ) )
-				continue
-
-			let val
-
-			switch( typeof value ){
-				case 'string':
-					val = `"${value}"`
-					break
-
-				case 'function':
-					//val = String( value ).split( '{' )[0] + '{ ... }'
-					val = String( value ).replace( /^((async\s+)?(.+?=>\s*|function\s*[\w_]*\(.*?\)\s*))\{.*\}$/, '$1{ ... }' )
-					break
-
-				default:
-					val = table[k]
-					break
-			}
-
-			str = str + tabstr( tab ) + k + `: ${val}\n`
-		}
 	}
 
-	str = ( isarray ? '[' : '{' ) + ( str ? '\n' + str + tabstr( tab - 1 ) : '' ) + ( isarray ? ']' : '}' )
-	--tab
-
-	if( tab === 0 )
-		__duplicates = []
-	else
-		str += '\n'
-
-	return str
 }
 
 function instanceOf( object, constructorName ){
@@ -607,7 +540,7 @@ class EvalFlagsParser {
 
 const evalFlagsParser = new EvalFlagsParser([
 	'cb',
-	'tts',
+	'prt',
 	'del',
 	'silent',
 	'noparse',
@@ -714,13 +647,13 @@ MM.unshiftHandler( 'eval', true, async msg => {
 
 					evaled = Object.keys( evaled ).join( '` `' )
 					evaled = evaled ? `keys: \`${evaled}\`` : 'no keys'
-					evalflags.tts = false
+					evalflags.prt = false
 					return true
 				}
 
-				if( evalflags.tts ){
+				if( evalflags.prt ){
 					evaled = typeof evaled === 'object'
-						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${tts( evaled, evalflags.tts.value )}`
+						? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${printify( evaled, evalflags.prt.value )}`
 						: evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
 
 					return true
@@ -770,7 +703,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 								return
 
 							case 'Array':
-								evaled = `here's ur array for u: ${tts( evaled, 1 )}`
+								evaled = `here's ur array for u: ${printify( evaled, 1 )}`
 								break
 
 							default:

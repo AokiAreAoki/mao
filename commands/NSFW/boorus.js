@@ -1,5 +1,5 @@
 module.exports = {
-	requirements: 'client Embed Gelbooru Yandere clamp tts',
+	requirements: 'client Embed Gelbooru Yandere clamp',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
 

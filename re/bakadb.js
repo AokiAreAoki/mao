@@ -2,9 +2,6 @@ const fs = require( 'fs' )
 const join = require( 'path' ).join
 const events = require( 'events' )
 
-const log = console.log
-const exists = fs.existsSync
-
 class BakaDB extends events {
 	constructor(){
 		super()
@@ -31,8 +28,7 @@ class BakaDB extends events {
 	}
 
 	makePath( path ){
-		console.log( path )
-		if( !exists( path ) ){
+		if( !fs.existsSync( path ) ){
 			this.makePath( path.matchFirst( /(.+?)[^\/\\]+[\/\\]*$/ ) )
 			fs.mkdirSync( path )
 		}
@@ -48,7 +44,7 @@ class BakaDB extends events {
 		this.path = ( typeof path === 'string' && path ) ? path.replace( /^(?!\.[\/\\])[\/\\]?([\w\s_-]+)(?!:)/, './$1' ) : './bdb'
 		let data = {}
 
-		if( exists( this.path ) ){
+		if( fs.existsSync( this.path ) ){
 			let saves = fs.readdirSync( this.path )
 
 			saves.forEach( ( file, k ) => {

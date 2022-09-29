@@ -820,7 +820,7 @@ CM.on( 'cant-access', ( msg, command ) => {
 })
 
 // Special prefix if logged in as MaoDev#2638
-client.on( 'ready', () => {
+client.once( 'ready', () => {
 	if( client.user.id == '598593004088983688' )
 		CM.prefix = /^(--\s*)/i
 })

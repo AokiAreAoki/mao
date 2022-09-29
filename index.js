@@ -551,7 +551,6 @@ const evalFlagsParser = new EvalFlagsParser([
 	'whats',
 	'keys',
 	'dontawait',
-	'ref',
 ])
 
 MM.unshiftHandler( 'eval', true, async msg => {
@@ -563,7 +562,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 		let mem = msg.member
 		let me = msg.author
 		let prefix = said.matchFirst( eval_prefix )
-		let ref = msg.getReferencedMessage()
+		let ref = await msg.getReferencedMessage()
 
 		if( prefix )
 			said = said.substring( prefix.length )
@@ -574,9 +573,6 @@ MM.unshiftHandler( 'eval', true, async msg => {
 
 		if( evalflags.dev )
 			evalflags.iom = { value: 'dev' }
-
-		if( evalflags.ref )
-			ref = await ref
 
 		if( evalflags.iom && evalflags.iom.value !== null ){
 			if( evalflags.iom.value !== __iom && evalflags.iom.value !== '*' )

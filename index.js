@@ -1,6 +1,7 @@
 const startedAt = Date.now()
 const log = console.log
 const __flags = {}
+let __iom = 'mao'
 
 function logw( text ){
 	return process.stdout.write( String( text ) )
@@ -10,44 +11,45 @@ function logw( text ){
 require( './methods' )
 
 { //////////  Simple flag parser  //////////
-	let flags = {}
-	let noflags = true
-	const list_of_flags = [
-		'--dev',
-		'--flags',
-		'--imports-watcher',
-	]
+	const flagCallbacks = {
+		flags(){
+			log( 'List of all flags:' )
+			log( Object.keys( flagCallbacks )
+				.map( f => `  --${f}` )
+				.join( '\n' )
+			)
+			process.exit( 228 ) // full exit code
+		},
+		dev(){
+			__iom = 'dev'
+		},
+	}
+	let noFlags = true
 
-	list_of_flags.forEach( f => flags[f] = f.replace( /^-+/, '' ) )
+	process.argv.slice(2).forEach( arg => {
+		if( !arg.startsWith( '--' ) )
+			return
 
-	process.argv.slice(2).forEach( flag => {
-		let flagname = flags[flag]?.toLowerCase()
+		let flagname = arg.substring(2).toLowerCase()
+		const callback = flagCallbacks[flagname]
 
-		if( flagname ){
+		if( callback ){
 			__flags[flagname] = true
-			noflags = false
+			noFlags = false
+
+			if( typeof callback === 'function' )
+				callback()
+
 			return
 		}
 
-		throw new Error( `Unknown flag "${flag}". Run Mao with "--flags" flag to see all flags` )
+		throw new Error( `Unknown flag "${arg}". Run Mao with "--flags" flag to see all flags` )
 	})
 
-	if( noflags )
+	if( noFlags )
 		log( `Running Mao with no flags` )
-	else {
-		if( __flags.flags ){
-			log( 'List of flags:' )
-			list_of_flags.forEach( f => log( `   ${f}` ) )
-			process.exit( 228 ) // full exit code
-		}
-
-		let flags_array = []
-
-		for( let k in __flags )
-			flags_array.push(k)
-
-		log( `Running Mao with next flags: ${flags_array.join( ', ' )}` )
-	}
+	else
+		log( `Running Mao with next flags: ${Object.keys( __flags ).join( ', ' )}` )
 
 	log()
 }
@@ -577,7 +579,7 @@ MM.unshiftHandler( 'eval', true, async msg => {
 			ref = await ref
 
 		if( evalflags.iom && evalflags.iom.value !== null ){
-			if( evalflags.iom.value !== db.token && evalflags.iom.value !== '*' )
+			if( evalflags.iom.value !== __iom && evalflags.iom.value !== '*' )
 				return
 		} else if( __flags.dev )
 			return

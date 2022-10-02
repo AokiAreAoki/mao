@@ -21,7 +21,6 @@
 		"express": "^4.17.1",
 		"jimp": "^0.9.8",
 		"nhentai-api": "^3.4.3",
-		"node-telegram-bot-api": "^0.50.0",
 		"nodeyourmeme": "^2.0.0",
 		"npm": "^6.14.5",
 		"opusscript": "0.0.7",

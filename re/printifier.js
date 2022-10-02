@@ -3,7 +3,7 @@ const indentation = process.platform === 'win32'
 	? ' '.repeat(4)
 	: '\t'
 
-const __duplicates = new Set()
+const __duplicates = new Map()
 let __maxDepth = 4
 
 function* iterateUniterable( object ) {
@@ -11,7 +11,7 @@ function* iterateUniterable( object ) {
 		yield [ key, object[key] ]
 }
 
-function _printify( v, depth = 0 ){
+function _printify( v, depth = 0, path = '.' ){
 	if( v == null )
 		return String(v)
 
@@ -25,18 +25,20 @@ function _printify( v, depth = 0 ){
 		return `${v.constructor.name}(${String(v)})`
 	}
 
-	if( __duplicates.has(v) )
-		return `Duplicate of ${v.constructor.name}`
+	const dupLocation = __duplicates.get(v)
 
-	__duplicates.add(v)
+	if( dupLocation )
+		return `Duplicate of ${v.constructor.name} at "${dupLocation}"`
+
+	__duplicates.set( v, path )
 	++depth
 
 	if( v instanceof Set ) {
 		const iter = v.values()
-		let values = _printify( iter.next().value, Infinity )
+		let values = _printify( iter.next().value, Infinity, path )
 
 		for( const value of iter )
-			values += ', ' + _printify( value, Infinity )
+			values += ', ' + _printify( value, Infinity, path )
 
 		return `Set [${values}]`
 	}
@@ -57,9 +59,9 @@ function _printify( v, depth = 0 ){
 		: depth > __maxDepth
 			? `<${size ?? 'unknown amount of'} item${size === 1 ? '' : 's'}${isArray && v.length !== size ? `; ${v.length} length` : ''}>`
 			: '\n' + Array.from( iter, ([ k, v ]) => {
-				v = _printify( v, depth ).replace( /\n/gm, '\n' + indentation )
-				return `${indentation}${k}: ${v}`
-			}).join( '\n' ) + '\n'
+				v = _printify( v, depth, path + '/' + k )
+				return `${INDENTATION.repeat( depth )}${k}: ${v}`
+			}).join( '\n' ) + '\n' + INDENTATION.repeat( --depth )
 
 	return `${v.constructor.name} ${isArray || isIterable ? `[${content}]` : `{${content}}`}`
 }

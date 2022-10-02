@@ -1,4 +1,6 @@
 
+const { Collection } = require( './../node_modules/discord.js' )
+
 function listTypes( types ){
 	types = types.map( type => type?.name ?? String( type ) )
 	const lastType = types.pop()
@@ -56,11 +58,14 @@ class MessageManager {
 		this.handleDeletion = !!handleDeletion
 
 		discord.Message.prototype.deleteAnswers = async function(){
-			if( this._answers instanceof Array && this._answers.length !== 0 ){
-				const answers = this._answers.filter( m => !m.deleted )
-				this._answers = []
-				return this.channel.bulkDelete( answers )
-			}
+			if( this._answers instanceof Collection )
+				if( this._answers.size !== 0 ){
+					const promise = this.channel.bulkDelete( this._answers.filter( m => !m.deleted ) )
+					this._answers.clear()
+					return promise
+				}
+			else
+				this._answers = new Collection()
 		}
 
 		ResponseWaiter.init( discord )
@@ -107,7 +112,7 @@ class MessageManager {
 
 	async handleMessage( message, hasBeenEdited = false ){
 		if( !hasBeenEdited )
-			message._answers = []
+			message._answers = new Collection()
 
 		message.isCommand = false
 

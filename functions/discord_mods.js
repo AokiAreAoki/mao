@@ -83,11 +83,7 @@ module.exports = {
 				if( !ref )
 					continue
 
-				if( ref._answers ){
-					if( !ref._answers.includes( msg ) )
-						ref._answers.push( msg )
-				} else
-					ref._answers = [msg]
+				ref.addAnswer( msg )
 			}
 
 			return msgs
@@ -149,6 +145,13 @@ module.exports = {
 		/// Message ///
 
 		// Message.reply
+		discord.Message.prototype.addAnswer = function( message ){
+			if( !( this._answers instanceof Collection ) )
+				this._answers = new Collection()
+
+			this._answers.set( message.id, message )
+		}
+
 		discord.Message.prototype.original_reply = discord.Message.prototype.reply
 		discord.Message.prototype.reply = function( content, options, mention = false ){
 			if( typeof options === 'boolean' ){
@@ -162,10 +165,7 @@ module.exports = {
 			return this.original_reply( options )
 				.then( m => {
 					this.mentionRepliedUser = mention
-
-					if( this._answers instanceof Array )
-						this._answers.push(m)
-
+					this.addAnswer(m)
 					return m
 				})
 		}
@@ -190,9 +190,7 @@ module.exports = {
 
 			return this.channel.send( handleArgs( content, options ) )
 				.then( m => {
-					if( this._answers instanceof Array )
-						this._answers.push(m)
-
+					this.addAnswer(m)
 					return m
 				})
 		}

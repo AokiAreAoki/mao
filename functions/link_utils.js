@@ -29,7 +29,7 @@ module.exports = {
 			}
 
 			static insertGlobal( entry ){
-				const index = binarySearch( this.globalCache, v => v.timeout < entry.timeout )
+				const index = binarySearch( this.globalCache, entry.timeout, v => v.timeout )
 				this.globalCache.splice( index, 0, entry )
 			}
 
@@ -96,7 +96,7 @@ module.exports = {
 			// Twitter direct links provider
 			async ( msg, cache, react ) => {
 				let links = [
-					/https?:\/\/twitter\.com\/([^\/\s]+)\/status\/(\d+)/gmi,
+					/https?:\/\/(?:\w+\.)?twitter\.com\/([^\/\s]+)\/status\/(\d+)/gmi,
 				]
 					.map( re => Array.from( msg.content.matchAll( re ) ) )
 					.flat(1)

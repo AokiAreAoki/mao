@@ -1,7 +1,7 @@
 
-const indentation = process.platform === 'win32'
-	? ' '.repeat(4)
-	: '\t'
+const INDENTATION_LENGTH = 4
+const INDENTATION = ' '.repeat( INDENTATION_LENGTH )
+const STRING_INDENTATION = ' '.repeat( INDENTATION_LENGTH - 1 ) + '|'
 
 const __duplicates = new Map()
 let __maxDepth = 4
@@ -15,7 +15,7 @@ function _printify( v, depth = 0, path = '.' ){
 	if( v == null )
 		return String(v)
 
-	if( typeof v !== 'object' ) {
+	if( typeof v !== 'object' ){
 		if( typeof v === 'string' )
 			return `"${v}"`
 
@@ -33,16 +33,6 @@ function _printify( v, depth = 0, path = '.' ){
 	__duplicates.set( v, path )
 	++depth
 
-	if( v instanceof Set ) {
-		const iter = v.values()
-		let values = _printify( iter.next().value, Infinity, path )
-
-		for( const value of iter )
-			values += ', ' + _printify( value, Infinity, path )
-
-		return `Set [${values}]`
-	}
-
 	const isArray = v instanceof Array
 	const isIterable = typeof v[Symbol.iterator] === 'function'
 
@@ -51,17 +41,39 @@ function _printify( v, depth = 0, path = '.' ){
 		: v[Symbol.iterator]()
 
 	const size = isIterable && !isArray
-		? v.size
+		? v.size ?? 'unknown amount of'
 		: Object.keys(v).length
 
-	const content = size === 0
-		? '<empty>'
-		: depth > __maxDepth
-			? `<${size ?? 'unknown amount of'} item${size === 1 ? '' : 's'}${isArray && v.length !== size ? `; ${v.length} length` : ''}>`
-			: '\n' + Array.from( iter, ([ k, v ]) => {
+	let content
+
+	if( size === 0 )
+		content = '<empty>'
+	else if( depth > __maxDepth ){
+		let members = ( isArray || isIterable
+			? 'item'
+			: 'member'
+		) + ( size === 1 ? '' : 's' )
+
+		if( isArray && v.length !== size ){
+			const items = v.length === 1 ? 'member' : 'members'
+			members = `${items}; ${v.length} ${members}`
+		}
+
+		members = size + ' ' + members
+		content = `<${members}>`
+	} else {
+		const lines = v instanceof Set
+			? Array.from( iter, v => {
+				v = _printify( v, depth, path + '/<Set>' )
+				return `${INDENTATION.repeat( depth )}${v}`
+			})
+			: Array.from( iter, ([ k, v ]) => {
 				v = _printify( v, depth, path + '/' + k )
 				return `${INDENTATION.repeat( depth )}${k}: ${v}`
-			}).join( '\n' ) + '\n' + INDENTATION.repeat( --depth )
+			})
+
+		content = `\n${lines.join( '\n' )}\n${INDENTATION.repeat( --depth )}`
+	}
 
 	return `${v.constructor.name} ${isArray || isIterable ? `[${content}]` : `{${content}}`}`
 }

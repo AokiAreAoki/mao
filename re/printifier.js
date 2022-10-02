@@ -30,6 +30,9 @@ function _printify( v, depth = 0, path = '.' ){
 		return `${v.constructor.name}(${String(v)})`
 	}
 
+	if( v instanceof RegExp )
+		return v.toString()
+
 	const dupLocation = __duplicates.get(v)
 
 	if( dupLocation )

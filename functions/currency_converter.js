@@ -1,68 +1,31 @@
 module.exports = {
 	requirements: '_tkns axios MM numsplit Embed',
 	init: ( requirements, mao ) => {
-		// return
 		requirements.define( global )
 
 		const convertRE = /\b(\d[\d\s_,]*(?:\.[\d\s_,]+)?(?:e-?\d+)?)?\s*(\w{3})\s*to\s*(\w{3})\b/gi
 		const numSplitterRE = /[\s_,]+/g
 
-		const ratios = { USD: { ratio: 1 } } // USD based
-		let currenciesNextFetch = 0
-		let currencies = null
+		let nextFetch = -1
+		let rates = null
 
 		async function getCurrencies(){
-			if( currenciesNextFetch < Date.now() || !currencies ){
-				currenciesNextFetch = Date.now() + 86400e3
+			if( nextFetch < Date.now() ){
+				nextFetch = Date.now() + 60e3
 
-				return currencies = axios.get( `https://free.currconv.com/api/v7/currencies`, {
-					params: {
-						apiKey: _tkns.currency_converter,
-					}
-				})
-					.then( response => currencies = response.data.results )
+				return rates = axios.get( `https://v6.exchangerate-api.com/v6/${_tkns.currency_converter}/latest/USD` )
+					.then( ({ data }) => {
+						if( data.result === 'error' ){
+							nextFetch = -1
+							throw Error( `[ExchangeRate-API] Error: ${data['error-type']}` )
+						}
+
+						nextFetch = data.time_next_update_unix
+						return rates = data.conversion_rates
+					})
 			}
 
-			return currencies
-		}
-
-		async function getRatio( a, b ){
-			if( a === b )
-				return 1
-
-			const unknownRatios = []
-
-			if( a !== 'USD' ){
-				if( !ratios[a] || ratios[a].timeout < Date.now() ){
-					ratios[a] = null
-					unknownRatios.push(a)
-				}
-			}
-
-			if( b !== 'USD' ){
-				if( !ratios[b] || ratios[b].timeout < Date.now() ){
-					ratios[b] = null
-					unknownRatios.push(b)
-				}
-			}
-
-			if( unknownRatios.length !== 0 ){
-				const { data } = await axios.get( `https://free.currconv.com/api/v7/convert`, {
-					params: {
-						q: unknownRatios.map( u => `USD_${u}` ).join( ',' ),
-						compact: 'ultra',
-						apiKey: _tkns.currency_converter,
-					}
-				})
-
-				for( const currency in data )
-					ratios[currency.substring(4)] = {
-						ratio: data[currency],
-						timeout: Date.now() + 3600e3,
-					}
-			}
-
-			return ratios[b].ratio / ratios[a].ratio
+			return rates
 		}
 
 		MM.pushHandler( 'currency-converter', false, async msg => {
@@ -78,8 +41,8 @@ module.exports = {
 					throw err
 				})
 
-			const exchangeRates = ( await Promise.all(
-				expressions.map( async ([, value, a, b]) => {
+			const exchangeRates = expressions
+				.map( ([, value, a, b]) => {
 					a = a.toUpperCase()
 					b = b.toUpperCase()
 
@@ -87,12 +50,12 @@ module.exports = {
 						return
 
 					value = value == null ? 1 : Number( value.replace( numSplitterRE, '' ) )
-					const ratio = await getRatio( a, b )
+					const rate = a === b ? 1 : rates[b] / rates[a]
 
-					if( isNaN( value ) || isNaN( ratio ) )
+					if( isNaN( value ) || isNaN( rate ) )
 						return
 
-					let value2 = value * ratio
+					let value2 = value * rate
 					let zeros = value2 < 1 ? 1e3 : 1e2
 
 					if( value2 >= 1e-3 )
@@ -100,16 +63,17 @@ module.exports = {
 
 					return `${numsplit( value )} ${a} is ${numsplit( value2 )} ${b}`
 				})
-			))
 				.filter( rate => {
+					if( !rate )
+						return false
+
 					const isFirst = !filter[rate]
 					filter[rate] = true
 					return isFirst
 				})
-				.join( '\n' )
 
-			if( exchangeRates ){
-				msg.send( exchangeRates )
+			if( exchangeRates.length !== 0 ){
+				msg.send( exchangeRates.join( '\n' ) )
 				return true
 			}
 		})

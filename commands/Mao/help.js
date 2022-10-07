@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'CM Embed __flags',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		const help = addCmd({
 			aliases: 'help h',
 			description: {
@@ -21,17 +21,17 @@ module.exports = {
 			},
 			callback: ( msg, args ) => {
 				if( args[0] ){
-					const command = CM.findCommand( args.get_string() )
+					const command = CM.findCommand( args.getRaw() )
 
 					if( command )
 						return command.sendHelp( msg )
-					
-					const module = CM.modules.get( args[0].toLowerCase() ) 
+
+					const module = CM.modules.get( args[0].toLowerCase() )
 
 					if( module && module.isAccessibleFor( msg.author ) )
 						//return msg.send( `${module.printname}:${cb( module.listCommands(), 'asciidoc' )}` )
 						return msg.send( cb( `== ${module.printname} ==\n${module.listCommands()}`, 'asciidoc' ) )
-					
+
 					return msg.send( `No module or command named \`${args[0]}\` has been found.` )
 				}
 
@@ -40,11 +40,11 @@ module.exports = {
 					`Flag prefix: \`${CM.constructor.ArgumentParser.flagPrefix}\``,
 					`For more information use \`help <command/module>\``,
 				].join( '\n' ) )
-				
+
 				CM.modules.forEach( module => {
 					if( module.commands.length !== 0 && !module.isHidden ){
 						const commands = module.commands.map( c => {
-							let command = `\`${c.name}\`` 
+							let command = `\`${c.name}\``
 
 							if( c.subcommands.length !== 0 )
 								command += `(${c.subcommands.length})`
@@ -72,7 +72,7 @@ module.exports = {
 				'    -2 :: ' + args[-2],
 				'    -1 :: ' + args[-1],
 				args.map( ( v, k ) => `${' '.repeat( 6 - k.toString().length )}${k} :: ${v}` ).join( '\n' ),
-				'string :: ' + args.get_string(),
+				'string :: ' + args.getRaw(),
 				'```',
 			].join( '\n' ) )
 		}

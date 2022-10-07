@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'Embed',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		const numbers = [
 			'1️⃣',
 			'2️⃣',
@@ -43,8 +43,8 @@ module.exports = {
 			callback: async ( msg, args ) => {
 				if( args.length === 0 )
 					return msg.send( 'Usage: `-help vote`' )
-				
-				const options = args.get_string().split( /\n+/ )
+
+				const options = args.getRaw().split( /\n+/ )
 				let query = options.shift()
 				const options_amount = Math.min( options.length, MAX )
 
@@ -59,7 +59,7 @@ module.exports = {
 					.setAuthor( msg.author.tag, msg.author.avatarURL(64) )
 					.addField( 'Vote:', query )
 				)
-				
+
 				if( options_amount === 0 ){
 					await m.react( '✅' )
 					await m.react( '❌' )

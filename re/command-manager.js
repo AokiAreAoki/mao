@@ -19,7 +19,7 @@ class CommandManager extends require( 'events' ) {
 	considerMentionAsPrefix
 	modules = new Collection()
 	commands = new Collection()
-	list_commands = []
+	listCommands = []
 	deleteAfterDelay = 8e3
 
 	constructor( client, prefix, considerMentionAsPrefix = false ){
@@ -29,8 +29,8 @@ class CommandManager extends require( 'events' ) {
 		this.considerMentionAsPrefix = !!considerMentionAsPrefix
 	}
 
-	addModule( module_printname, isHidden = false ){
-		const module = new Module( module_printname, this )
+	addModule( modulePrintname, isHidden = false ){
+		const module = new Module( modulePrintname, this )
 		this.modules.set( module.name, module )
 
 		if( isHidden )
@@ -43,22 +43,22 @@ class CommandManager extends require( 'events' ) {
 		options.cm = this
 		const command = new Command( options )
 
-		this.list_commands.push( command )
+		this.listCommands.push( command )
 		command.aliases.forEach( alias => this.commands.set( alias, command ) )
 		command?.module.commands.push( command )
 
 		return command
 	}
 
-	findCommand( string_args ){
-		const subcommands = string_args.split( /\s+/ )
+	findCommand( stringArgs ){
+		const subcommands = stringArgs.split( /\s+/ )
 		let command = this.commands.get( subcommands.shift() )
 
-		for( const subcommand_name of subcommands ){
+		for( const subcommandName of subcommands ){
 			if( !command )
 				return null
 
-			const subcommand = command.subcommands.get( subcommand_name )
+			const subcommand = command.subcommands.get( subcommandName )
 
 			if( !subcommand )
 				break
@@ -69,11 +69,11 @@ class CommandManager extends require( 'events' ) {
 		return command
 	}
 
-	findCommandAndArgs( string_args ){
-		if( typeof string_args !== 'string' )
+	findCommandAndArgs( stringArgs ){
+		if( typeof stringArgs !== 'string' )
 			return []
 
-		const subcommands = string_args.split( /\s+/ )
+		const subcommands = stringArgs.split( /\s+/ )
 		const deleteAfterDelay = subcommands[0].toLowerCase() === 'd'
 
 		if( deleteAfterDelay )
@@ -84,22 +84,22 @@ class CommandManager extends require( 'events' ) {
 		if( !command )
 			return []
 
-		string_args = string_args.substring( subcommands[0].length ).trimStart()
-		let command_name = [subcommands.shift()]
+		stringArgs = stringArgs.substring( subcommands[0].length ).trimStart()
+		let commandName = [subcommands.shift()]
 
-		for( const subcommand_name of subcommands ){
-			const subcommand = command.subcommands.get( subcommand_name )
+		for( const subcommandName of subcommands ){
+			const subcommand = command.subcommands.get( subcommandName )
 
 			if( !subcommand )
 				break
 
 			command = subcommand
-			command_name.push( subcommand_name )
-			string_args = string_args.substring( subcommand_name.length ).trimStart()
+			commandName.push( subcommandName )
+			stringArgs = stringArgs.substring( subcommandName.length ).trimStart()
 		}
 
 		return command
-			? [command, command_name, string_args, deleteAfterDelay]
+			? [command, commandName, stringArgs, deleteAfterDelay]
 			: []
 	}
 
@@ -129,8 +129,8 @@ class CommandManager extends require( 'events' ) {
 		// If prefix found
 		const [
 			command,
-			command_name,
-			string_args,
+			commandName,
+			stringArgs,
 			deleteAfterDelay,
 		] = this.findCommandAndArgs( msg.content.substring( prefix.length ) )
 
@@ -146,7 +146,7 @@ class CommandManager extends require( 'events' ) {
 			}
 
 			// Parsing arguments
-			const args = ArgumentParser.new( string_args, command, command_name )
+			const args = ArgumentParser.new( stringArgs, command, commandName )
 
 			if( msg.deleteAfterDelay = deleteAfterDelay ){
 				// args.shiftLeft()
@@ -159,7 +159,7 @@ class CommandManager extends require( 'events' ) {
 				})
 			}
 
-			command.callback.call( command, msg, args, args.get_string )
+			command.callback.call( command, msg, args, args.getRaw )
 			return true
 		}
 	}
@@ -341,14 +341,14 @@ class ArgumentParser extends Array {
 	pos = []
 	flags = null
 
-	static new( string_args, command = null, command_name = [] ){
+	static new( stringArgs, command = null, commandName = [] ){
 		const ap = new ArgumentParser()
-		ap.parse( string_args, command, command_name )
+		ap.parse( stringArgs, command, commandName )
 		return ap
 	}
 
-	parse( string_args, command = null, command_name = [] ){
-		this.string = string_args
+	parse( stringArgs, command = null, commandName = [] ){
+		this.string = stringArgs
 		this.parseArgs()
 
 		if( command?.hasFlags ){
@@ -380,15 +380,15 @@ class ArgumentParser extends Array {
 			this.parseArgs()
 		}
 
-		if( !( command_name instanceof Array ) )
-			command_name = [command_name]
+		if( !( commandName instanceof Array ) )
+			commandName = [commandName]
 
-		command_name.forEach( ( v, i ) => {
-			i -= command_name.length
+		commandName.forEach( ( v, i ) => {
+			i -= commandName.length
 			this[i] = v
 		})
 
-		this.negativeLength = -command_name.length
+		this.negativeLength = -commandName.length
 	}
 
 	pop(){
@@ -431,7 +431,7 @@ class ArgumentParser extends Array {
 		return args
 	}
 
-	get_string( number = 0 ){
+	getRaw( number = 0 ){
 		if( typeof this.pos[number] === 'number' )
 			return this.string.substring( this.pos[number] )
 	}

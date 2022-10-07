@@ -2,16 +2,16 @@ module.exports = {
 	requirements: 'vec Jimp config',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		function toByte( string_int ){
 			let int = parseInt( string_int )
 			return int < 0 ? 0 : int > 255 ? 255 : int
 		}
-		
+
 		function inrange( num, min, max ){
 			return min <= num && num <= max
 		}
-		
+
 		const colorSystems = {
 			rgb: args => vec( toByte( args[0] ), toByte( args[1] ), toByte( args[2] ) ).toHex(),
 			hex: args => {
@@ -29,15 +29,15 @@ module.exports = {
 					c = ( 1 - Math.abs( 2*l - 1 ) ) * s,
 					x = c * ( 1 - Math.abs( ( h / 60 ) % 2 - 1 ) ),
 					m = l - c / 2
-				
+
 				let seg = h / 120, // segment
 					clr = vec( c, x, 0 )
-				
+
 				if( seg >= 0.5 )
 					clr.remixAxes( 'yxz' )
 				if( h >= 120 )
 					clr.remixAxes( Math.floor( seg ) === 1 ? 'zxy' : 'yzx' )
-				
+
 				let result = clr.add(m).mul(255).toHex()
 				delete clr
 				return result
@@ -45,7 +45,7 @@ module.exports = {
 			hsv: 'hsl',
 			mao: () => config.maoclr,
 		}
-		
+
 		addCmd({
 			aliases: 'color clr',
 			description: {
@@ -69,13 +69,13 @@ module.exports = {
 			callback: ( msg, args ) => {
 				if( !args[0] )
 					return msg.send( 'Usage: `-help color`' )
-				
+
 				let system = args[0].toLowerCase()
 
 				if( colorSystems[system] )
 					args.shift()
 				else {
-					if( /^\d{1,3}(\s+\d{1,3}){2}/.test( args.get_string() ) )
+					if( /^\d{1,3}(\s+\d{1,3}){2}/.test( args.getRaw() ) )
 						system = 'rgb'
 					else if( /^(#|0x)[\da-f]{3,6}$/i.test( system ) )
 						system = 'hex'
@@ -85,8 +85,8 @@ module.exports = {
 
 				if( typeof colorSystems[system] === 'string' )
 					system = colorSystems[system]
-				let color = colorSystems[system]( args, args.get_string() )
-				
+				let color = colorSystems[system]( args, args.getRaw() )
+
 				if( typeof color == 'number' ){
 					new Jimp( 64, 64, color * 0x100 + 0xFF, ( err, img ) => {
 						if( err )

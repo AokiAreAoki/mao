@@ -5,7 +5,7 @@ module.exports = {
 
 		let mdata = {},
 			m = {}
-		
+
 		function defineMData( guildID ){
 			mdata[guildID] = {
 				playing: false,
@@ -19,23 +19,23 @@ module.exports = {
 		function getTimeoutForConnection( connection ){
 			if( !instanceOf( connection, 'VoiceConnection' ) )
 				return 0
-			
+
 			if( connection.channel.members.size === 1 )
 				return 60e3
-			
+
 			if( !connection.dispatcher )
 				return 720e3
-			
+
 			return 0
 		}
 
 		client.once( 'ready2', () => client.guilds.cache.forEach( g => defineMData( g.id ) ) )
 		client.on( 'guildCreate', guild => defineMData( guild.id ) )
-		
+
 		client.on( 'voiceStateUpdate', ( oldState, newState ) => {
 			if( newState.id !== client.user.id )
 				return
-				
+
 			if( !newState.selfDeaf )
 				newState.setDeaf( true )
 		})
@@ -43,11 +43,11 @@ module.exports = {
 		timer.create( 'voiceTimeout', 1.337, 0, () => {
 			client.voice?.connections?.forEach( connection => {
 				if( !connection ) return
-				
+
 				let now = Date.now()
 				let guild = connection.channel.guild
 				let timeout = getTimeoutForConnection( connection )
-					
+
 				if( mdata[guild.id].idlingStarted === -1 ){
 					if( timeout !== 0 )
 						mdata[guild.id].idlingStarted = now
@@ -65,13 +65,13 @@ module.exports = {
 		client.on( 'voiceStateUpdate', ( oldstate, newstate ) => {
 			let myVoice = newstate.guild.voice
 			if( !myVoice || !myVoice.speaking ) return
-			
+
 			if( oldstate.channelID !== newstate.channelID ){
 				let gid = newstate.guild.id
 
 				if( newstate.channelID === myVoice.channelID ){
 					let timerStart = timeout => timer.create( 'timeout' + gid, timeout, 1, () => leave( myVoice ) )
-					
+
 					if( newstate.id === myVoice.id ){
 						// if mao joins vc then timeout = 666s
 						let timeout = 666e3
@@ -86,25 +86,25 @@ module.exports = {
 				}
 			}
 		})*/
-		
+
 		/// Function for adding music commands ///
 		function addMCommand( command, description, callback ){
 			let aliases = command.split( /\s+/ )
 			let cmd = aliases.shift()
-			
+
 			m[cmd] = {
 				aliases: aliases,
 				description: description,
 				func: callback,
 			}
-		
+
 			if( aliases.length > 0 )
 				aliases.forEach( alias => m[alias] = cmd )
 		}
-		
+
 		// Some functions
 		const ytapikey = _tkns.google
-		
+
 		class Song {
 			constructor( vid, author, title ){
 				this.vid = vid
@@ -119,7 +119,7 @@ module.exports = {
 
 		function postfix( number ){
 			number = String( number )
-			
+
 			if( number[number.length - 2] === '1' )
 				return 'th'
 
@@ -141,7 +141,7 @@ module.exports = {
 			*/
 
 			let url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${vid}&key=${ytapikey}`
-			
+
 			httpGet( url, body => {
 				let song = JSON.parse( body ).items[0]
 				callback( new Song(
@@ -154,7 +154,7 @@ module.exports = {
 
 		function parseSongs( vids, callback, errcallback ){
 			let url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${vids.join( ',' )}&key=${ytapikey}`
-			
+
 			httpGet( url, body => {
 				let songs = []
 
@@ -173,7 +173,7 @@ module.exports = {
 		function sendQueuedMessage( channel, song, requester ){
 			let pos = mdata[channel.guild.id].queue.length,
 				isMember = requester.constructor.name === 'GuildMember'
-			
+
 			channel.send( Embed()
 				.addField( 'Song queued', `Your song \`${song.author}\` - \`${song.title}\` is \`${pos + postfix(pos)}\` in the queue list.` )
 				.setAuthor( isMember ? requester.displayName : requester.username, ( isMember ? requester.user : requester ).avatarURL() )
@@ -185,7 +185,7 @@ module.exports = {
 				mdata[guildID].queue.push( songOrVID )
 				return true
 			}
-			
+
 			parseSong( songOrVID, song => {
 				mdata[guildID].queue.push( song )
 				callback?.( null, song )
@@ -227,7 +227,7 @@ module.exports = {
 					})
 				} else {
 					let displayMessage = await msg.send( `Searching for \`${query}\`...` )
-					
+
 					searchOnYT( query, async songs => {
 						if( songs == null || songs.length == 0 ){
 							( await displayMessage.edit( 'Nothing found :(' ) ).delete( 2280 )
@@ -248,7 +248,7 @@ module.exports = {
 								.if( msg => /^\d\d?$/.test( msg.content ) )
 								.then( ( msg, waiter ) => {
 									const n = parseInt( msg.content )
-									
+
 									if( n <= songs.length ){
 										if( n === 0 )
 											displayMessage.edit( 'Canceled' ).then( m => m.delete( 2280 ) )
@@ -295,7 +295,7 @@ module.exports = {
 					data.items.forEach( song => {
 						if( !song.id )
 							return
-							
+
 						songs.push( new Song(
 							song.id.videoId ?? song.id,
 							song.author.name.replace( '`', "'" ), //song.snippet.channelTitle.replace( '`', "'" ),
@@ -310,7 +310,7 @@ module.exports = {
 
 			maxResCntOverride = typeof maxResCntOverride === 'number' ? maxResCntOverride : maxResCnt
 			let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${maxResCntOverride}&q=${encodeURI(q)}&key=${ytapikey}`
-			
+
 			httpGet( url, body => {
 				body = JSON.parse( body )
 
@@ -338,17 +338,17 @@ module.exports = {
 				callback = textChannel
 				textChannel = null
 			}
-			
+
 			if( !voiceChannel.guild.voice || voiceChannel.guild.voice.channelID != voiceChannel.id ){
 				await voiceChannel.join()
 				let gid = voiceChannel.guild.id
-				
+
 				if( textChannel ){
 					mdata[gid].tc = textChannel
 					mdata[gid].timeout = 60e3
 					mdata[gid].idlingStarted = Date.now()
 				}
-				
+
 				if( message ) await message.send( 'Joined ' + voiceChannel.name + ( mdata[gid].tc != message.channel ? ' and bounded to #' + message.channel.name : '' ) )
 				if( typeof callback === 'function' ) callback( true, voiceChannel )
 			} else {
@@ -378,10 +378,10 @@ module.exports = {
 				song = mdata[guild.id].queue[0]
 				if( !song ) return false
 			}
-			
+
 			if( song instanceof Song )
 				song = song.vid
-			
+
 			if( typeof song === 'string' ){
 				if( /^[\w_-]{11}$/.test( song ) )
 					song = await ytdl( 'https://youtu.be/' + song ) // { filter: 'audioonly' }
@@ -390,7 +390,7 @@ module.exports = {
 				else
 					return false
 			}
-			
+
 			mdata[guild.id].disp?.broadcast.end()
 
 			if( guild?.voice.connection ){
@@ -409,14 +409,14 @@ module.exports = {
 					})
 					.on( 'error', err => {
 						mdata[guild.id].playing = false
-						
+
 						console.log( '\nMusic error happened:\n' )
 						console.error( err )
 						console.log()
 
 						mdata[guild.id].tc?.send( 'An error occurred :(' )
 					})
-				
+
 				mdata[guild.id].playing = true
 				return true
 			}
@@ -428,7 +428,7 @@ module.exports = {
 			if( !message.guild.voice || !message.guild.voice.connection )
 				if( message.member.voice && message.member.voice.channel )
 					await join( message.member.voice.channel, message.channel, null, message )
-		
+
 			if( !mdata[message.guild.id].playing || !mdata[message.guild.id]?.disp.broadcast )
 				play( message.guild )
 		}
@@ -474,7 +474,7 @@ module.exports = {
 			+ '\n`music qp <yt video url>` - Adds a video to the queue',
 		async ( msg, args ) => {
 			if( args[0] ){
-				queue( args.get_string(), msg )
+				queue( args.getRaw(), msg )
 			} else
 				sendQueue( msg )
 		})
@@ -492,7 +492,7 @@ module.exports = {
 			+ '\n`music qp <yt video url>` - Adds a video to the queue',
 		async ( msg, args ) => {
 			if( args[0] ){
-				queue( args.get_string(), msg ).then( succes => {
+				queue( args.getRaw(), msg ).then( succes => {
 					if( !succes ) return
 					let queue = mdata[msg.guild.id].queue
 					if( queue && queue[0] ) play2( msg )
@@ -530,7 +530,7 @@ module.exports = {
 					option = m[option]
 
 					args.shift()
-					
+
 					if( typeof option.func == 'function' )
 						option.func( msg, args )
 					else
@@ -538,7 +538,7 @@ module.exports = {
 				} else {
 					let emb = Embed()
 						.setAuthor( msg.member.displayName, msg.author.avatarURL )
-					
+
 					for( let cmd in m ){
 						let data = m[cmd]
 						if( typeof data === 'object' )

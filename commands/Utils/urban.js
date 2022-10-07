@@ -2,9 +2,9 @@ module.exports = {
 	requirements: 'Embed httpGet',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		let months = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ]
-		
+
 		addCmd({
 			aliases: 'urban',
 			description: {
@@ -17,19 +17,19 @@ module.exports = {
 				],
 			},
 			callback: ( msg, args ) => {
-				let q = args.get_string()
-				
+				let q = args.getRaw()
+
 				if( !q ){
 					msg.send( 'Gimme a word baka~!' )
 					return
 				}
-				
+
 				httpGet( `http://api.urbandictionary.com/v0/define?term={${q}}`, body => {
 					const definitions = JSON.parse( body )?.list
-					
+
 					if( !definitions )
 						return msg.send( 'Definition not found :(' )
-					
+
 					msg.author.createPaginator()
 						.setPages( definitions.length )
 						.onPageChanged( ( page, pages ) => {
@@ -39,7 +39,7 @@ module.exports = {
 							const def = definition.definition.replace( /\[(.*?)\](?!\(https?:\/\/.*?\))/g, ( _, p1 ) => `[${p1}](https://www.urbandictionary.com/define.php?term=${ encodeURI( p1 ) })` )
 							const exmp = definition.example.replace( /\[(.*?)\](?!\(https?:\/\/.*?\))/g, ( _, p1 ) => `[${p1}](https://www.urbandictionary.com/define.php?term=${ encodeURI( p1 ) })` )
 							const date = new Date( definition.written_on )
-							
+
 							return Embed()
 								.setAuthor( '@' + msg.member.user.tag, msg.member.user.avatarURL )
 								.addField( `Word (${page + 1}/${pages})`, `[${ definition.word }](${ definition.permalink })` )

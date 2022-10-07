@@ -2,9 +2,9 @@ module.exports = {
 	requirements: 'kym',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		const MAX = 4096
-		
+
 		function cut( text ){
 			return text.length > MAX
 				? text.substr( 0, MAX - 4 ) + ' ...'
@@ -23,7 +23,7 @@ module.exports = {
 				],
 			},
 			callback: ( msg, args ) => {
-				const meme = args.get_string()
+				const meme = args.getRaw()
 
 				if( meme )
 					kym.search( meme )

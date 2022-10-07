@@ -2,10 +2,10 @@ module.exports = {
 	requirements: 'discord Embed client',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		async function sendPFP( messageOrChannel, target, banner ){
 			target = target.user ?? target // user/member/guild
-			
+
 			const embed = Embed()
 			const isGuild = target instanceof discord.Guild
 			const whose = isGuild ? 'Server' : target.toString() + `'s`
@@ -14,7 +14,7 @@ module.exports = {
 				: isGuild
 					? target.iconURL({ size: 1024, dynamic: true })
 					: target.displayAvatarURL({ size: 2048, dynamic: true })
-			
+
 			if( url ){
 				const type = banner ? 'banner' : isGuild ? 'icon' : 'avatar'
 				embed.setDescription( `${whose} ${type}` )
@@ -28,10 +28,10 @@ module.exports = {
 					? `Server does not have banner`
 					: `${target.toString()} does not have banner nor accent color`
 				)
-			
+
 			return messageOrChannel.send( embed )
 		}
-		
+
 		addCmd({
 			aliases: 'avatar pfp banner',
 			description: {
@@ -49,29 +49,29 @@ module.exports = {
 			},
 			callback: async ( msg, args ) => {
 				const banner = args[-1] === 'banner'
-				
+
 				// Author's avatar
 				if( !args[0] )
 					return sendPFP( msg, msg.author, banner )
-				
+
 				// Server icon
 				if( args[0].toLowerCase() === 'server' )
 					return sendPFP( msg, msg.guild, banner )
-				
+
 				// Mao's avatar
 				if( args[0].toLowerCase() === 'mao' )
 					return sendPFP( msg, client.user, banner )
-				
+
 				// Exclusion: everyone/here
 				if( msg.mentions.everyone )
 					return msg.send( "Are You Baka?" )
-				
+
 				// Search for user by name
-				const member = await msg.guild.members.find( args.get_string() )
-				
+				const member = await msg.guild.members.find( args.getRaw() )
+
 				if( member )
 					return sendPFP( msg, member.user, banner )
-				
+
 				return msg.send( 'User not found :(' )
 			},
 		})

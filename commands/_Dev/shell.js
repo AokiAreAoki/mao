@@ -6,7 +6,7 @@ module.exports = {
 		const EXEC_TIMEOUT = 600e3
 
 		async function callback( msg, args ){
-			const string_command = args.get_string()
+			const string_command = args.getRaw()
 
 			if( !string_command )
 				return this.sendHelp( msg )
@@ -28,7 +28,7 @@ module.exports = {
 
 			function editMessage( error, stdout, stderr, finished = false ){
 				const embeds = []
-				
+
 				if( stdout )
 					embeds.push( Embed()
 						.addField( 'stdout:', cropOutput( cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) ) )
@@ -69,17 +69,13 @@ module.exports = {
 					message.edit( options )
 			}
 
-			const command = cp.exec( args.get_string(), {
+			const command = cp.exec( args.getRaw(), {
 				timeout: EXEC_TIMEOUT,
 				signal: ac.signal,
 				detached: true,
 			}, async ( err, stdout, stderr ) => {
 				clearTimeout( timeout )
 				editMessage( err, stdout, stderr, true )
-
-				// const message = await message.send( `\`${args.get_string()}\` finished execution.` )
-				// await new Promise( resolve => setTimeout( resolve, 3e3 ) )
-				// message.delete( 8e3 )
 			})
 
 			let stdout = '',

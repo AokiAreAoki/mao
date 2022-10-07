@@ -2,7 +2,7 @@ module.exports = {
 	requirements: 'cb axios instanceOf',
 	init: ( requirements, mao ) => {
 		requirements.define( global )
-		
+
 		function Language( id, compiler_args ){
 			this.id = id
 			this.compiler_args = compiler_args
@@ -69,7 +69,7 @@ module.exports = {
 					lang: lang,
 					compilers: [],
 				}
-				
+
 				if( instanceOf( compilers, 'Object' ) )
 					for( let compiler in compilers )
 						lang.compilers.push( compiler )
@@ -85,7 +85,7 @@ module.exports = {
 		// Aliases
 		langs.JS = 'JavaScript'
 		langs.CPP = 'C++'
-		
+
 		addCmd({
 			aliases: 'rextester rex',
 			description: {
@@ -110,16 +110,16 @@ module.exports = {
 						[requestedLang, compiler] = arg0.toLowerCase().split( '/' )
 					else
 						requestedLang = arg0.toLowerCase()
-						
+
 					for( let l in langs ){
 						if( l.toLowerCase().startsWith( requestedLang ) ){
 							lang = langs[l]
-							
+
 							if( typeof lang === 'string' )
 								lang = langs[( l = lang )]
-							
+
 							language = l
-							
+
 							if( instanceOf( lang, 'Object' ) ){
 								compiler = compiler || Object.keys( lang )[0]
 								language += ` (${compiler.toUpperCase()})`
@@ -129,18 +129,18 @@ module.exports = {
 							break
 						}
 					}
-					
+
 					if( lang ){
-						let code = args.get_string(1)
-						
+						let code = args.getRaw(1)
+
 						if( code.startsWith( '```' ) )
 							code = code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s )
-						
+
 						if( !code ){
 							msg.send( 'Gimme code, baka~!' )
 							return
 						}
-						
+
 						let message = await msg.send( `Running your \`${language}\` code...` )
 
 						axios.post( 'https://rextester.com/rundotnet/api', {

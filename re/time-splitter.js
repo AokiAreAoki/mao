@@ -100,7 +100,7 @@ class TimeSplitter {
 		separator = '\n',
 		ignoreZeros = false,
 		ascOrder = false,
-		formatter = ( value, unit ) => `${value} ${unit}`,
+		formatter = ( value, _, unit ) => `${value} ${unit}`,
 		maxTU = -1,
 		and = null,
 	} = {} ){

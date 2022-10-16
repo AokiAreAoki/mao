@@ -73,33 +73,39 @@ class CommandManager extends require( 'events' ) {
 		if( typeof stringArgs !== 'string' )
 			return []
 
+		const originalStringArgs = stringArgs
+		stringArgs = stringArgs.toLowerCase()
+
 		const subcommands = stringArgs.split( /\s+/ )
-		const deleteAfterDelay = subcommands[0].toLowerCase() === 'd'
+		const deleteAfterDelay = subcommands[0] === 'd'
 
 		if( deleteAfterDelay )
-			subcommands.shift()
-
+			stringArgs = stringArgs.substring( subcommands.shift().length ).trimStart()
+		
 		let command = this.commands.get( subcommands[0] )
 
 		if( !command )
 			return []
 
 		stringArgs = stringArgs.substring( subcommands[0].length ).trimStart()
-		let commandName = [subcommands.shift()]
+		const path = [subcommands.shift()]
 
 		for( const subcommandName of subcommands ){
-			const subcommand = command.subcommands.get( subcommandName )
+			const name = subcommandName
+			const subcommand = command.subcommands.get( name )
 
 			if( !subcommand )
 				break
 
 			command = subcommand
-			commandName.push( subcommandName )
-			stringArgs = stringArgs.substring( subcommandName.length ).trimStart()
+			path.push( name )
+			stringArgs = stringArgs.substring( name.length ).trimStart()
 		}
 
+		stringArgs = originalStringArgs.substring( originalStringArgs.length - stringArgs.length )
+
 		return command
-			? [command, commandName, stringArgs, deleteAfterDelay]
+			? [command, path, stringArgs, deleteAfterDelay]
 			: []
 	}
 

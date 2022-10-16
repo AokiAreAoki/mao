@@ -82,7 +82,7 @@ class CommandManager extends require( 'events' ) {
 
 		if( deleteAfterDelay )
 			stringArgs = stringArgs.substring( subcommands.shift().length ).trimStart()
-		
+
 		let command = this.commands.get( subcommands[0] )
 
 		if( !command )
@@ -116,7 +116,7 @@ class CommandManager extends require( 'events' ) {
 				m.delay?.expand()
 		})
 
-		// Ignore bots and itself
+		// Ignore bots and the client user itself
 		if( msg.author.id == this.client.user.id || msg.author.bot )
 			return
 
@@ -136,7 +136,7 @@ class CommandManager extends require( 'events' ) {
 		// If prefix found
 		const [
 			command,
-			commandName,
+			path,
 			stringArgs,
 			deleteAfterDelay,
 		] = this.findCommandAndArgs( msg.content.substring( prefix.length ) )
@@ -153,15 +153,12 @@ class CommandManager extends require( 'events' ) {
 			}
 
 			// Parsing arguments
-			const args = ArgumentParser.new( stringArgs, command, commandName )
+			const args = ArgumentParser.new( stringArgs, command, path )
 
 			if( msg.deleteAfterDelay = deleteAfterDelay ){
-				// args.shiftLeft()
-
 				msg.react( '⏰' )
 				msg.delay = new ExpandableDelay( this.deleteAfterDelay, this.deleteAfterDelay * 2 )
 				msg.delay.onTimeout( () => {
-					// msg.channel.bulkDelete( [msg, ...msg._answers] )
 					msg.delete()
 				})
 			}
@@ -348,13 +345,13 @@ class ArgumentParser extends Array {
 	pos = []
 	flags = null
 
-	static new( stringArgs, command = null, commandName = [] ){
+	static new( stringArgs, command = null, path = [] ){
 		const ap = new ArgumentParser()
-		ap.parse( stringArgs, command, commandName )
+		ap.parse( stringArgs, command, path )
 		return ap
 	}
 
-	parse( stringArgs, command = null, commandName = [] ){
+	parse( stringArgs, command = null, path = [] ){
 		this.string = stringArgs
 		this.parseArgs()
 
@@ -387,15 +384,15 @@ class ArgumentParser extends Array {
 			this.parseArgs()
 		}
 
-		if( !( commandName instanceof Array ) )
-			commandName = [commandName]
+		if( !( path instanceof Array ) )
+			path = [path]
 
-		commandName.forEach( ( v, i ) => {
-			i -= commandName.length
+		path.forEach( ( v, i ) => {
+			i -= path.length
 			this[i] = v
 		})
 
-		this.negativeLength = -commandName.length
+		this.negativeLength = -path.length
 	}
 
 	pop(){
@@ -488,12 +485,12 @@ class ArgumentParser extends Array {
 	}
 
 	toString(){
-		const command_name = []
+		const path = []
 
 		for( let i = this.negativeLength; i < 0; ++i )
-			command_name.push( this[i] )
+			path.push( this[i] )
 
-		return `${command_name.join( '::' )}( \`${this.join( '`, `' )}\` )`
+		return `${path.join( '::' )}( \`${this.join( '`, `' )}\` )`
 	}
 }
 CommandManager.ArgumentParser = ArgumentParser
@@ -518,7 +515,6 @@ class SubcommandsArray extends Array {
 			return this.lookupMap.get( name.toLowerCase() )
 	}
 
-	//*
 	listCommands( tab = '' ){
 		return this.map( ( command, index ) => {
 			const last = index === this.length - 1
@@ -534,6 +530,20 @@ class SubcommandsArray extends Array {
 CommandManager.SubcommandsArray = SubcommandsArray
 
 class CommandDescription {
+	static capitalize( text ){
+		if( typeof text !== 'string' || text.length === 0 )
+			return null
+
+		return text[0].toUpperCase() + text.substring(1)
+	}
+
+	static uncapitalize( text ){
+		if( typeof text !== 'string' || text.length === 0 )
+			return null
+
+		return text[0].toLowerCase() + text.substring(1)
+	}
+
 	command = null
 	short = 'no description :('
 	full = 'No description :('
@@ -563,8 +573,8 @@ class CommandDescription {
 				this.full = this.full.join( '\n' )
 		}
 
-		this.short = this.uncapitalize( this.short )
-		this.full = this.capitalize( this.full )
+		this.short = CommandDescription.uncapitalize( this.short )
+		this.full = CommandDescription.capitalize( this.full )
 
 		usages?.forEach( args => {
 			if( typeof args === 'string' )
@@ -581,39 +591,25 @@ class CommandDescription {
 		})
 	}
 
-	capitalize( text ){
-		if( typeof text !== 'string' || text.length === 0 )
-			return null
-
-		return text[0].toUpperCase() + text.substr(1)
-	}
-
-	uncapitalize( text ){
-		if( typeof text !== 'string' || text.length === 0 )
-			return null
-
-		return text[0].toLowerCase() + text.substr(1)
-	}
-
 	toString(){
 		if( this._cache )
 			return this._cache
 
 		//// Single line breaks
-		let array = [
+		let lines = [
 			`Aliases: \`${this.command.aliases.join( '`, `' )}\``
 		]
 
 		// Description
 		if( this.full )
-			array.push( this.full )
+			lines.push( this.full )
 
-		/// Double new line ///
-		array = [array.join( '\n' )]
+		//// Double line breaks
+		lines = [lines.join( '\n' )]
 
 		// Flags
 		if( this.command.hasFlags )
-			array.push( 'Flags:\n' + this.command.flags.map( flag => {
+			lines.push( 'Flags:\n' + this.command.flags.map( flag => {
 				return `• \`${[flag.name, ...flag.args].join( '` `' )}\` - ${flag.description}`
 			}).join( '\n' ) )
 
@@ -637,7 +633,7 @@ class CommandDescription {
 				return `• ${args.join( ' ' )}${description}`
 			}).join( '\n' )
 
-			array.push( 'Usage:\n' + usage )
+			lines.push( 'Usage:\n' + usage )
 		}
 
 		// Example
@@ -648,15 +644,15 @@ class CommandDescription {
 				return `• \`${args.join( '\` \`' )}\`${description}`
 			}).join( '\n' )
 
-			array.push( `Example${examples.length === 1 ? '' : 's'}:\n${examples}` )
+			lines.push( `Example${examples.length === 1 ? '' : 's'}:\n${examples}` )
 		}
 
 		// Subcommands
 		if( this.command.subcommands.length !== 0 )
-			array.push( 'Subcommands:\n' + this.command.listSubcommands().join( '\n' ) )
+			lines.push( 'Subcommands:\n' + this.command.listSubcommands().join( '\n' ) )
 
-		/// End ///
-		return this._cache = array.join( '\n\n' ) || 'no description :('
+		//// End
+		return this._cache = lines.join( '\n\n' ) || 'no description :('
 	}
 }
 CommandManager.CommandDescription = CommandDescription

@@ -17,6 +17,7 @@ class CommandManager extends require( 'events' ) {
 	client
 	prefix
 	considerMentionAsPrefix
+	mentionRE
 	modules = new Collection()
 	commands = new Collection()
 	listCommands = []
@@ -126,7 +127,7 @@ class CommandManager extends require( 'events' ) {
 			if( !this.considerMentionAsPrefix )
 				return
 
-			prefix = msg.content.matchFirst( new RegExp( `^<@!?${client.user.id}>\s*` ) )
+			prefix = msg.content.matchFirst( this.mentionRE ??= new RegExp( `^<@!?${client.user.id}>\s*` ) )
 
 			if( !prefix )
 				return
@@ -538,6 +539,7 @@ class CommandDescription {
 	full = 'No description :('
 	usages = []
 	examples = []
+	_cache = ''
 
 	constructor({
 		command,
@@ -594,7 +596,10 @@ class CommandDescription {
 	}
 
 	toString(){
-		/// Single new line ///
+		if( this._cache )
+			return this._cache
+
+		//// Single line breaks
 		let array = [
 			`Aliases: \`${this.command.aliases.join( '`, `' )}\``
 		]
@@ -651,7 +656,7 @@ class CommandDescription {
 			array.push( 'Subcommands:\n' + this.command.listSubcommands().join( '\n' ) )
 
 		/// End ///
-		return array.join( '\n\n' ) || 'no description :('
+		return this._cache = array.join( '\n\n' ) || 'no description :('
 	}
 }
 CommandManager.CommandDescription = CommandDescription

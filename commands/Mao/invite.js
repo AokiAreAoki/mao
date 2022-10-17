@@ -1,11 +1,12 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'Embed',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
-
+	init({ addCommand }){
+		const client = require( '@/instances/client' )
+		const Embed = require( '@/functions/Embed' )
 		const PERMS_INT = 3465304
 
-		addCmd({
+		addCommand({
 			aliases: 'invite',
 			description: 'sends an invite link',
 			callback: msg => msg.send( Embed().setDescription(

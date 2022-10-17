@@ -1,7 +1,9 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'cb axios instanceOf',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const cb = require( '@/functions/cb' )
+		const axios = require( 'axios' )
 
 		function Language( id, compiler_args ){
 			this.id = id
@@ -70,7 +72,7 @@ module.exports = {
 					compilers: [],
 				}
 
-				if( instanceOf( compilers, 'Object' ) )
+				if( compilers )
 					for( let compiler in compilers )
 						lang.compilers.push( compiler )
 
@@ -86,7 +88,7 @@ module.exports = {
 		langs.JS = 'JavaScript'
 		langs.CPP = 'C++'
 
-		addCmd({
+		addCommand({
 			aliases: 'rextester rex',
 			description: {
 				short: 'runs code on rextester.com (dead)',
@@ -120,7 +122,7 @@ module.exports = {
 
 							language = l
 
-							if( instanceOf( lang, 'Object' ) ){
+							if( lang ){
 								compiler = compiler || Object.keys( lang )[0]
 								language += ` (${compiler.toUpperCase()})`
 								lang = lang[compiler]
@@ -134,7 +136,7 @@ module.exports = {
 						let code = args.getRaw(1)
 
 						if( code.startsWith( '```' ) )
-							code = code.matchFirst( /```(?:[\w\+]+\s+)?(.+)```/s )
+							code = code.matchFirst( /```(?:[\w+]+\s+)?(.+)```/s )
 
 						if( !code ){
 							msg.send( 'Gimme code, baka~!' )

@@ -1,10 +1,8 @@
-
+const discord = require( 'discord.js' )
 const clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
 
 class Paginator {
 	/// Static ///
-	static discord
-	static client
 	static buttonRows = [
 		[ // first row
 			{ // prev page
@@ -47,19 +45,7 @@ class Paginator {
 		],
 	]
 
-	static init( discord, client ){
-		Paginator.discord = discord
-		Paginator.client = client
-
-		discord.User.prototype.createPaginator = function(){
-			return new Paginator( this )
-		}
-
-		client.on( 'interactionCreate', i => {
-			if( i.isButton() )
-				i.message.paginator?._react(i)
-		})
-
+	static {
 		function buttonify( button ){
 			if( button instanceof Function )
 				return button
@@ -83,16 +69,6 @@ class Paginator {
 		Paginator.buttonRows = buttonify( Paginator.buttonRows )
 	}
 
-	getButtons(){
-		return Paginator.buttonRows
-			.map( buttons => new discord.MessageActionRow().addComponents(
-				buttons.map( button => button instanceof Array
-					? button.choose( this, button )
-					: button
-				)
-			))
-	}
-
 	/// Instance ///
 	page = 0
 	pageAmount = null
@@ -110,7 +86,7 @@ class Paginator {
 		this.pageAmount = amount
 		return this
 	}
-	
+
 	onPageChanged( pageChangeHandler ){
 		if( typeof pageChangeHandler !== 'function' )
 			throw Error( `pageChangeHandler must be a function` )
@@ -122,7 +98,7 @@ class Paginator {
 	async createMessage( channel ){
 		if( this.pageAmount == null )
 			throw Error( `The page amount is not set` )
-			
+
 		if( typeof this.pageChangeHandler !== 'function' )
 			throw Error( `The page change handler is not set` )
 
@@ -136,7 +112,7 @@ class Paginator {
 
 		if( isExternalMessage )
 			message.edit( this.getPageContent() )
-			
+
 		message.edit({ components: this.getButtons() })
 		return this
 	}
@@ -146,19 +122,19 @@ class Paginator {
 		if( !( interaction instanceof Paginator.discord.ButtonInteraction ) ) return
 		if( this.stopped ) return
 		if( interaction.member.bot ) return
-		
+
 		switch( interaction.customId ){
 			default:
-				log( `Interaction with unknown custom ID: "${interaction.customId}"` )
+				console.log( `Interaction with unknown custom ID: "${interaction.customId}"` )
 				break
 
 			case `right`:
 				if( this._cantChangePages( interaction ) )
 					return
-					
+
 				if( ++this.page >= this.pageAmount )
 					this.page -= this.pageAmount
-				
+
 				interaction.deferUpdate()
 				this.updatePage()
 				break
@@ -174,17 +150,17 @@ class Paginator {
 				this.updatePage()
 				break
 
-			case `set`:
+			case `set`: {
 				if( this._cantChangePages( interaction ) )
 					return
-				
+
 				if( this.waiter && !this.waiter.finished )
 					return interaction.deferUpdate()
-				
+
 				const removeWaiter = () => delete this.waiter
 				const ref = await this.message.getReferencedMessage()
 					.then( m => m ?? this.message )
-				
+
 				this.waiter = ref.awaitResponse({
 					user: interaction.member.user,
 					displayMessage: await ref.send( `Enter a page number:`, 0 ),
@@ -198,9 +174,10 @@ class Paginator {
 					})
 					.onCancel( removeWaiter )
 					.onTimeout( removeWaiter )
-				
+
 				interaction.deferUpdate()
-			break
+				break
+			}
 
 			case `lock`:
 			case `unlock`:
@@ -216,14 +193,14 @@ class Paginator {
 					components: this.getButtons(),
 				})
 				break
-			
+
 			case `stop`:
 				if( interaction.member.id !== this.user.id )
 					return interaction.reply({
 						content: 'Only the initiator is able to stop the pager',
 						ephemeral: true,
 					})
-				
+
 				interaction.deferUpdate()
 				this.stop()
 				break
@@ -232,7 +209,7 @@ class Paginator {
 
 	_cantChangePages( interaction ){
 		const cant = this.authorOnly && interaction.member.id !== this.user.id
-		
+
 		if( cant )
 			interaction.reply({
 				content: `The initiator has locked the pager therefore you can't change pages`,
@@ -244,6 +221,16 @@ class Paginator {
 
 	getPageContent(){
 		return this.pageChangeHandler( this.page, this.pageAmount )
+	}
+
+	getButtons(){
+		return Paginator.buttonRows
+			.map( buttons => new discord.MessageActionRow().addComponents(
+				buttons.map( button => button instanceof Array
+					? button.choose( this, button )
+					: button
+				)
+			))
 	}
 
 	updatePage(){

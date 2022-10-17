@@ -1,9 +1,13 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'pet processing',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const discord = require( 'discord.js' )
+		const pet = require( 'pet-pet-gif' )
+		const Embed = require( '@/functions/Embed' )
+		const processing = require( '@/functions/processing' )
 
-		addCmd({
+		addCommand({
 			aliases: 'pat pet',
 			description: {
 				single: 'pats ppl',

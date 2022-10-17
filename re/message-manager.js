@@ -1,5 +1,5 @@
-
-const { Collection } = require( './../node_modules/discord.js' )
+const discord = require( 'discord.js' )
+const { Collection } = discord
 
 function listTypes( types ){
 	types = types.map( type => type?.name ?? String( type ) )
@@ -44,15 +44,10 @@ class MessageManager {
 	handlers = []
 
 	constructor({
-		discord,
 		client,
 		handleEdits = false,
 		handleDeletion = false,
 	}){
-		checkTypes( { discord }, 'object' )
-		checkTypes( { client }, discord.Client )
-
-		this.discord = discord
 		this.client = client
 		this.handleEdits = !!handleEdits
 		this.handleDeletion = !!handleDeletion
@@ -68,7 +63,6 @@ class MessageManager {
 				this._answers = new Collection()
 		}
 
-		ResponseWaiter.init( discord )
 		this.setupEventHandlers()
 	}
 
@@ -89,7 +83,9 @@ class MessageManager {
 			this.client.on( 'messageDelete', msg => {
 				msg.waiter?.cancel()
 				msg.deleteAnswers()
+				msg.deleted = true
 			})
+
 	}
 
 	pushHandler( name, markMessagesAsCommand, callback ){
@@ -141,22 +137,13 @@ function Handler( name, markMessagesAsCommand, callback ){
 	this.callback = callback
 }
 
-let isResponseWaiterInitialized = false
-
 class ResponseWaiter {
 	/// Static ///
-	static discord
-	static interval
+	static interval = null
 	static collectGarbage = false
 	static waiters = []
 
-	static find( user, channel ){
-		return ResponseWaiter.waiters.find( waiter => ( waiter.user ?? waiter.invokerMessage.author ).id === user.id && waiter.invokerMessage.channel.id === channel.id && !waiter.finished )
-	}
-
-	static init( discord ){
-		ResponseWaiter.discord = discord
-
+	static {
 		discord.Message.prototype.awaitResponse = function( options ){
 			options = options ?? {}
 			options.invokerMessage = this
@@ -201,12 +188,10 @@ class ResponseWaiter {
 				ResponseWaiter.waiters = ResponseWaiter.waiters.filter( w => !w.finished )
 			}
 		}, 228 )
-
-		isResponseWaiterInitialized = true
 	}
 
-	static get initialized(){
-		return isResponseWaiterInitialized
+	static find( user, channel ){
+		return ResponseWaiter.waiters.find( waiter => ( waiter.user ?? waiter.invokerMessage.author ).id === user.id && waiter.invokerMessage.channel.id === channel.id && !waiter.finished )
 	}
 
 	static handleMessage( message ){
@@ -236,8 +221,6 @@ class ResponseWaiter {
 	}){
 		if( !ResponseWaiter.initialized )
 			throw Error( `ResponseWaiter must be initialized first` )
-
-		const discord = ResponseWaiter.discord
 
 		checkTypes( { invokerMessage }, discord.Message, true )
 		checkTypes( { displayMessage }, [discord.Message, 'undefined'], true )

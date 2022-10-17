@@ -1,7 +1,12 @@
+/* eslint-disable no-control-regex */
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client cp processing',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const cp = require( 'child_process' )
+		const Embed = require( '@/functions/Embed' )
+		const processing = require( '@/functions/processing' )
+		const cb = require( '@/functions/cb' )
 
 		const EXEC_TIMEOUT = 600e3
 
@@ -31,13 +36,19 @@ module.exports = {
 
 				if( stdout )
 					embeds.push( Embed()
-						.addField( 'stdout:', cropOutput( cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) ) )
+						.addFields({
+							name: 'stdout:',
+							value: cropOutput( cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) )
+						})
 						.setColor( 0x80FF00 )
 					)
 
 				if( stderr )
 					embeds.push( Embed()
-						.addField( 'stderr:', cropOutput( cb( stderr.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) ) )
+						.addFields({
+							name: 'stderr:',
+							value: cropOutput( cb( stderr.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) ),
+						})
 						.setColor( 0xFF8000 )
 					)
 
@@ -57,10 +68,10 @@ module.exports = {
 				const options = { embeds }
 
 				if( finished )
-					options.content = embeds.length === 0 ? `Nothing have been outputed\n${footer}` : null
+					options.content = embeds.length === 0 ? `Nothing have been outputted\n${footer}` : null
 
 				if( embeds.length !== 0 )
-					embeds.at(-1).setFooter( footer )
+					embeds.at(-1).setFooter({ text: footer })
 
 				if( message.deleted )
 					msg.send( options )
@@ -111,7 +122,7 @@ module.exports = {
 			updateOutput()
 		}
 
-		addCmd({
+		addCommand({
 			aliases: 'shell sh',
 			description: {
 				single: 'executes console command',

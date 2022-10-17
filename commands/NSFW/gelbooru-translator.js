@@ -1,7 +1,17 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'fs join axios decodeHTMLEntities Jimp Gelbooru Embed clamp processing',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const fs = require( 'fs' )
+		const axios = require( 'axios' )
+		const discord = require( 'discord.js' )
+		const Jimp = require( 'jimp' )
+		const { Gelbooru } = require( '@/instances/booru' )
+		const cb = require( '@/functions/cb' )
+		const clamp = require( '@/functions/clamp' )
+		const Embed = require( '@/functions/Embed' )
+		const processing = require( '@/functions/processing' )
+		const decodeHTMLEntities = require( '@/functions/decodeHTMLEntities' )
 
 		async function parseTranslation( post_id ){
 			const { data } = await axios.get( `https://gelbooru.com/index.php`, {
@@ -43,8 +53,8 @@ module.exports = {
 		}
 
 		const solidBlack = 0x000000FF
-		const postRE = /https?\:\/\/(?:\w+\.)?gelbooru\.com\/index\.php.+?[?&]id=(\d+)/
-		const imageRE = /https?\:\/\/(?:\w+\.)?gelbooru\.com\/+(?:samples|images)\/\w+\/\w+\/(?:sample_)?(\w+)\.\w+\b/
+		const postRE = /https?:\/\/(?:\w+\.)?gelbooru\.com\/index\.php.+?[?&]id=(\d+)/
+		const imageRE = /https?:\/\/(?:\w+\.)?gelbooru\.com\/+(?:samples|images)\/\w+\/\w+\/(?:sample_)?(\w+)\.\w+\b/
 		let fonts = {}
 
 		function roundByBits( number ){
@@ -62,13 +72,13 @@ module.exports = {
 			return Math.round( ( number - min ) / diff ) * diff + min
 		}
 
-		function getAddaptiveFont( imageHeight ){
+		function getAdaptiveFont( imageHeight ){
 			const fontHeight = clamp( roundByBits( imageHeight / 64 ), 8, 128 )
 			return `FONT_SANS_${fontHeight}_WHITE`
 		}
 
-		async function loadAddaptiveFont( imageHeight ){
-			const font = getAddaptiveFont( imageHeight )
+		async function loadAdaptiveFont( imageHeight ){
+			const font = getAdaptiveFont( imageHeight )
 
 			if( !fonts[font] )
 				fonts[font] = await Jimp.loadFont( Jimp[font] )
@@ -76,7 +86,7 @@ module.exports = {
 			return fonts[font]
 		}
 
-		addCmd({
+		addCommand({
 			aliases: 'gelbooru-translate glbr-tr',
 			description: {
 				short: 'translates pics from gelbooru',
@@ -128,7 +138,7 @@ module.exports = {
 					return message.edit( `No translations found for this picture` )
 
 				return Jimp.read( pic.full ?? pic.sample ).then( async image => {
-					const font = await loadAddaptiveFont( image.bitmap.height )
+					const font = await loadAdaptiveFont( image.bitmap.height )
 
 					translations.forEach( async ({ x, y, width, height, text }) => {
 						text = text.replace( /\s*<br\s*\/>\s*/gi, ' ' )
@@ -149,11 +159,11 @@ module.exports = {
 							alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
 						}, textWidth, textHeight )
 					})
-					
+
 					let path; do
 						path = `/tmp/glbr-tr/${Date.now()}.jpg`
 					while( fs.existsSync( path ) )
-					
+
 					try {
 						await image.writeAsync( path )
 
@@ -162,7 +172,7 @@ module.exports = {
 							embeds: [Embed()
 								.setDescription( `[Original](${pic.post_url})` )
 								.setImage( 'attachment://tr.jpg' )
-								.setFooter( 'Powered by ' + Gelbooru.name )
+								.setFooter({ text: 'Powered by ' + Gelbooru.name })
 							],
 							files: [
 								new discord.MessageAttachment( path, 'tr.jpg' )
@@ -174,6 +184,6 @@ module.exports = {
 					}
 				}) // Jimp.read
 			}, // callback
-		}) // addCmd
+		}) // addCommand
 	} // init
 }

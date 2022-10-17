@@ -1,7 +1,11 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: '_tkns axios MM numsplit Embed',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init(){
+		const { currency_converter: token } = require( '@/tokens.yml' )
+		const axios = require( 'axios' )
+		const MM = require( '@/instances/message-manager' )
+		const numsplit = require( '@/functions/numsplit' )
 
 		const convertRE = /\b(\d[\d\s_,]*(?:\.[\d\s_,]+)?(?:e-?\d+)?)?\s*(\w{3})\s*to\s*(\w{3})\b/gi
 		const numSplitterRE = /[\s_,]+/g
@@ -13,7 +17,7 @@ module.exports = {
 			if( nextFetch < Date.now() ){
 				nextFetch = Date.now() + 60e3
 
-				return rates = axios.get( `https://v6.exchangerate-api.com/v6/${_tkns.currency_converter}/latest/USD` )
+				return rates = axios.get( `https://v6.exchangerate-api.com/v6/${token}/latest/USD` )
 					.then( ({ data }) => {
 						if( data.result === 'error' ){
 							nextFetch = -1

@@ -1,12 +1,16 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client Embed bakadb db MM TimeSplitter',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init(){
+		const client = require( '@/instances/client' )
+		const Embed = require( '@/functions/Embed' )
+		const bakadb = require( '@/instances/bakadb' )
+		const { db } = bakadb
+		const MM = require( '@/instances/message-manager' )
+		const TimeSplitter = require( '@/re/time-splitter' )
 
 		const max_tms = 5
 		const max_lifetime = 3 * 86400e3
-		const time_units = ['day', 'hour', 'minute', 'second']
-		const ss = num => num === 1 ? '' : 's'
 
 		setInterval( async () => {
 			if( !db.temp_messages )
@@ -14,17 +18,21 @@ module.exports = {
 
 			let now = Date.now()
 
-			for( let messageid in db.temp_messages ){
-				let data = db.temp_messages[messageid]
-				if( data.timestamp > now ) continue
+			for( let messageId in db.temp_messages ){
+				let data = db.temp_messages[messageId]
+
+				if( data.timestamp > now )
+					continue
 
 				let channel = client.channels.cache.get( data.channel )
-				if( !channel ) conti
 
-				channel.messages.fetch( messageid )
+				if( !channel )
+					continue
+
+				channel.messages.fetch( messageId )
 					.then( m => m.delete() )
 					.catch( () => {} )
-					.then( () => delete db.temp_messages[messageid] )
+					.then( () => delete db.temp_messages[messageId] )
 			}
 		}, 5e3 )
 
@@ -39,7 +47,7 @@ module.exports = {
 
 			let tms = 0
 			for( const k in db.temp_messages )
-				if( db.temp_messages[k].userid == msg.author.id )
+				if( db.temp_messages[k].userId == msg.author.id )
 					if( ++tms >= max_tms )
 						return msg.send( "You've reached the limit of temporary messages" )
 
@@ -56,7 +64,7 @@ module.exports = {
 				lifetime.fromMS( max_lifetime )
 
 			db.temp_messages[msg.id] = {
-				userid: msg.author.id,
+				userId: msg.author.id,
 				channel: msg.channel.id,
 				timestamp: Date.now() + lifetime.timestamp,
 			}

@@ -1,9 +1,11 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client Embed',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const client = require( '@/instances/client' )
+		const Embed = require( '@/functions/Embed' )
 
-		addCmd({
+		addCommand({
 			aliases: 'emoji e',
 			description: 'Sends random emoji that matches the keyword',
 			callback: ( msg, args ) => {

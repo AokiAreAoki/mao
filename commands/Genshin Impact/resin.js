@@ -1,12 +1,13 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'TimeSplitter',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const TimeSplitter = require( '@/re/time-splitter' )
 
 		const maxResin = 160
 		const minutesPerResin = 8
 
-		addCmd({
+		addCommand({
 			aliases: 'resin',
 			description: {
 				single: 'calcs time required for resin to regenerate',

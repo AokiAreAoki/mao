@@ -1,7 +1,10 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'sauce Embed Collection processing',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const sauce = require( '@/instances/sauce' )
+		const Embed = require( '@/functions/Embed' )
+		const processing = require( '@/functions/processing' )
 
 		function prettify( string ){
 			return string.replace( /_/g, ' ' ).replace( /\b((\w)(\w*))/g, ( match, word, firstLetter, rest ) => {
@@ -67,7 +70,7 @@ module.exports = {
 					.setTitle( header.index_name )
 					.setDescription( stringDescription )
 					.setImage( header.thumbnail )
-					.setFooter( `Page: ${page + 1}/${sauces.length}` )
+					.setFooter({ text: `Page: ${page + 1}/${sauces.length}` })
 			})
 
 			messagePromise.then( message => {
@@ -79,7 +82,7 @@ module.exports = {
 			})
 		}
 
-		addCmd({
+		addCommand({
 			aliases: 'saucenao sauce',
 			description: '// TODO',
 			callback: async ( msg, args ) => {

@@ -1,9 +1,10 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'Embed',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const Embed = require( '@/functions/Embed' )
 
-		addCmd({
+		addCommand({
 			aliases: 'lmgtfy lmg whatis whats',
 			flags: [
 				['iie', `includes internet explorer`],
@@ -15,7 +16,7 @@ module.exports = {
 					[`<search request>`, 'googles $1'],
 				],
 			},
-			callback: async ( msg, args ) => {
+			callback: ( msg, args ) => {
 				let url = 'https://lmgtfy.com/?q=',
 					q = args.getRaw(),
 					iie = args.flags.iie.specified ? '&iie=1' : '',
@@ -27,12 +28,23 @@ module.exports = {
 
 				url += encodeURI( ( whatis + q ).replace( /\s+/g, '+' ) ) + iie
 
-				msg.send( Embed()
-					.addField( `OK 👌. Googling \`${whatis + q}\`...`, 'Please wait a bit :^)' )
-				).then( m => {
-					setTimeout( () => {
-						m.edit( Embed().addField( 'Found!', `Click here to find out ${whatis.toLowerCase()}[${q}](${url})` ) )
-					}, timeout )
+				return new Promise( resolve => {
+					msg.send( Embed()
+						.addFields({
+							name: `OK 👌. Googling \`${whatis + q}\`...`,
+							value: 'Please wait a bit :^)'
+						})
+					)
+						.then( m => {
+							setTimeout( () => {
+								resolve( m.edit( Embed()
+									.addFields({
+										name: 'Found!',
+										value: `Click here to find out ${whatis.toLowerCase()}[${q}](${url})`,
+									})
+								))
+							}, timeout )
+						})
 				})
 			},
 		})

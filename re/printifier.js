@@ -6,7 +6,7 @@ const STRING_INDENTATION = ' '.repeat( INDENTATION_LENGTH - 1 ) + '|'
 const __duplicates = new Map()
 let __maxDepth = 4
 
-function* iterateUniterable( object ) {
+function* iterateAny( object ) {
 	for( const key in object )
 		yield [ key, object[key] ]
 }
@@ -45,7 +45,7 @@ function _printify( v, depth = 0, path = '.' ){
 	const isIterable = typeof v[Symbol.iterator] === 'function'
 
 	const iter = isArray || !isIterable
-		? iterateUniterable(v)
+		? iterateAny(v)
 		: v[Symbol.iterator]()
 
 	const size = isIterable && !isArray

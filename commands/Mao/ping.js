@@ -1,9 +1,10 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
-		
-		addCmd({
+	init({ addCommand }){
+		const client = require( '@/instances/client' )
+
+		addCommand({
 			aliases: 'ping pong',
 			description: 'Checks ping',
 			callback: ( msg, args ) => {

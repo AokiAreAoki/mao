@@ -25,7 +25,7 @@ function compressArray( array ){
 		if( !array[i] ){
 			let i2 = Math.max( i, lastExists ) + 1
 			while( !array[i2] && i2 < max ) i2++;
-			
+
 			array[i] = typeof array[i2] == 'object' ? copy( array[i2] ) : array[i2]
 			delete array[i2]
 			lastExists = i2
@@ -35,69 +35,62 @@ function compressArray( array ){
 	return array
 }
 
-function operate( tokens, opid ){
-	tokens[opid] = calcsimple( tokens[opid], tokens[opid - 1], tokens[opid + 1] )
-	delete tokens[opid - 1]
-	delete tokens[opid + 1]
+function operate( tokens, opId ){
+	tokens[opId] = calcSimple( tokens[opId], tokens[opId - 1], tokens[opId + 1] )
+	delete tokens[opId - 1]
+	delete tokens[opId + 1]
 }
 
-function calcsimple( operator, leftarg, rightarg ){
+function calcSimple( operator, loperand, roperand ){
 	switch( operator ){
 		case '+':
-			return leftarg + rightarg
-			break;
+			return loperand + roperand
 
 		case '-':
-			return leftarg - rightarg
-			break;
+			return loperand - roperand
 
 		case '*':
-			return leftarg * rightarg
-			break;
+			return loperand * roperand
 
 		case '/':
-			return leftarg / rightarg
-			break;
+			return loperand / roperand
 
 		case '%':
-			return leftarg % rightarg
-			break;
+			return loperand % roperand
 
 		case '**':
-			return leftarg ** rightarg
-			break;
+			return loperand ** roperand
 
 		default:
 			throw new Error( 'CalcSimple: Unknown operator: ' + operator )
-			break;
 	}
 }
 
 function parse( tokens ){
 	for( let i = 0; i < tokens.length; i++ ){
 		let s = tokens[i]
-		
+
 		if( typeof s == 'number' ){
-			
+			// eslint-disable-next-line no-empty
 		} else if( typeof s == 'string' ){
 			if( s == '(' ){
-				let newtokens = [s]
+				let newTokens = [s]
 				let breaks = 1
-				
+
 				while( breaks > 0 && ++i < tokens.length ){
 					let b = tokens[i]
-					newtokens.push(b)
+					newTokens.push(b)
 					if( b == '(' ) breaks++;
 					else if( b == ')' ) breaks--;
 				}
-				
-				tokens[i] = parse( newtokens )
+
+				tokens[i] = parse( newTokens )
 			} else if( s == ')' ){
 				throw new Error( 'Unclosed break statement' )
 			}
 		}
 	}
-	
+
 	let pri = 0
 	let timeout = Date.now() + 2e3
 
@@ -107,15 +100,15 @@ function parse( tokens ){
 
 		for( let i = 0; i < tokens.length; i++ ){
 			let token = tokens[i]
-			
+
 			if( typeof token == 'string' && hasValue( priors[pri], token ) )
 				operate( tokens, i );
 
 			compressArray( tokens )
 		}
 	}
-	
-	return result[0]
+
+	return tokens[0]
 }
 
 function tokenize( expression ){

@@ -1,7 +1,8 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'Embed',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const Embed = require( '@/functions/Embed' )
 
 		let en = `qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>?@#$^&\`~`
 		let ru = `йцукенгшщзхъфывапролджэячсмитьбю.ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,"№;:?ёЁ`
@@ -12,17 +13,17 @@ module.exports = {
 			toRU[en[i]] = ru[i]
 		}
 
-		function translit( toENorRU, text ){
+		function transliterate( toENorRU, text ){
+			const lang = toENorRU ? toEN : toRU
 			let s = ''
-				transliterate = toENorRU ? toEN : toRU
 
 			for( let i = 0; i < text.length; ++i )
-				s += transliterate[text[i]] || text[i]
+				s += lang[text[i]] || text[i]
 
 			return s
 		}
 
-		addCmd({
+		addCommand({
 			aliases: 'transliterate translit tr',
 			description: {
 				short: 'transliterates text (EN <=> RU)',
@@ -49,7 +50,7 @@ module.exports = {
 						let m = await msg.channel.messages.fetch( args[1] )
 
 						if( m ){
-							text = translit( lang, m.content )
+							text = transliterate( lang, m.content )
 
 							if( text )
 								msg.send( Embed()
@@ -61,7 +62,7 @@ module.exports = {
 						} else
 							msg.send( 'Failed to fetch the message! The message doesn\'t exist, or is in another channel.' )
 					} else { // Text provided
-						text = translit( lang, text )
+						text = transliterate( lang, text )
 
 						if( text )
 							msg.send( Embed()
@@ -78,7 +79,7 @@ module.exports = {
 						msg.send( 'Previous message not found.' )
 					else {
 						let m = mm.first()
-						let text = translit( lang, m.content )
+						let text = transliterate( lang, m.content )
 
 						if( text )
 							msg.send( Embed()

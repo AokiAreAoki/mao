@@ -1,9 +1,8 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: '',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
-
-		addCmd({
+	init({ addCommand }){
+		addCommand({
 			aliases: 'cache',
 			description: `caches 100 last messages in current channel`,
 			async callback( msg ){

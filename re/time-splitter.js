@@ -1,6 +1,6 @@
 let tu = {}
-tu.miliseconds = 1
-tu.seconds = 1000 * tu.miliseconds
+tu.milliseconds = 1
+tu.seconds = 1000 * tu.milliseconds
 tu.minutes = 60 * tu.seconds
 tu.hours = 60 * tu.minutes
 tu.days = 24 * tu.hours
@@ -9,7 +9,7 @@ tu.months = tu.weeks * 30 / 7
 tu.years = tu.months * 365.25 / 30
 
 const singularForm = {
-	miliseconds: 'milisecond',
+	milliseconds: 'millisecond',
 	seconds: 'second',
 	minutes: 'minute',
 	hours: 'hour',
@@ -20,7 +20,7 @@ const singularForm = {
 }
 
 const shortForm = {
-	ms: 'miliseconds',
+	ms: 'milliseconds',
 	s: 'seconds',
 	m: 'minutes',
 	h: 'hours',
@@ -32,10 +32,6 @@ const shortForm = {
 
 function isValidNumber( number ){
 	return typeof number === 'number' && !isNaN( number ) && Math.abs( number ) !== Infinity
-}
-
-function plural( number ){
-	return number == 1 ? '' : 's'
 }
 
 class TimeSplitter {
@@ -71,8 +67,8 @@ class TimeSplitter {
 		}
 	}
 
-	static fromMS( miliseconds = Date.now() ){
-		return new TimeSplitter({ miliseconds })
+	static fromMS( milliseconds = Date.now() ){
+		return new TimeSplitter({ milliseconds })
 	}
 
 	static convert( value, unitFrom, unitTo ){
@@ -80,7 +76,7 @@ class TimeSplitter {
 	}
 
 	static parseTime( string ){
-		const iter = string.matchAll( /(\-?\d+(?:[\.,]\d+)?(?:e\d+)?)\s*([a-z]+)/gi )
+		const iter = string.matchAll( /(-?\d+(?:[.,]\d+)?(?:e\d+)?)\s*([a-z]+)/gi )
 		let timestamp = 0
 
 		for( let [, value, unit] of iter ){

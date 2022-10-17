@@ -1,9 +1,10 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client clamp',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
-		
-		addCmd({
+	init({ addCommand }){
+		const clamp = require( '@/functions/clamp' )
+
+		addCommand({
 			aliases: 'roll',
 			description: {
 				single: 'rolls a dice',
@@ -28,7 +29,7 @@ module.exports = {
 
 				let min = parseInt( args[0] )
 				let max = parseInt( args[1] )
-				
+
 				if( isNaN( min ) ){
 					min = 0
 					max = 100
@@ -37,16 +38,16 @@ module.exports = {
 					min = 0
 				}
 
-				let nums = []
+				let numbers = []
 
 				for( let i = 0; i < x; ++i )
-					nums.push( min + Math.round( Math.random() * ( max - 1 ) ) + 1 )
-				
-				msg.send( `**${msg.member.displayName}** rolled **${nums.join( '**, **' )}**` )
+					numbers.push( min + Math.round( Math.random() * ( max - 1 ) ) + 1 )
+
+				msg.send( `**${msg.member.displayName}** rolled **${numbers.join( '**, **' )}**` )
 			},
 		})
 
-		addCmd({
+		addCommand({
 			aliases: 'select choose',
 			description: 'Selects one of the given variants',
 			callback: ( msg, args ) => {
@@ -57,10 +58,10 @@ module.exports = {
 				msg.send( `I ${args[-1]} **${args[r].replace( /\\*@/g, '\\@' )}**` )
 			},
 		})
-		
+
 		const rps = ['rock', 'paper', 'scissors']
 
-		addCmd({
+		addCommand({
 			aliases: 'rps',
 			description: 'rock paper scissors',
 			callback: ( msg, args ) => {
@@ -68,9 +69,9 @@ module.exports = {
 				let user = args[0]
 					? rps.findIndex( v => v.startsWith( args[0].toLowerCase() ) )
 					: Math.floor( Math.random() * 3 )
-				
+
 				let result = ( mao - user + 4 ) % 3 - 1
-				
+
 				msg.send(
 					`**You**: ${rps[user]}!\n**Mao**: ${rps[mao]}!\n` +
 					( result === 0 ? 'DRAW' : ( result === 1 ? 'You lose 😭' : '**You WON! 😎**' ) )

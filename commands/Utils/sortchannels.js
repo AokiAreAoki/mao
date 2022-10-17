@@ -1,39 +1,41 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'discord client',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
-				
+	init({ addCommand }){
+		const discord = require( 'discord.js' )
+		const client = require( '@/instances/client' )
+
 		async function sortChannels( category ){
 			if( !( category instanceof discord.CategoryChannel ) )
 				throw Error( `category must be an instance of CategoryChannel` )
 
 			const channels = Array.from( category.children ).map( e => e[1] )
-			
+
 			channels.sort( ( a, b ) => {
 				a = a.name, b = b.name
 				let i = 0
-		
+
 				do {
 					if( a[i] === b[i] ) continue
 					if( b.length < i ) return 1
 					return a.charCodeAt(i) - b.charCodeAt(i)
 				} while( ++i < a.length )
-		
+
 				return -1
 			})
 
 			channels.nothichChanged = true
-			
+
 			for( let i = 0; i < channels.length; ++i )
 				if( channels[i].position !== i ){
 					await channels[i].setPosition(i)
 					channels.nothichChanged = false
 				}
-			
+
 			return channels.length !== 0 ? channels : null
 		}
-		
-		addCmd({
+
+		addCommand({
 			aliases: 'sortchannels',
 			description: {
 				single: 'sorts channels in category by alphabet',
@@ -49,16 +51,16 @@ module.exports = {
 					return msg.send( `Please, provide category ID` )
 
 				const category = client.channels.resolve( await client.channels.fetch( args[0] ) )
-				
+
 				if( !category )
 					return msg.send( `Category with ID \`${args[0]}\` not found` )
-				
+
 				if( category.type !== 'GUILD_CATEGORY' )
 					return msg.send( `The ID you provided belongs to a non-category type channel` )
-				
+
 				const messagePromise = msg.send( `Sorting \`#${category.name}\`...` )
 				await category.guild.channels.fetch( null, { force: true } )
-				
+
 				const [channels, message] = await Promise.all([
 					sortChannels( category ),
 					messagePromise,

@@ -1,7 +1,8 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'Embed',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const Embed = require( '@/functions/Embed' )
 
 		const numbers = [
 			'1️⃣',
@@ -17,7 +18,7 @@ module.exports = {
 		]
 		const MAX = numbers.length
 
-		addCmd({
+		addCommand({
 			aliases: 'vote',
 			description: {
 				short: 'creates a simple vote',
@@ -57,7 +58,7 @@ module.exports = {
 
 				let m = await msg.send( Embed()
 					.setAuthor( msg.author.tag, msg.author.avatarURL(64) )
-					.addField( 'Vote:', query )
+					.addFields({ name: 'Vote:', value: query })
 				)
 
 				if( options_amount === 0 ){

@@ -1,9 +1,12 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'NH client processing',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const NH = require( 'nhentai-api' )
+		const Embed = require( '@/functions/Embed' )
+		const processing = require( '@/functions/processing' )
 
-		addCmd({
+		addCommand({
 			aliases: 'download-doujinshi dodo',
 			description: {
 				single: 'downloads a doujinshi from nhentai.net',

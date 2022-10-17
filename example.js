@@ -1,7 +1,8 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'requirements',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init(){
+		// const requirement = require( '@/path/to/file' )
 		// code here
 	}
 }

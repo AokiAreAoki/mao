@@ -1,9 +1,20 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'bakadb db client numsplit _exit',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const bakadb = require( '@/instances/bakadb' )
+		const { db } = bakadb
+		const client = require( '@/instances/client' )
+		const Embed = require( '@/functions/Embed' )
+		const numsplit = require( '@/functions/numsplit' )
+		const shutdown = require( '@/functions/shutdown' )
 
-		client.once( 'ready2', async () => {
+		client.once( 'ready', async () => {
+			const {
+				initializedIn,
+				loggedIn,
+			} = require( '@/index' )
+
 			if( db.restart ){
 				const timeleft = Date.now() - db.restart.timestamp
 				const channel = await client.channels.fetch( db.restart.channel )
@@ -11,9 +22,23 @@ module.exports = {
 				if( channel && timeleft < 600e3 ){
 					channel.send( Embed()
 						.setTitle( "🚀 Yay, I'm back again!" )
-						.addField( "🏗️ Init",`\`${numsplit( mao.initializationTime )}ms\``, true )
-						.addField( "📡 Login", `\`${numsplit( mao.loginTime )}ms\``, true )
-						.addField( "🛠️ Overall", `\`${numsplit( timeleft )}ms\``, true )
+						.addFields(
+							{
+								name: "🏗️ Init",
+								value:`\`${numsplit( initializedIn )}ms\``,
+								inline: true
+							},
+							{
+								name: "📡 Login",
+								value: `\`${numsplit( loggedIn )}ms\``,
+								inline: true
+							},
+							{
+								name: "🛠️ Overall",
+								value: `\`${numsplit( timeleft )}ms\``,
+								inline: true
+							},
+						)
 						.setTimestamp( Date.now() )
 					).then( async m => {
 						m.purge( 5e3 )
@@ -30,11 +55,10 @@ module.exports = {
 			}
 		})
 
-		addCmd({
+		addCommand({
 			aliases: 'exit die',
 			description: {
-				short: 'guess what',
-				full: 'r u srsly?'
+				single: 'guess what'
 			},
 			callback: async ( msg, args ) => {
 				db.restart = {
@@ -44,7 +68,7 @@ module.exports = {
 				}
 
 				await msg.react( '717396565114880020' )
-				_exit( parseInt( args[0] ) )
+				shutdown( parseInt( args[0] ) )
 			},
 		})
 	}

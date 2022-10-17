@@ -1,9 +1,10 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client processing',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const processing = require( '@/functions/processing' )
 
-		addCmd({
+		addCommand({
 			aliases: 'undo',
 			description: 'removes last command or edited message',
 			callback: async msg => {
@@ -16,25 +17,25 @@ module.exports = {
 					return
 				}
 
-				msg.channel.messages.fetch({
+				const messages = await msg.channel.messages.fetch({
 					before: msg.id,
 					limit: 100,
-				}).then( async messages => {
-					const commandMessage = messages?.find( m => m.author.id === msg.author.id && m.isCommand )
-					await msg.react( processing( '👌' ) )
+				})
 
-					if( commandMessage ){
-						commandMessage.isCommand = false
-						commandMessage.deleteAnswers()
-						msg.channel.purge( [msg, commandMessage], 1337 )
-						return
-					}
+				const commandMessage = messages?.find( m => m.author.id === msg.author.id && m.isCommand )
+				await msg.react( processing( '👌' ) )
 
-					msg.channel.purge([
-						msg,
-						await msg.send( 'No commands found' ),
-					], 3e3 )
-				}).catch( console.log )
+				if( commandMessage ){
+					commandMessage.isCommand = false
+					commandMessage.deleteAnswers()
+					msg.channel.purge( [msg, commandMessage], 1337 )
+					return
+				}
+
+				msg.channel.purge([
+					msg,
+					await msg.send( 'No commands found' ),
+				], 3e3 )
 			},
 		})
 	}

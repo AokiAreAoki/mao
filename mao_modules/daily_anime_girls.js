@@ -1,9 +1,16 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client httpGet db bakadb Gelbooru Yandere discord Embed',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init(){
+		const discord = require( 'discord.js' )
+		const client = require( '@/instances/client' )
+		const bakadb = require( '@/instances/bakadb' )
+		const { Gelbooru, Yandere } = require( '@/instances/booru' )
+		const cb = require( '@/functions/cb' )
+		const Embed = require( '@/functions/Embed' )
+		const timer = require( '@/re/timer' )
 
-		db.dag ??= {
+		bakadb.db.dag ??= {
 			GMT: 3,
 			postAt: 21,
 		}
@@ -18,8 +25,8 @@ module.exports = {
 		}
 
 		function getDate( date = Date.now() ){
-			const GMT = db.dag.GMT ?? 0
-			const postAt = db.dag.postAt ?? 0
+			const GMT = bakadb.db.dag.GMT ?? 0
+			const postAt = bakadb.db.dag.postAt ?? 0
 			return Math.floor( ( Number( date ) + ( GMT - postAt ) * 3600e3 ) / 86400e3 )
 		}
 
@@ -27,6 +34,7 @@ module.exports = {
 			return date * 86400e3
 		}
 
+		// eslint-disable-next-line no-unused-vars
 		function parseXML( xml ){
 			let posts = xml.match( /<post\s+(.+?)\/>/gm )
 			let result = []
@@ -42,14 +50,6 @@ module.exports = {
 			})
 
 			return result
-		}
-
-		class ThreadCreationCanceler {
-			canceled = false
-
-			delete(){
-				this.canceled = true
-			}
 		}
 
 		// Main function
@@ -128,8 +128,11 @@ module.exports = {
 				throw new Error( `ERROR: Unknown source "${source}"` )
 
 			const message = await channel.send( Embed()
-				.addField( 'Parsing daily anime girls...', `${tags ? `Tags: \`${tags}\`` : 'No tags'}` )
-				.setFooter( 'Powered by ' + Booru.name )
+				.addFields({
+					name: 'Parsing daily anime girls...',
+					value: `${tags ? `Tags: \`${tags}\`` : 'No tags'}`,
+				})
+				.setFooter({ text: 'Powered by ' + Booru.name })
 			)
 
 			if( dailyData.last_posts )
@@ -257,7 +260,7 @@ module.exports = {
 
 			if( dailyData.last_posts ){
 				let posts = dailyData.last_posts.filter( post => post.date === date )
-				// postS in case if smth bad happen and there will be more than 1 post at the same day
+				// postS in case if something bad happen and there will be more than 1 post at the same day
 
 				if( posts.length > 0 ){
 					posts.forEach( async post => {
@@ -288,18 +291,17 @@ module.exports = {
 		}
 
 		// Access to function from main scope
-		mao.dag = {
-			standsfor: 'daily anime girls',
+		module.exports.dag = {
 			post: postAnimeGirls,
 			undo: undoAnimeGirls,
 			postAt( timeH ){
-				db.dag.postAt = timeH
-				db.dag.last_post = getDate()
+				bakadb.db.dag.postAt = timeH
+				bakadb.db.dag.last_post = getDate()
 				bakadb.save()
 			},
 			setGMT( gmt ){
-				db.dag.GMT = gmt
-				db.dag.last_post = getDate()
+				bakadb.db.dag.GMT = gmt
+				bakadb.db.dag.last_post = getDate()
 				bakadb.save()
 			},
 		}
@@ -318,7 +320,7 @@ module.exports = {
 				.catch( console.log )
 		}
 
-		client.on( 'ready2', () => {
+		client.on( 'ready', () => {
 			timer.create( 'daily_anime_girls', 30, 0, check )
 			check()
 		})

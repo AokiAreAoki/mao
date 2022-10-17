@@ -127,7 +127,7 @@ class CommandManager extends require( 'events' ) {
 			if( !this.considerMentionAsPrefix )
 				return
 
-			prefix = msg.content.matchFirst( this.mentionRE ??= new RegExp( `^<@!?${client.user.id}>\s*` ) )
+			prefix = msg.content.matchFirst( this.mentionRE ??= new RegExp( `^<@!?${this.client.user.id}>\\s*` ) )
 
 			if( !prefix )
 				return
@@ -306,11 +306,12 @@ class Command {
 		return command
 	}
 
+	// eslint-disable-next-line no-unused-vars
 	listSubcommands( parentPath = this.name ){
 		const list = []
 
 		this.subcommands.forEach( subcommand => {
-			const path = subcommand.parentTree.map( c => c === subcommand ? c.aliases.join( '\`/\`' ) : c.name ).join( '\` \`' )
+			const path = subcommand.parentTree.map( c => c === subcommand ? c.aliases.join( '`/`' ) : c.name ).join( '` `' )
 			const subs = !Command.recursiveSubcommandsList && subcommand.subcommands.length !== 0 ? `(${subcommand.subcommands.length})` : ''
 
 			list.push( `• \`${path}\`${subs} - ${subcommand.description.short}` )
@@ -464,7 +465,7 @@ class ArgumentParser extends Array {
 						continue
 					}
 				} else {
-	 				if( char == '"' || char == "'" ){
+					if( char == '"' || char == "'" ){
 						quotes = char
 						pos = i
 						continue
@@ -537,7 +538,7 @@ class CommandDescription {
 		return text[0].toUpperCase() + text.substring(1)
 	}
 
-	static uncapitalize( text ){
+	static unCapitalize( text ){
 		if( typeof text !== 'string' || text.length === 0 )
 			return null
 
@@ -573,7 +574,7 @@ class CommandDescription {
 				this.full = this.full.join( '\n' )
 		}
 
-		this.short = CommandDescription.uncapitalize( this.short )
+		this.short = CommandDescription.unCapitalize( this.short )
 		this.full = CommandDescription.capitalize( this.full )
 
 		usages?.forEach( args => {
@@ -641,7 +642,7 @@ class CommandDescription {
 			const examples = this.examples.map( example => {
 				const args = [...this.command.fullName.split( ' ' ), ...example.args]
 				const description = example.description ? ' - ' + example.description : ''
-				return `• \`${args.join( '\` \`' )}\`${description}`
+				return `• \`${args.join( '` `' )}\`${description}`
 			}).join( '\n' )
 
 			lines.push( `Example${examples.length === 1 ? '' : 's'}:\n${examples}` )

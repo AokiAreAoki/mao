@@ -1,10 +1,14 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'discord cb clamp',
-	evaluations: {
-		Jimp: 'Jimp ?? null'
-	},
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init(){
+		const discord = require( 'discord.js' )
+		const { Collection } = discord
+		const Jimp = require( 'jimp' )
+		const client = require( '@/instances/client' )
+		const cb = require( '@/functions/cb' )
+		const clamp = require( '@/functions/clamp' )
+		const Embed = require( '@/functions/Embed' )
 
 		const ending = '\n...'
 
@@ -39,7 +43,7 @@ module.exports = {
 								options.embeds.push( Embed()
 									.setColor( 0xFF0000 )
 									.setDescription( 'Looks like i got to send a picture but something went wrong' )
-									.addField( 'Error:', cb( err ) )
+									.addFields({ name: 'Error:', value: cb( err ) })
 								)
 							else
 								options.files.push( buffer )

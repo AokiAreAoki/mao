@@ -1,15 +1,14 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'vec Jimp config',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const vec = require( '@/re/vector' )
+		const Jimp = require( 'jimp' )
+		const config = require( '@/config.yml' )
 
 		function toByte( string_int ){
 			let int = parseInt( string_int )
 			return int < 0 ? 0 : int > 255 ? 255 : int
-		}
-
-		function inrange( num, min, max ){
-			return min <= num && num <= max
 		}
 
 		const colorSystems = {
@@ -39,30 +38,29 @@ module.exports = {
 					clr.remixAxes( Math.floor( seg ) === 1 ? 'zxy' : 'yzx' )
 
 				let result = clr.add(m).mul(255).toHex()
-				delete clr
 				return result
 			},
 			hsv: 'hsl',
 			mao: () => config.maoclr,
 		}
 
-		addCmd({
+		addCommand({
 			aliases: 'color clr',
 			description: {
 				short: 'displays color',
 				full: [
 					`Gets color`,
 					`Supported color types: RGB, HEX and HSL/HSV`,
-					`* \`HSL/HSV\` doesn't autodetects. You have to specify \`hsl\`/\`hsv\` as a color type to use it.`,
+					`* \`HSL/HSV\` doesn't auto-detects. You have to specify \`hsl\`/\`hsv\` as a color type to use it.`,
 				],
 				usages: [
 					[`[type]`, `<color data...>`, ''],
 				],
 				examples: [
-					['rgb', '255', '0', '127', 'RGB color system with \`rgb\` type specified'],
-					['hex', '#Ff0000', 'HEX color system with \`hex\` type specified'],
-					['#08F', 'short HEX without \`hex\` type specified'],
-					['hsl', '160', '50%', '100%', 'HSL color system with \`hsl\` type specified (required)'],
+					['rgb', '255', '0', '127', 'RGB color system with `rgb` type specified'],
+					['hex', '#Ff0000', 'HEX color system with `hex` type specified'],
+					['#08F', 'short HEX without `hex` type specified'],
+					['hsl', '160', '50%', '100%', 'HSL color system with `hsl` type specified (required)'],
 					['hsl', '30', '1', '0.5', `same as previous but there's coefficients(\`[0; 1]\`) instead of percentages`],
 				],
 			},

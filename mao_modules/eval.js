@@ -1,0 +1,292 @@
+/* eslint-disable no-unused-vars */
+// eslint-disable-next-line no-global-assign
+require = global.alias
+module.exports = {
+	init(){
+		const discord = require( 'discord.js' )
+		const bakadb = require( '@/instances/bakadb' )
+		const { db } = bakadb
+		const { iom, flags } = require( '@/index' )
+		const MM = require( '@/instances/message-manager' )
+		const cb = require( '@/functions/cb' )
+		const numsplit = require( '@/functions/numsplit' )
+		const printify = require( '@/re/printifier' )
+
+		let evalPrefix = /^>>+\s*/i
+
+		class EvalFlagsParser {
+			constructor( flags ){
+				this.flags = new Set( flags )
+			}
+
+			parseAndCutFirstFlag( code ){
+				let flag = null, value = null
+
+				code.matchFirst( /^\s*([A-Za-z]+)(?:[\s:])/, matched => {
+					matched = matched.toLowerCase()
+
+					if( this.flags.has( matched ) ){
+						flag = matched
+						code = code.trimLeft().substring( flag.length )
+
+						if( code[0] === ':' ){
+							value = code.matchFirst( /^.([\w*]+)/ ) ?? ''
+							code = code.substring( value.length + 1 )
+						}
+					}
+				})
+
+				return [code, flag, value]
+			}
+
+			parseAndCut( code ){
+				let flag, value,
+					flags = {}
+
+				// eslint-disable-next-line no-constant-condition
+				while( true ){
+					[code, flag, value] = this.parseAndCutFirstFlag( code )
+
+					if( !flag )
+						break
+
+					flags[flag] = { value }
+				}
+
+				return [code, flags]
+			}
+		}
+
+		const evalFlagsParser = new EvalFlagsParser([
+			'cb',
+			'prt',
+			'del',
+			'silent',
+			'noparse',
+			'iom',
+			'dev',
+			'whats',
+			'keys',
+			'dontawait',
+		])
+
+		MM.unshiftHandler( 'eval', true, async msg => {
+			let ismaster = msg.author instanceof discord.User && msg.author.isMaster()
+
+			if( ismaster ){
+				let said = msg.content
+				let here = msg.channel
+				let mem = msg.member
+				let me = msg.author
+				let prefix = said.matchFirst( evalPrefix )
+				let ref = await msg.getReferencedMessage()
+
+				if( prefix )
+					said = said.substring( prefix.length )
+				else if( !db.evalall?.[msg.author.id] )
+					return
+
+				let [code, evalFlags] = evalFlagsParser.parseAndCut( said )
+
+				if( evalFlags.dev )
+					evalFlags.iom = { value: 'dev' }
+
+				if( evalFlags.iom && evalFlags.iom.value !== null ){
+					if( evalFlags.iom.value !== iom && evalFlags.iom.value !== '*' )
+						return
+				} else if( flags.dev )
+					return
+
+				if( evalFlags.del )
+					await msg.delete()
+
+				code.matchFirst( /```(?:[\w+]+\s+)?(.+)```/s, it => code = it )
+
+				let __printerr = !!prefix
+				let abortHandlersQueue = false
+				let abortHQ = () => abortHandlersQueue = true
+
+				try {
+					if( __printerr && !code.match( /\S/ ) )
+						return
+
+					let evaled, __output = ''
+
+					// eslint-disable-next-line no-inner-declarations
+					function print( ...args ){
+						if( __output )
+							__output += '\n'
+
+						args.forEach( ( v, k ) => {
+							if( k > 0 ) __output += '\t'
+							__output += String( v )
+						})
+					}
+
+					// eslint-disable-next-line no-inner-declarations
+					function say( ...args ){
+						return msg.send( ...args )
+					}
+
+					if( !evalFlags.noparse ){
+						code = code
+							.replace( /<@!?(\d+)>/gi, `( here.guild.members.cache.get('$1') || client.users.cache.get('$1') )` ) // Member || User
+							.replace( /<#(\d+)>/gi, `client.channels.cache.get('$1')` ) // Channel
+							.replace( /(<\w*:[\w_]+:(\d+)>)/gi, `client.emojis.resolve('$2','$1')` ) // Emoji
+							.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Role
+					}
+
+					evaled = evalFlags.dontawait
+						? eval( code )
+						: await eval( code )
+
+					const doPrint = !!( () => {
+						if( evalFlags.whats ){
+							let type = typeof evaled
+
+							if( type === 'object' ){
+								if( evaled == null )
+									type = 'a null'
+								else
+									type = `an ${type}, instance of ${evaled.constructor.name}`
+							} else if( type !== 'undefined' )
+								type = 'a ' + type
+
+							evaled = type
+							return true
+						}
+
+						if( evalFlags.keys ){
+							if( evaled == null ){
+								evaled = `\`${String( evaled )}\` has no keys`
+								return true
+							}
+
+							evaled = Object.keys( evaled ).join( '` `' )
+							evaled = evaled ? `keys: \`${evaled}\`` : 'no keys'
+							evalFlags.prt = false
+							return true
+						}
+
+						if( evalFlags.prt ){
+							evaled = typeof evaled === 'object'
+								? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${printify( evaled, evalFlags.prt.value )}`
+								: evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
+
+							return true
+						}
+
+						if( evalFlags.silent )
+							return false
+
+						switch( typeof evaled ){
+							case 'undefined':
+								evaled = 'undefined'
+								return __printerr
+
+							case 'boolean':
+							case 'bigint':
+							case 'symbol':
+								evaled = String( evaled )
+								if( !__printerr && !evalFlags.cb && code === evaled )
+									return
+								break
+
+							case 'number':
+								if( !__printerr && !evalFlags.cb && /^[+-]?([\w_]+|(\d+)?(\.\d+)?(e\d+)?)$/i.test( code ) )
+									return
+								evaled = numsplit( evaled )
+								break
+
+							case 'string':
+								if( !__printerr && !evalFlags.cb && code[0] === code[code.length - 1] && '"\'`'.search( code[0] ) + 1 )
+									if( code.substring( 1, code.length - 1 ) === evaled )
+										return
+								break
+
+							case 'object':
+								if( !__printerr )
+									return
+
+								if( evaled === null ){
+									evaled = 'null'
+									return true
+								}
+
+								switch( evaled.constructor?.name ){
+									case 'MessageEmbed':
+									case 'Jimp':
+										msg.send( evaled )
+										return
+
+									case 'Array':
+										evaled = `here's ur array for u: ${printify( evaled, 1 )}`
+										break
+
+									default:
+										evaled = String( evaled )
+										break
+								}
+								break
+
+							case 'function': {
+								let funcBody = String( evaled )
+								let indent = funcBody.matchFirst( /\n(\s+)[^\n]+$/ )
+
+								if( indent ){
+									indent = ( indent.match( /\t/g )?.length ?? 0 ) + ( indent.match( /\s{4}/g )?.length ?? 0 )
+									funcBody = funcBody.replace( new RegExp( `^(\\t|[^\\t\\S]{4}){${indent}}`, 'gm' ), '' )
+								}
+
+								evaled = funcBody
+								evalFlags.cb = { value: 'js' }
+								break
+							}
+
+							default:
+								evaled = `Result parse error: unknown type "${typeof evaled}" of evaled`
+								break
+						}
+
+						return true
+					})()
+
+					if( doPrint ){
+						if( typeof evaled !== 'string' )
+							return
+						else if( !evalFlags.cb && evaled.indexOf( '\n' ) !== -1 )
+							evalFlags.cb = true
+					}
+
+					if( __output ){
+						if( doPrint )
+							print( evaled )
+
+						msg.sendcb( __output )
+						msg.isCommand = true
+					} else if( doPrint ){
+						if( !evalFlags.cb && !msg.member.permissions.has( discord.Permissions.FLAGS.EMBED_LINKS ) )
+							evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
+
+						await msg.send( evalFlags.cb ? cb( evaled, evalFlags.cb.value ) : evaled )
+						msg.isCommand = true
+						return abortHQ()
+					}
+
+					return abortHQ()
+				} catch( err ){
+					if( __printerr ){
+						if( err )
+							msg.sendcb( err?.stack )
+						else
+							msg.send( `OK, i caught the error but somewhat i've got ${err} instead of error...` )
+
+						return abortHQ()
+					}
+				}
+
+				return abortHandlersQueue
+			}
+		})
+	}
+}

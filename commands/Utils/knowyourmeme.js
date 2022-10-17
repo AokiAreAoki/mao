@@ -1,8 +1,9 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'kym',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
-
+	init({ addCommand }){
+		const kym = require( 'nodeyourmeme' )
+		const Embed = require( '@/functions/Embed' )
 		const MAX = 4096
 
 		function cut( text ){
@@ -11,7 +12,7 @@ module.exports = {
 				: text
 		}
 
-		addCmd({
+		addCommand({
 			aliases: 'knowyourmeme kym',
 			description: {
 				short: 'looks for a meaning of a meme',
@@ -25,20 +26,16 @@ module.exports = {
 			callback: ( msg, args ) => {
 				const meme = args.getRaw()
 
-				if( meme )
-					kym.search( meme )
-						.then( meaning => {
-							//msg.send( Embed().addField( meaning.name, cut( meaning.about ) ) )
-							msg.send( Embed().setDescription( `**${meaning.name}** - ${cut( meaning.about )}` ) )
-						})
-						.catch( err => {
-							msg.send( Embed()
-								.setColor( 0xFF0000 )
-								.setDescription( `The \`${meme}\` meme not found :c` )
-							)
-						})
-				else
-					msg.send( 'gimme a meme baka' )
+				return meme
+					? kym.search( meme )
+						.then( meaning => msg.send( Embed()
+							.setDescription( `**${meaning.name}** - ${cut( meaning.about )}` )
+						))
+						.catch( () => msg.send( Embed()
+							.setColor( 0xFF0000 )
+							.setDescription( `The \`${meme}\` meme is not found :c` )
+						))
+					: msg.send( 'gimme a meme baka' )
 			},
 		})
 	}

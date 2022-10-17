@@ -1,7 +1,15 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client MM cp fs processing discord join binarySearch',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init(){
+		const client = require( '@/instances/client' )
+		const MM = require( '@/instances/message-manager' )
+		const cp = require( 'child_process' )
+		const fs = require( 'fs' )
+		const processing = require( '@/functions/processing' )
+		const discord = require( 'discord.js' )
+		const { join } = require( 'path' )
+		const binarySearch = require( '@/functions/binarySearch' )
 
 		const cacheTimeout = 2 * 24 * 3600e3
 
@@ -86,7 +94,7 @@ module.exports = {
 
 		const utils = [
 			// Discord CDN link fixer
-			async ( msg, cache, react ) => {
+			async msg => {
 				const badURLs = msg.content.match( /https?:\/\/media\.discordapp\.net\/\S+\.(?:mp4|webm|mov)/gi )
 
 				if( badURLs && badURLs.length !== 0 )
@@ -96,7 +104,7 @@ module.exports = {
 			// Twitter direct links provider
 			async ( msg, cache, react ) => {
 				let links = [
-					/https?:\/\/(?:\w+\.)?twitter\.com\/([^\/\s]+)\/status\/(\d+)/gmi,
+					/https?:\/\/(?:\w+\.)?twitter\.com\/([^/\s]+)\/status\/(\d+)/gmi,
 				]
 					.map( re => Array.from( msg.content.matchAll( re ) ) )
 					.flat(1)

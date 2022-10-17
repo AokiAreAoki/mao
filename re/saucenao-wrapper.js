@@ -1,3 +1,5 @@
+const axios = require( 'axios' )
+
 class SauceNAO {
 	static api_url = `https://saucenao.com/search.php`
 	static index_names = {
@@ -38,13 +40,12 @@ class SauceNAO {
 		42: `Furry Network`,
 	}
 
-	constructor( axios, params ){
-		this.axios = axios
+	constructor( params ){
 		this.params = params
 	}
 
 	async find( imageURL, log_results = false ){
-		const response = await this.axios.get( SauceNAO.api_url, {
+		const response = await axios.get( SauceNAO.api_url, {
 			params: {
 				...this.params,
 				url: imageURL,
@@ -53,7 +54,7 @@ class SauceNAO {
 
 		if( log_results )
 			console.log( response.data )
-		
+
 		if( response.data.header.status != 0 )
 			throw Error( response.data.header.message )
 
@@ -65,13 +66,13 @@ class SauceNAO {
 
 			header.similarity += '%'
 			header.index_name = SauceNAO.index_names[header.index_id] ?? header.index_name
-			
+
 			// if( data.ext_urls instanceof Array )
-			// 	data.ext_urls = data.ext_urls.join( '\n' )
+				// data.ext_urls = data.ext_urls.join( '\n' )
 
 			if( data.creator instanceof Array )
 				data.creator = data.creator.join( ', ' )
-				
+
 			return src
 		})
 

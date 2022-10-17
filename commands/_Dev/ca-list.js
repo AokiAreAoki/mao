@@ -1,9 +1,13 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'Embed AM bakadb db cb',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
-		
-		addCmd({
+	init({ addCommand }){
+		const Embed = require( '@/functions/Embed' )
+		const bakadb = require( '@/instances/bakadb' )
+		const { db } = bakadb
+		const cb = require( '@/functions/cb' )
+
+		addCommand({
 			aliases: 'cas',
 			description: 'returns list of all CAs',
 			flags: [
@@ -22,14 +26,24 @@ module.exports = {
 							const t = Math.round( ca.deadline / 1000 )
 
 							return Embed()
-								.addField( `Activity`, [
-									ca.name ? `Unique name: ${ca.name}` : `No unique name specified`,
-									`Type: ${ca.type}`,
-									`Static: ${!!ca.static}`,
-									`Deadline: <t:${t}:d> <t:${t}:t> (<t:${t}:R>)`,
-								].join( '\n' ) )
-								.addField( ca.static ? 'Static value' : 'Callback', cb( ca.static ? ca.string : ca.callback ) )
-								.setFooter( `${i + 1 + page * CAPP}/${db.customActivities.length}` )
+								.addFields(
+									{
+										name: `Activity`,
+										value: [
+											ca.name ? `Unique name: ${ca.name}` : `No unique name specified`,
+											`Type: ${ca.type}`,
+											`Static: ${!!ca.static}`,
+											`Deadline: <t:${t}:d> <t:${t}:t> (<t:${t}:R>)`,
+										].join( '\n' ),
+									},
+									{
+										name: ca.static ? 'Static value' : 'Callback',
+										value: cb( ca.static ? ca.string : ca.callback ),
+									},
+								)
+								.setFooter({
+									text: `${i + 1 + page * CAPP}/${db.customActivities.length}`
+								})
 						})
 				})
 

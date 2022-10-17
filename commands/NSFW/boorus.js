@@ -1,7 +1,12 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client Embed Gelbooru Yandere clamp',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const client = require( '@/instances/client' )
+		const { Gelbooru, Yandere } = require( '@/instances/booru' )
+		const cb = require( '@/functions/cb' )
+		const clamp = require( '@/functions/clamp' )
+		const Embed = require( '@/functions/Embed' )
 
 		const boorus = [
 			{
@@ -17,8 +22,8 @@ module.exports = {
 		]
 
 		const maxPicsPerCommand = 10
-		const maotag = 'amatsuka_mao'
-		const safetag = 'rating:general'
+		const maoTag = 'amatsuka_mao'
+		const safeTag = 'rating:general'
 		const usedPics = {}
 		const cooldown = {}
 
@@ -116,21 +121,21 @@ module.exports = {
 				return userMsg.send( `**Cool down, baka!** \`${Math.floor( cd( userMsg.member, 1 ) - Date.now() ) / 1e3}\` seconds left` )
 
 			if( !this.booru ){
-				userMsg.send( `Internal error happaned: unknown booru: "${args[-1]}"` )
+				userMsg.send( `Internal error happened: unknown booru: "${args[-1]}"` )
 				console.warn( `unknown booru: "${args[-1]}"` )
 				return
 			}
 
 			const tags = args.map( t => t.toLowerCase().replace( /\s/g, '_' ) )
 
-			if( tags.some( t => t === maotag ) )
+			if( tags.some( t => t === maoTag ) )
 				return userMsg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
 
 			const force = args.flags.force.specified && userMsg.author.isMaster()
-			let sfw = tags.find( v => v === safetag )
+			let sfw = tags.find( v => v === safeTag )
 
 			if( !sfw && args.flags.safe.specified ){
-				tags.push( safetag )
+				tags.push( safeTag )
 				sfw = true
 			}
 
@@ -160,7 +165,9 @@ module.exports = {
 						userMsg.author.createPaginator()
 							.setPages( pics.length )
 							.onPageChanged( ( page, pages ) => result.embed( pics[page], embed => {
-								embed.setFooter( `(${page + 1}/${pages}) ` + ( embed.footer?.text || '' ) )
+								embed.setFooter({
+									text: `(${page + 1}/${pages}) ` + ( embed.footer?.text || '' )
+								})
 							}))
 							.setMessage( await botMsg )
 					} else {
@@ -190,10 +197,10 @@ module.exports = {
 		}
 
 		for( const settings of boorus ){
-			const command = addCmd({
+			const command = addCommand({
 				aliases: settings.aliases,
 				flags: [
-					['force', `force post ignoring the only NSFW channel restiction (master only)`],
+					['force', `force post ignoring the only NSFW channel restriction (master only)`],
 					['safe', 'alias for `rating:general` tag'],
 					['x', `<amount>`, `$1 of pics to post (max: ${maxPicsPerCommand})`],
 					['pager', 'pagination'],

@@ -1,13 +1,14 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const client = require( '@/instances/client' )
 
 		const MAX = 50
 		const messageDisplayTime = 3e3
 		const isIDLike = string => /^\d+$/.test( string )
 
-		addCmd({
+		addCommand({
 			aliases: 'clear clean purge',
 			flags: [
 				['before', '<message ID>', 'deletes messages posted before a message of $1'],
@@ -31,7 +32,7 @@ module.exports = {
 
 				if( after.specified && isIDLike( after[0] ) ){
 					if( before.specified && isIDLike( before[0] ) )
-						return msg.send( "You can't use the \`after\` and the \`before\` flags together" )
+						return msg.send( "You can't use the `after` and the `before` flags together" )
 
 					fetchOptions.after = after[0]
 				} else {

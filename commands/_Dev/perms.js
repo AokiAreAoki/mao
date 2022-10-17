@@ -1,7 +1,12 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'discord bakadb db List',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const discord = require( 'discord.js' )
+		const bakadb = require( '@/instances/bakadb' )
+		const client = require( '@/instances/client' )
+		const { db } = bakadb
+		const List = require( '@/re/list' )
 
 		bakadb.createCoder( List, perms => 'List:' + perms.toString(), list => new List( list ) )
 
@@ -11,16 +16,8 @@ module.exports = {
 
 				if( typeof perms != 'object' || perms.constructor != List )
 					delete db.perms[k]
-				else {
-					let empty = true
-
-					for( let k in perms ){
-						empty = false
-						break
-					}
-
-					if( empty ) delete db.perms[k]
-				}
+				else if( Object.keys( perms ).length === 0 )
+					delete db.perms[k]
 			}
 		} else db.perms = {}
 
@@ -73,7 +70,7 @@ module.exports = {
 			return this.user.isMaster()
 		}
 
-		const cmd = addCmd({
+		const cmd = addCommand({
 			aliases: 'perm perms',
 			description: 'manages bot permissions',
 		})

@@ -1,7 +1,9 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'discord Embed client',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const discord = require( 'discord.js' )
+		const Embed = require( '@/functions/Embed' )
 
 		async function sendPFP( messageOrChannel, target, banner ){
 			const embed = Embed()
@@ -41,7 +43,7 @@ module.exports = {
 			return messageOrChannel.send( embed )
 		}
 
-		addCmd({
+		addCommand({
 			aliases: 'avatar pfp banner',
 			flags: [
 				['guild', 'gets guild icon/banner'],
@@ -60,7 +62,7 @@ module.exports = {
 					[`<username>`, `searches for a user and gets their avatar/banner`],
 				],
 			},
-			callback: async ( msg, args ) => {
+			async callback( msg, args ){
 				const banner = args[-1] === 'banner'
 
 				// Author's avatar

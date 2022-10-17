@@ -29,7 +29,7 @@ class BakaDB extends events {
 
 	makePath( path ){
 		if( !fs.existsSync( path ) ){
-			this.makePath( path.matchFirst( /(.+?)[^\/\\]+[\/\\]*$/ ) )
+			this.makePath( path.matchFirst( /(.+?)[^/\\]+[/\\]*$/ ) )
 			fs.mkdirSync( path )
 		}
 	}
@@ -41,7 +41,7 @@ class BakaDB extends events {
 		if( shit instanceof Object )
 			for( let k in shit ) global[k] = shit[k]
 
-		this.path = ( typeof path === 'string' && path ) ? path.replace( /^(?!\.[\/\\])[\/\\]?([\w\s_-]+)(?!:)/, './$1' ) : './bdb'
+		this.path = ( typeof path === 'string' && path ) ? path.replace( /^(?!\.[/\\])[/\\]?([\w\s_-]+)(?!:)/, './$1' ) : './bdb'
 		let data = {}
 
 		if( fs.existsSync( this.path ) ){
@@ -86,7 +86,7 @@ class BakaDB extends events {
 		let props = [],
 			value = this.db
 
-		path.forEach( key => key.split( /[\/\.]+/ ).forEach( key => {
+		path.forEach( key => key.split( /[/.]+/ ).forEach( key => {
 			if( key ) props.push( key )
 		}))
 
@@ -111,7 +111,7 @@ class BakaDB extends events {
 			value = path.pop(),
 			object = this.db
 
-		path.forEach( key => key.split( /[\/\.]+/ ).forEach( key => {
+		path.forEach( key => key.split( /[/.]+/ ).forEach( key => {
 			if( key ) props.push( key )
 		}))
 
@@ -133,7 +133,7 @@ class BakaDB extends events {
 	delete( ...path ){
 		let props = []
 
-		path.forEach( key => key.split( /[\/\.]+/ ).forEach( key => {
+		path.forEach( key => key.split( /[/.]+/ ).forEach( key => {
 			if( key ) props.push( key )
 		}))
 
@@ -158,42 +158,42 @@ class BakaDB extends events {
 		return Object.keys( object ).length === 0
 	}
 
-	_foreach( table, cb ){
-		if( table instanceof Array )
-			table.forEach( cb );
+	_foreach( object, cb ){
+		if( object instanceof Array )
+			object.forEach( cb );
 		else
-			for( let k in table )
-				cb( table[k], k );
+			for( let k in object )
+				cb( object[k], k );
 	}
 
-	_encode( table, _path='/' ){
+	_encode( object, _path='/' ){
 		let encoded
 
-		if( table instanceof Array )
+		if( object instanceof Array )
 			encoded = []
-		else if( table instanceof Object )
+		else if( object instanceof Object )
 			encoded = {}
 		else
-			return this._encodeValue( val, _path )
+			return this._encodeValue( object, _path )
 
-		this._foreach( table, ( val, k ) => {
+		this._foreach( object, ( val, k ) => {
 			encoded[k] = this._encodeValue( val, _path )
 		})
 
 		return encoded
 	}
 
-	_decode( table, _path='/' ){
+	_decode( object, _path='/' ){
 		let decoded
 
-		if( table instanceof Array )
+		if( object instanceof Array )
 			decoded = []
-		else if( table instanceof Object )
+		else if( object instanceof Object )
 			decoded = {}
 		else
-			return this._decodeValue( table, _path )
+			return this._decodeValue( object, _path )
 
-		this._foreach( table, ( val, k ) => {
+		this._foreach( object, ( val, k ) => {
 			decoded[k] = this._decodeValue( val, _path )
 		})
 
@@ -220,7 +220,7 @@ class BakaDB extends events {
 		if( typeof coder !== 'undefined' && coder.encode instanceof Function )
 			return coder.encode( val, _path )
 		else
-			this.emit( 'missing-encoder', type, join( _path, k ) )
+			this.emit( 'missing-encoder', type, _path )
 	}
 
 	_decodeValue( val, _path='/' ){
@@ -251,7 +251,7 @@ class BakaDB extends events {
 			if( typeof coder !== 'undefined' && coder.decode instanceof Function )
 				return coder.decode( val, _path )
 			else
-				this.emit( 'missing-decoder', type, join( _path, k ) )
+				this.emit( 'missing-decoder', type, _path )
 		} else if( typeof val === 'object' )
 			return this._decode( val )
 	}

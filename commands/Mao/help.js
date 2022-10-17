@@ -1,9 +1,13 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'CM Embed __flags',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const CM = require( '@/instances/command-manager' )
+		const Embed = require( '@/functions/Embed' )
+		const cb = require( '@/functions/cb' )
+		const { flags } = require( '@/index' )
 
-		const help = addCmd({
+		const help = addCommand({
 			aliases: 'help h',
 			description: {
 				short: '-help help for help',
@@ -52,7 +56,7 @@ module.exports = {
 							return command
 						}).join( ', ' )
 
-						emb.addField( module.printname, commands )
+						emb.addFields({ name: module.printname, value: commands })
 					}
 				})
 
@@ -61,7 +65,7 @@ module.exports = {
 		})
 
 		// Sub-commands tester
-		if( !__flags.dev )
+		if( !flags.dev )
 			return
 
 		const description = 'test command'

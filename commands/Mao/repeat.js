@@ -1,9 +1,11 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'MM processing',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init({ addCommand }){
+		const MM = require( '@/instances/message-manager' )
+		const processing = require( '@/functions/processing' )
 
-		addCmd({
+		addCommand({
 			aliases: 'repeat',
 			description: 'repeats last command',
 			callback: async msg => {

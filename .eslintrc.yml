@@ -1,0 +1,11 @@
+env:
+  node: true
+  commonjs: true
+  es2021: true
+extends: eslint:recommended
+overrides: []
+parserOptions:
+  ecmaVersion: latest
+rules:
+  no-mixed-spaces-and-tabs: ["error", "smart-tabs"]
+  no-cond-assign: ["off"]

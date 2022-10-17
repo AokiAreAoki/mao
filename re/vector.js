@@ -185,7 +185,7 @@ class Vector {
 			return this
 		}
 
-		throw new Error( 'Argiment #1 must be a vector or number' )
+		throw new Error( 'Argument #1 must be a vector or number' )
 	}
 
 	sub( vector ){
@@ -203,7 +203,7 @@ class Vector {
 			return this
 		}
 
-		throw new Error( 'Argiment #1 must be a vector or number' )
+		throw new Error( 'Argument #1 must be a vector or number' )
 	}
 
 	mul( vector ){
@@ -221,7 +221,7 @@ class Vector {
 			return this
 		}
 
-		throw new Error( 'Argiment #1 must be a vector or number' )
+		throw new Error( 'Argument #1 must be a vector or number' )
 	}
 
 	div( vector ){
@@ -240,7 +240,7 @@ class Vector {
 			return this
 		}
 
-		throw new Error( 'Argiment #1 must be a vector or number' )
+		throw new Error( 'Argument #1 must be a vector or number' )
 	}
 
 	pow( vector ){
@@ -259,7 +259,7 @@ class Vector {
 			return this
 		}
 
-		throw new Error( 'Argiment #1 must be a vector or number' )
+		throw new Error( 'Argument #1 must be a vector or number' )
 	}
 
 	sqrt( axes ){

@@ -1,7 +1,10 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client timer db',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init(){
+		const client = require( '@/instances/client' )
+		const timer = require( '@/re/timer' )
+		const { db } = require( '@/instances/bakadb' )
 
 		const activityTypes = {
 			PLAYING: true,
@@ -21,7 +24,7 @@ module.exports = {
 			}
 
 			if( !activityTypes[activity.type] )
-				throw Error( `Unknown activity type: "${type}"` )
+				throw Error( `Unknown activity type: "${activity.type}", expected one of ${Object.keys( activityTypes ).join( ' ' )}` )
 
 			if( typeof options.name === 'string' )
 				activity.name = options.name
@@ -44,7 +47,7 @@ module.exports = {
 				return activity
 			}
 
-			throw new Error( `Wrong type of options.callback (expected function or string, got ${typeof options.callback}` )
+			throw Error( `Wrong type of options.callback (expected function or string, got ${typeof options.callback}` )
 		}
 
 		class ActivityManager {
@@ -125,9 +128,10 @@ module.exports = {
 				db.customActivities.sort( ( a, b ) => a.deadline - b.deadline )
 			}
 		}
+		ActivityManager.Activity = Activity
+		module.exports.ActivityManager = ActivityManager
 
-		mao.AM = ActivityManager
-		client.once( 'ready2', () => AM.init( client ) )
+		client.once( 'ready', () => ActivityManager.init( client ) )
 
 		// uptime
 		ActivityManager.pushActivity( 'PLAYING', () => typeof db.totaluptime === 'number'

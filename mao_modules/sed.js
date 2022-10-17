@@ -1,7 +1,10 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias
 module.exports = {
-	requirements: 'client MM cb',
-	init: ( requirements, mao ) => {
-		requirements.define( global )
+	init(){
+		const client = require( '@/instances/client' )
+		const MM = require( '@/instances/message-manager' )
+		const cb = require( '@/functions/cb' )
 
 		MM.pushHandler( 'sed', true, async msg => {
 			if( msg.author.bot || msg.author.id === client.user.id )

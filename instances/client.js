@@ -4,19 +4,20 @@ const { flags } = require( '@/index' )
 const tokens = require( '@/tokens.yml' )
 const discord = require( 'discord.js' )
 
+discord.Message
 const client = new discord.Client({
 	restRequestTimeout: 60e3,
 	makeCache: discord.Options.cacheWithLimits({
 		MessageManager: {
 			sweepInterval: 300,
-			sweepFilter: discord.LimitedCollection.filterByLifetime({
+			sweepFilter: discord.Sweepers.filterByLifetime({
 				lifetime: 3600*4,
 				getComparisonTimestamp: e => e.editedTimestamp ?? e.createdTimestamp,
 			}),
 		},
 		ThreadManager: {
 			sweepInterval: 3600,
-			sweepFilter: discord.LimitedCollection.filterByLifetime({
+			sweepFilter: discord.Sweepers.filterByLifetime({
 				getComparisonTimestamp: e => e.archiveTimestamp,
 				excludeFromSweep: e => !e.archived,
 			}),

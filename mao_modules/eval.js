@@ -3,6 +3,8 @@
 require = global.alias
 module.exports = {
 	init(){
+		const fs = require( 'fs' )
+		const pathlib = require( 'path' )
 		const discord = require( 'discord.js' )
 		const bakadb = require( '@/instances/bakadb' )
 		const { db } = bakadb
@@ -10,6 +12,7 @@ module.exports = {
 		const MM = require( '@/instances/message-manager' )
 		const cb = require( '@/functions/cb' )
 		const numsplit = require( '@/functions/numsplit' )
+		const includeFiles = require( '@/functions/includeFiles' )
 		const printify = require( '@/re/printifier' )
 
 		let evalPrefix = /^>>+\s*/i
@@ -70,6 +73,49 @@ module.exports = {
 			'dontawait',
 		])
 
+		function findInclude( pathToFind ){
+			const entities = pathToFind.split( /[/\\]+/ ).filter( e => !!e )
+			const root = pathlib.dirname( require.main.filename )
+
+			let path = entities.reduce( ( path, nextEntity, i ) => {
+				if( i < entities.length - 1 && !fs.statSync( path ).isDirectory() )
+					throw Error(
+						`"@/${pathlib.relative( root, path )}" is not a folder`
+						+ `\n  available folders:\n` + fs.readdirSync( path )
+							.filter( f => fs.statSync(f).isDirectory() )
+							.map( f => '  - ' + f )
+							.join( '\n' )
+					)
+
+				const next = nextEntity.replace( /\W/g, '' ).toLowerCase()
+				const entity = fs.readdirSync( path )
+					.find( e => {
+						if( e === 'mao.js' )
+							return false
+							
+						if( e.replace( /\W/g, '' ).toLowerCase().search( next ) === -1 )
+							return false
+
+						if( i < entities.length - 1 && !fs.statSync( pathlib.join( path, e ) ).isDirectory() )
+							return false
+
+						return true
+					})
+
+				if( entity )
+					return pathlib.join( path, entity )
+				else
+					throw Error(
+						`nothing found at "@/${pathlib.relative( root, path )}/${nextEntity}"`
+						+ `\n  ls:\n` + fs.readdirSync( path )
+							.map( f => '  - ' + f )
+							.join( '\n' )
+					)
+			}, root )
+
+			return pathlib.relative( root, path ).replace( /\\/g, '/' )
+		}
+
 		MM.unshiftHandler( 'eval', true, async msg => {
 			let ismaster = msg.author instanceof discord.User && msg.author.isMaster()
 
@@ -110,7 +156,9 @@ module.exports = {
 					if( __printerr && !code.match( /\S/ ) )
 						return
 
-					let evaled, __output = ''
+					let evaled
+					let __output = ''
+					let autoIncludedFiles = []
 
 					// eslint-disable-next-line no-inner-declarations
 					function print( ...args ){
@@ -134,6 +182,11 @@ module.exports = {
 							.replace( /<#(\d+)>/gi, `client.channels.cache.get('$1')` ) // Channel
 							.replace( /(<\w*:[\w_]+:(\d+)>)/gi, `client.emojis.resolve('$2','$1')` ) // Emoji
 							.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Role
+							.replace( /@@((?:\/\w+)+)/gi, ( match, path ) => {
+								path = findInclude( path )
+								autoIncludedFiles.push( '@/' + path )
+								return `require("@/${path}")`
+							})
 					}
 
 					evaled = evalFlags.dontawait
@@ -169,10 +222,7 @@ module.exports = {
 						}
 
 						if( evalFlags.prt ){
-							evaled = typeof evaled === 'object'
-								? evaled = `here's ur ${evaled.constructor === Array ? 'array' : 'table'} for u: ${printify( evaled, evalFlags.prt.value )}`
-								: evaled = `hm... doesn't looks like a table or an array but ok\nhere's ur *${typeof evaled}* for u: ${String( evaled )}`
-
+							evaled = `.: ${printify( evaled, evalFlags.prt.value || 3 )}`
 							return true
 						}
 
@@ -220,7 +270,7 @@ module.exports = {
 										return
 
 									case 'Array':
-										evaled = `here's ur array for u: ${printify( evaled, 1 )}`
+										evaled = printify( evaled, 1 )
 										break
 
 									default:
@@ -257,6 +307,9 @@ module.exports = {
 						else if( !evalFlags.cb && evaled.indexOf( '\n' ) !== -1 )
 							evalFlags.cb = true
 					}
+
+					if( autoIncludedFiles.length !== 0 )
+						__output = `Included files:\n${autoIncludedFiles.join( '\n' )}\n${__output}`
 
 					if( __output ){
 						if( doPrint )

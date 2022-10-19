@@ -15,37 +15,36 @@ function iterate({
 
 	const entity = query[depth]
 	const children = fs.readdirSync( path )
-		.map( e => ({
-			entity: e,
-			path: pathLib.join( path, e ),
-		}))
-		.filter( e => ( !entity.ignoreFiles || !fs.statSync( e.path ).isFile() ) && entity.re.test( e.entity ) )
+		.map( child => {
+			const newPath = pathLib.join( path, child )
 
-	if( ++depth >= query.length ){
-		children.forEach( e => {
-			entities.push( e.entity )
-
-			callback({
-				path: e.path,
-				entities,
-			})
-
-			entities.pop()
+			return {
+				entity: child,
+				path: newPath,
+				isFile: fs.statSync( newPath ).isFile(),
+			}
 		})
+		.filter( child => ( !entity.ignoreFiles || !child.isFile ) && entity.re.test( child.entity ) )
 
-		return
-	}
+	++depth
 
 	children.forEach( e => {
 		entities.push( e.entity )
 
-		iterate({
-			path: e.path,
-			query,
-			callback,
-			depth,
-			entities,
-		})
+		if( e.isFile ){
+			callback({
+				path: e.path,
+				entities,
+			})
+		} else if( depth < query.length ){
+			iterate({
+				path: e.path,
+				query,
+				callback,
+				depth,
+				entities,
+			})
+		}
 
 		entities.pop()
 	})
@@ -53,7 +52,8 @@ function iterate({
 
 module.exports = function includeFiles({ text, query, callback }){
 	// eslint-disable-next-line no-undef
-	process.stdout.write( text + '...' )
+	if( text )
+		process.stdout.write( text + '...' )
 
 	query = query
 		.split( /[/\\]+/ )
@@ -99,5 +99,6 @@ module.exports = function includeFiles({ text, query, callback }){
 	})
 
 	// eslint-disable-next-line no-undef
-	process.stdout.write( 'OK\n' )
+	if( text )
+		process.stdout.write( 'OK\n' )
 }

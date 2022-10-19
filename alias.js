@@ -19,3 +19,6 @@ global.alias = function( path ){
 
 	return _require( path )
 }
+
+for( const k in require )
+	global.alias[k] = require[k]

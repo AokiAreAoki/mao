@@ -18,10 +18,7 @@ function _printify( v, depth = 0, path = '.' ){
 	if( typeof v !== 'object' ){
 		if( typeof v === 'string' )
 			return v.indexOf( '\n' ) !== - 1
-				? '|\n' + v
-					.split( '\n' )
-					.map( l => INDENTATION.repeat( depth ) + STRING_INDENTATION + l )
-					.join( '\n' )
+				? '|' + v.replace( /\n/g, '\n' + INDENTATION.repeat( depth ) + STRING_INDENTATION )
 				: `"${v}"`
 
 		if( typeof v === 'number' || typeof v === 'boolean' )

@@ -1,0 +1,38 @@
+{
+	"maoclr": "0x970045",
+	"log-channel": "893430789306470430",
+	"boorus": {
+		"gelbooru": {
+			"name": "gelbooru.com",
+			"url": "https://gelbooru.com/index.php",
+			// "url": "https://aoki.000webhostapp.com/glbr/",
+			"page_offset": 0,
+			"params": {
+				// tags keyword is "tags" by default
+				"page": "pid",
+				// limit keyword is "limit" by default
+			},
+			"const_params": {
+				"page": "dapi",
+				"s": "post",
+				"q": "index",
+				"json": "1",
+			},
+			"limit": 100,
+			"path_to_pics": "post",
+		},
+		"yandere": {
+			"name": "yande.re",
+			"url": "https://yande.re/post.json",
+			// "url": "https://aoki.000webhostapp.com/yndr/",
+			// page_offset is 1 by default
+			"params": {
+				// tags keyword is "tags" by default
+				// page keyword is "page" by default
+				// limit keyword is "limit" by default
+			},
+			"const_params": {},
+			"limit": 100,
+		},
+	},
+}

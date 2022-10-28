@@ -68,6 +68,13 @@ class Paginator {
 
 		Paginator.buttonRows = buttonify( Paginator.buttonRows )
 	}
+	
+	setClient( client ){
+		client.on( 'interactionCreate', i => {
+			if( i.isButton() )
+				i.message.paginator?._react(i)
+		})
+	}
 
 	/// Instance ///
 	page = 0
@@ -212,7 +219,7 @@ class Paginator {
 
 		if( cant )
 			interaction.reply({
-				content: `The initiator has locked the pager therefore you can't change pages`,
+				content: `The initiator has locked the pager therefore you can't interact with it`,
 				ephemeral: true,
 			})
 

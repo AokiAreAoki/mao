@@ -5,6 +5,5 @@
 /re/MyLang.js
 /test
 tokens*
-config.json
 package-lock.json
 *.sh

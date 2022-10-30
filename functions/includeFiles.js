@@ -51,7 +51,6 @@ function iterate({
 }
 
 module.exports = function includeFiles({ text, query, callback }){
-	// eslint-disable-next-line no-undef
 	if( text )
 		process.stdout.write( text + '...' )
 
@@ -91,14 +90,12 @@ module.exports = function includeFiles({ text, query, callback }){
 				const mod = require( './' + path )
 				callback( mod, entities )
 			} catch( err ){
-				// eslint-disable-next-line no-undef
 				process.stdout.write( '\n' )
 				throw err
 			}
 		},
 	})
 
-	// eslint-disable-next-line no-undef
 	if( text )
 		process.stdout.write( 'OK\n' )
 }

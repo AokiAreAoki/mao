@@ -68,8 +68,8 @@ class Paginator {
 
 		Paginator.buttonRows = buttonify( Paginator.buttonRows )
 	}
-	
-	setClient( client ){
+
+	static setClient( client ){
 		client.on( 'interactionCreate', i => {
 			if( i.isButton() )
 				i.message.paginator?._react(i)

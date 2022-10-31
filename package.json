@@ -9,7 +9,7 @@
 	"scripts": {
 		"start": "node .",
 		"dev": "node . --dev",
-		"dev v16.17.1": "\"\"D:/Program Files/nvm/v16.17.1/node\" . --dev\"",
+		"dev v16.17.1": "\"D:/Program Files/nvm/v16.17.1/node\" . --dev",
 		"eslint": "npx eslint ."
 	},
 	"keywords": [
@@ -21,19 +21,14 @@
 	"license": "ISC",
 	"dependencies": {
 		"axios": "^0.21.1",
-		"discord-ytdl-core": "^5.0.1",
-		"discord.js": "^13.4.0",
+		"discord.js": "^13.12.0",
 		"express": "^4.17.1",
-		"jimp": "^0.9.8",
+		"jimp": "^0.16.2",
 		"nhentai-api": "^3.4.3",
 		"nodeyourmeme": "^2.0.0",
-		"npm": "^6.14.5",
-		"opusscript": "0.0.7",
+		"npm": "^8.19.2",
 		"pet-pet-gif": "^1.0.9",
-		"yaml": "^2.1.3",
-		"ytdl-core": "^4.8.2",
-		"ytdl-core-discord": "^1.2.5",
-		"ytsr": "^3.3.1"
+		"yaml": "^2.1.3"
 	},
 	"devDependencies": {
 		"eslint": "^8.25.0"

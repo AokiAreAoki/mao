@@ -13,20 +13,28 @@ process.argv.slice(2).forEach( flag => {
 if( module.exports.flags.dev )
 	module.exports.iom = 'dev'
 
-require( './alias' )
-// eslint-disable-next-line no-global-assign
-require = global.alias
-const log = console.log
 const fs = require( 'fs' )
-const client = require( '@/instances/client' )
-const numsplit = require( '@/functions/numsplit' )
-const includeFiles = require( '@/functions/includeFiles' )
-require( '@/methods/_all' )()
 
 if( !fs.existsSync( './tokens.yml' ) ){
 	console.log( '\nFile "tokens.yml" does not exist, exit.' )
 	process.exit( 228 )
 }
+
+require( './alias' )
+// eslint-disable-next-line no-global-assign
+require = global.alias
+const numsplit = require( '@/functions/numsplit' )
+const includeFiles = require( '@/functions/includeFiles' )
+
+// Including methods
+includeFiles({
+	text: 'Including methods',
+	query: 'methods/*.js',
+	callback: method => void method(),
+})
+
+// On client ready
+const client = require( '@/instances/client' )
 
 client.once( 'ready', () => {
 	module.exports.loggedIn = Date.now() - module.exports.initializedAt
@@ -74,4 +82,4 @@ includeFiles({
 // End
 module.exports.initializedIn = Math.round( Date.now() - module.exports.startedAt )
 module.exports.initializedAt = Date.now()
-log( `\nInitialization finished in ${numsplit( module.exports.initializedIn )}ms, logging in...` )
+console.log( `\nInitialization finished in ${numsplit( module.exports.initializedIn )}ms, logging in...` )

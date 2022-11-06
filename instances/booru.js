@@ -18,9 +18,30 @@ Booru.BooruResponse.prototype.embed = function( pics, mapFunction = null ){
 			videos.push( pic.full )
 
 		return Embed()
-			.setDescription( `[${this.tags ? 'Tags: ' + this.tags : 'No tags'}](${pic.post_url})` )
+			.setDescription([
+				`[${this.booru.name ?? '<insert booru name here>'}](${pic.post_url})`,
+				// this.tags ? `tags: \`${this.tags}\`` : 'no tags',
+				// `rating: \`${pic.rating}\``,
+				// `score: \`${pic.score}\``,
+			].join( ' | ' ) )
+			.addFields(
+				{
+					name: 'tags',
+					value: this.tags ? `\`${this.tags}\`` : 'none',
+					inline: true,
+				},
+				{
+					name: 'rating',
+					value: `\`${pic.rating}\``,
+					inline: true,
+				},
+				{
+					name: 'score',
+					value: `\`${pic.score}\``,
+					inline: true,
+				},
+			)
 			.setImage( pic.sample )
-			.setFooter({ text: 'Powered by ' + ( this.booru.name ?? 'unknown website' ) })
 	})
 
 	if( mapFunction instanceof Function )

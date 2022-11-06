@@ -57,8 +57,11 @@ module.exports = {
 				}
 
 				let m = await msg.send( Embed()
-					.setAuthor( msg.author.tag, msg.author.avatarURL(64) )
 					.addFields({ name: 'Vote:', value: query })
+					.setAuthor({
+						name: msg.author.tag,
+						iconURL: msg.author.avatarURL(64),
+					})
 				)
 
 				if( options_amount === 0 ){

@@ -219,9 +219,6 @@ class ResponseWaiter {
 		displayMessage,
 		timeout,
 	}){
-		if( !ResponseWaiter.initialized )
-			throw Error( `ResponseWaiter must be initialized first` )
-
 		checkTypes( { invokerMessage }, discord.Message, true )
 		checkTypes( { displayMessage }, [discord.Message, 'undefined'], true )
 

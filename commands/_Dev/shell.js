@@ -52,23 +52,17 @@ module.exports = {
 						.setColor( 0xFF8000 )
 					)
 
-				const footer = ( () => {
-					if( !finished )
-						return `Executing...`
-
-					if( !error )
-						return `Done`
-
-					if( error.code )
-						return `Exit code: ${error.code}`
-
-					return `Signal: ${error.signal}`
-				})()
+				const footer = ( !finished && `Executing...` )
+					|| ( !error && `Done` )
+					|| ( error.code && `Exit code: ${error.code}` )
+					|| `Signal: ${error.signal}`
 
 				const options = { embeds }
 
 				if( finished )
-					options.content = embeds.length === 0 ? `Nothing have been outputted\n${footer}` : null
+					options.content = embeds.length === 0
+						? `Nothing have been outputted\n${footer}`
+						: null
 
 				if( embeds.length !== 0 )
 					embeds.at(-1).setFooter({ text: footer })

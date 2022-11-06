@@ -23,7 +23,7 @@ class Paginator {
 		],
 		[ // second row
 			[ // toggle lock
-				function( paginator, buttons ){
+				function( paginator, buttons ){ // button switcher
 					return buttons[Number( paginator.authorOnly )]
 				},
 				{ // lock
@@ -46,12 +46,12 @@ class Paginator {
 	]
 
 	static {
-		function buttonify( button ){
+		function makeButtons( button ){
 			if( button instanceof Function )
 				return button
 
 			if( button instanceof Array ){
-				const buttons = button.map( buttonify )
+				const buttons = button.map( makeButtons )
 
 				if( buttons[0] instanceof Function )
 					buttons.choose = buttons.shift()
@@ -66,7 +66,7 @@ class Paginator {
 				.setStyle( button.style ?? `SECONDARY` )
 		}
 
-		Paginator.buttonRows = buttonify( Paginator.buttonRows )
+		Paginator.buttonRows = makeButtons( Paginator.buttonRows )
 	}
 
 	static setClient( client ){
@@ -126,7 +126,7 @@ class Paginator {
 
 	// Runtime methods
 	async _react( interaction ){
-		if( !( interaction instanceof Paginator.discord.ButtonInteraction ) ) return
+		if( !( interaction instanceof discord.ButtonInteraction ) ) return
 		if( this.stopped ) return
 		if( interaction.member.bot ) return
 
@@ -196,6 +196,7 @@ class Paginator {
 
 				this.authorOnly = !this.authorOnly
 
+				interaction.deferUpdate()
 				interaction.update({
 					components: this.getButtons(),
 				})

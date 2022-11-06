@@ -196,7 +196,6 @@ class Paginator {
 
 				this.authorOnly = !this.authorOnly
 
-				interaction.deferUpdate()
 				interaction.update({
 					components: this.getButtons(),
 				})

@@ -7,6 +7,7 @@ module.exports = {
 		const pathlib = require( 'path' )
 		const discord = require( 'discord.js' )
 		const bakadb = require( '@/instances/bakadb' )
+		const client  = require( '@/instances/client' )
 		const { db } = bakadb
 		const { iom, flags } = require( '@/index' )
 		const MM = require( '@/instances/message-manager' )
@@ -92,7 +93,7 @@ module.exports = {
 					.find( e => {
 						if( e === 'mao.js' )
 							return false
-							
+
 						if( e.replace( /\W/g, '' ).toLowerCase().search( next ) === -1 )
 							return false
 

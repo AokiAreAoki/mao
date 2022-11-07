@@ -130,6 +130,20 @@ class BakaDB extends events {
 		object[key] = value
 	}
 
+	fallback({ path, defaultValue }){
+		if( !( path instanceof Array ) )
+			path = [path]
+
+		const value = this.get( ...path )
+
+		if( value === undefined ){
+			this.set( ...path, defaultValue )
+			return defaultValue
+		}
+
+		return value
+	}
+
 	delete( ...path ){
 		let props = []
 

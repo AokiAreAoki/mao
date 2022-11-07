@@ -1,8 +1,6 @@
 
 const INDENTATION_LENGTH = 4
 const INDENTATION = ' '.repeat( INDENTATION_LENGTH )
-const STRING_INDENTATION = ' '.repeat( INDENTATION_LENGTH - 1 ) + '|'
-
 const __duplicates = new Map()
 let __maxDepth = 4
 
@@ -18,7 +16,7 @@ function _printify( v, depth = 0, path = '.' ){
 	if( typeof v !== 'object' ){
 		if( typeof v === 'string' )
 			return v.indexOf( '\n' ) !== - 1
-				? '|' + v.replace( /\n/g, '\n' + INDENTATION.repeat( depth ) + STRING_INDENTATION )
+				? '|' + ( '\n' + v ).replace( /\n/g, '\n' + INDENTATION.repeat( depth + 1 ) )
 				: `"${v}"`
 
 		if( typeof v === 'number' || typeof v === 'boolean' )

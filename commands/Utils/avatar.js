@@ -8,16 +8,16 @@ module.exports = {
 		async function sendPFP( messageOrChannel, target, banner ){
 			const embed = Embed()
 			const isGuild = target instanceof discord.Guild
-			const whose = isGuild ? 'Server' : target.toString() + `'s`
+			const whose = isGuild ? 'Guild' : target.toString() + `'s`
 			let url
 
 			if( banner ){
 				target = await target.fetch()
 
-				// le discord le didn't implemented an API endpoint for server banners
+				// le discord le didn't implemented an API endpoint for guild banners
 				if( typeof target.bannerURL !== 'function' )
 					return messageOrChannel.send(
-						`ahahahaha...... oopsie, looks like le discord le didn't implemented an API endpoint for server banners! ahaha... who could've guess lol`
+						`ahahahaha...... oopsie, looks like le discord le didn't implemented an API endpoint for guild banners! ahaha... who could've guess lol`
 					)
 
 				url = target.bannerURL({ size: 2048, dynamic: true })
@@ -36,8 +36,8 @@ module.exports = {
 				embed.setColor( target.accentColor )
 			} else
 				embed.setDescription( isGuild
-					? `Server does not have banner`
-					: `${target.toString()} does not have banner nor accent color`
+					? `Guild does not have a banner`
+					: `${target.toString()} does not have a banner nor an accent color`
 				)
 
 			return messageOrChannel.send( embed )
@@ -50,7 +50,7 @@ module.exports = {
 				['server', 'gets server avatar/banner of a user'],
 			],
 			description: {
-				short: `gets avatar/banner of a user/server`,
+				short: `gets avatar/banner of a user/guild`,
 				full: [
 					`gets an avatar/banner of a user/guild`,
 					'* use `banner` alias of this command to get a banner',

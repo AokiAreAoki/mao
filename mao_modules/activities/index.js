@@ -1,10 +1,8 @@
-// eslint-disable-next-line no-global-assign
-require = global.alias
 module.exports = {
 	init(){
-		const client = require( '@/instances/client' )
-		const timer = require( '@/re/timer' )
-		const { db } = require( '@/instances/bakadb' )
+		const client = global.alias( '@/instances/client' )
+		const timer = global.alias( '@/re/timer' )
+		const bakadb = global.alias( '@/instances/bakadb' )
 
 		const activityTypes = {
 			PLAYING: true,
@@ -62,21 +60,30 @@ module.exports = {
 				if( this.id === -1 )
 					return this.wakeupActivity
 
-				let customActivity
+				const customActivities = bakadb.fallback({
+					path: 'customActivities',
+					defaultValue: [],
+				})
 
-				while( customActivity = db.customActivities?.[0] ){
-					if( !isNaN( customActivity.deadline ) && isFinite( customActivity.deadline ) && customActivity.deadline > Date.now() )
-						return customActivity
+				let ca
+				while( ca = customActivities[0] ){
+					if( !isNaN( ca.deadline ) && isFinite( ca.deadline ) && ca.deadline > Date.now() )
+						return ca
 
-					db.customActivities.shift()
+					customActivities.shift()
+					bakadb.save()
 				}
 
 				return this.activities[this.id]
 			}
 
 			static init( client ){
-				db.customActivities ??= []
-				db.customActivities.sort( ( a, b ) => a.deadline - b.deadline )
+				bakadb
+					.fallback({
+						path: 'customActivities',
+						defaultValue: [],
+					})
+					.sort( ( a, b ) => a.deadline - b.deadline )
 
 				client.on( 'ready', () => ActivityManager.reset() )
 				this.reset()
@@ -115,43 +122,26 @@ module.exports = {
 
 			// set custom activity
 			static setCA( name, deadline, type, callback ){
-				db.customActivities ??= []
-
+				const customActivities = bakadb.fallback({
+					path: 'customActivities',
+					defaultValue: [],
+				})
 				const activity = Activity({ name, deadline, type, callback })
-				const index = db.customActivities.findIndex( a => a.name === name )
+				const index = customActivities.findIndex( a => a.name === name )
 
 				if( index === -1 )
-					db.customActivities.push( activity )
+					customActivities.push( activity )
 				else
-					db.customActivities[index] = activity
+					customActivities[index] = activity
 
-				db.customActivities.sort( ( a, b ) => a.deadline - b.deadline )
+				customActivities.sort( ( a, b ) => a.deadline - b.deadline )
 			}
 		}
+
 		ActivityManager.Activity = Activity
 		module.exports.ActivityManager = ActivityManager
 
 		client.once( 'ready', () => ActivityManager.init( client ) )
-
-		// uptime
-		ActivityManager.pushActivity( 'PLAYING', () => typeof db.totaluptime === 'number'
-			? `for ${ Math.floor( process.uptime() / 3600 ) }/${ Math.floor( db.totaluptime / 60 ) } hours`
-			: 'bruh'
-		)
-
-		// msg rate
-		const msgrate = []
-
-		client.on( 'messageCreate', msg => {
-			if( msg.member && !msg.author.bot )
-				msgrate.push( Date.now() + 60e3 )
-		})
-
-		setInterval( () => {
-			while( msgrate.length !== 0 && msgrate[0] < Date.now() )
-				msgrate.shift()
-		}, 1337 )
-
-		ActivityManager.pushActivity( 'PLAYING', () => `${msgrate.length} msg${msgrate.length === 1 ? '' : 's'}/min` )
+		require( './default-activities' )
 	}
 }

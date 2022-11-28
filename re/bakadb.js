@@ -1,30 +1,33 @@
 const fs = require( 'fs' )
 const join = require( 'path' ).join
 const events = require( 'events' )
+const _ = require( 'lodash' )
 
 class BakaDB extends events {
+	saveThrottle = 100
+	backups_limit = 10
+	default_coders = {
+		Function: {
+			encode: func => 'Function:' + String( func ),
+			decode: str => eval( str ),
+		},
+		AsyncFunction: 'Function', //redirect
+		RegExp: {
+			encode: reg => 'RegExp:' + String( reg ),
+			decode: str => eval( str ),
+		},
+		Array: {
+			encode: ( arr, path ) => this._encode( arr, path ),
+			decode: ( str, path ) => this._decode( str, path ),
+		},
+		Object: {
+			encode: ( obj, path ) => this._encode( obj, path ),
+			decode: ( str, path ) => this._decode( str, path ),
+		},
+	}
+
 	constructor(){
 		super()
-		this.backups_limit = 10
-		this.default_coders = {
-			Function: {
-				encode: func => 'Function:' + String( func ),
-				decode: str => eval( str ),
-			},
-			AsyncFunction: 'Function', //redirect
-			RegExp: {
-				encode: reg => 'RegExp:' + String( reg ),
-				decode: str => eval( str ),
-			},
-			Array: {
-				encode: ( arr, path ) => this._encode( arr, path ),
-				decode: ( str, path ) => this._decode( str, path ),
-			},
-			Object: {
-				encode: ( obj, path ) => this._encode( obj, path ),
-				decode: ( str, path ) => this._decode( str, path ),
-			},
-		}
 	}
 
 	makePath( path ){
@@ -83,51 +86,13 @@ class BakaDB extends events {
 	}
 
 	get( ...path ){
-		let props = [],
-			value = this.db
-
-		path.forEach( key => key.split( /[/.]+/ ).forEach( key => {
-			if( key ) props.push( key )
-		}))
-
-		for( let i = 0; i < props.length; ++i ){
-			let prop = props[i]
-			if( !prop ) continue
-
-			if( typeof value[prop] === 'undefined' )
-				return
-
-			value = value[prop]
-		}
-
-		if( value === this.db )
-			return
-
-		return value
+		return _.get( this.db, this._resolvePropPath( path ) )
 	}
 
 	set( ...path ){
-		let props = [],
-			value = path.pop(),
-			object = this.db
-
-		path.forEach( key => key.split( /[/.]+/ ).forEach( key => {
-			if( key ) props.push( key )
-		}))
-
-		let key = props.pop()
-
-		for( let i = 0; i < props.length; ++i ){
-			let prop = props[i]
-			if( !prop ) continue
-
-			if( typeof object[prop] === 'undefined' )
-				object[prop] = {}
-
-			object = object[prop]
-		}
-
-		object[key] = value
+		const value = path.pop()
+		const props = this._resolvePropPath( path )
+		_.set( this.db, props, value )
 	}
 
 	fallback({ path, defaultValue }){
@@ -145,13 +110,7 @@ class BakaDB extends events {
 	}
 
 	delete( ...path ){
-		let props = []
-
-		path.forEach( key => key.split( /[/.]+/ ).forEach( key => {
-			if( key ) props.push( key )
-		}))
-
-		this._delete( this.db, props )
+		this._delete( this.db, this._resolvePropPath( path ) )
 	}
 
 	_delete( object, props ){
@@ -271,11 +230,11 @@ class BakaDB extends events {
 	}
 
 	save( force = false ){
-		if( !force && Date.now() - this.lastSave < 100 ){
+		if( !force && Date.now() - this.lastSave < this.saveThrottle ){
 			this.saveTimeout ??= setTimeout( () => {
 				this.save( true )
 				delete this.saveTimeout
-			}, this.lastSave + 100 - Date.now() )
+			}, this.lastSave + this.saveThrottle - Date.now() )
 
 			return
 		}
@@ -317,6 +276,13 @@ class BakaDB extends events {
 
 	_getConstructorName( constructor ){
 		return typeof constructor === 'string' ? constructor : ( typeof constructor === 'function' ? constructor : constructor.constructor ).name
+	}
+
+	_resolvePropPath( path ){
+		return path
+			.map( p => p.split( /[/.]+/ ) )
+			.flat(1)
+			.filter( p => !!p )
 	}
 
 	createCoder( constructor, encoder, decoder ){

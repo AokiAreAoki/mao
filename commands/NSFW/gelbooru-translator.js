@@ -122,7 +122,7 @@ module.exports = {
 				if( !tags )
 					return message.edit( `Post ID or image MD not found` )
 
-				const pic = await Gelbooru.q( tags )
+				const pic = await Gelbooru.posts( tags )
 					.then( r => r.pics[0] )
 
 				if( !pic )

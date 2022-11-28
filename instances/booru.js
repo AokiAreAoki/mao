@@ -1,60 +1,69 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias
+const bakadb = require( '@/instances/bakadb' )
 const Booru = require( '@/re/booru-wrapper' )
+const TagCacher = require( '@/re/tag-cacher' )
 const Embed = require( '@/functions/Embed' )
 const tokens = require( '@/tokens.yml' )
 const config = require( '@/config.yml' )
 
-Booru.BooruResponse.prototype.embed = function( pics, mapFunction = null ){
-	if( typeof pics === 'number' )
-		pics = this.results[pics]
+const displayableTagTypes = [
+	'artist',
+	'character',
+	'copyright',
+]
+Booru.Picture.prototype.embed = function({
+	title,
+	linkTitle,
+	displayTags = false,
+	addFields = true,
+} = {} ){
+	const embed = Embed()
+	let description = title || `[${linkTitle || this.booru.name || '<unknown booru>'}](${this.post_url})`
 
-	if( !( pics instanceof Array ) )
-		pics = [pics]
+	if( addFields || displayTags ){
+		const types = new Map( TagCacher.tagTypes.map( type => [type, []] ) )
 
-	const videos = []
-	const embeds = pics.map( pic => {
-		if( pic.unsupportedExtention )
-			videos.push( pic.full )
+		this.tags.forEach( tag => {
+			types.get( tag.type ).push( tag )
+		})
 
-		return Embed()
-			.setDescription([
-				`[${this.booru.name ?? '<insert booru name here>'}](${pic.post_url})`,
-				// this.tags ? `tags: \`${this.tags}\`` : 'no tags',
-				// `rating: \`${pic.rating}\``,
-				// `score: \`${pic.score}\``,
-			].join( ' | ' ) )
-			.addFields(
-				{
-					name: 'tags',
-					value: this.tags ? `\`${this.tags}\`` : 'none',
-					inline: true,
-				},
-				{
-					name: 'rating',
-					value: `\`${pic.rating}\``,
-					inline: true,
-				},
-				{
-					name: 'score',
-					value: `\`${pic.score}\``,
-					inline: true,
-				},
-			)
-			.setImage( pic.sample )
-	})
+		const fields = displayTags
+			? Array.from( types.entries(), ([type, tags]) => ({
+				name: type,
+				value: tags.map( tag => `\`${tag.name}\`` ).join( ', ' ),
+			}))
+			: displayableTagTypes.map( type => ({
+				name: type,
+				value: types.get( type ).map( tag => `\`${tag.name}\`` ).join( '\n' ),
+			}))
 
-	if( mapFunction instanceof Function )
-		embeds.forEach( mapFunction )
+		fields.push(
+			{
+				name: 'rating',
+				value: `\`${this.rating}\``,
+				inline: true,
+			},
+			{
+				name: 'score',
+				value: `\`${this.score}\``,
+				inline: true,
+			},
+		)
 
-	return {
-		content: videos.join( '\n' ) || null,
-		embeds,
+		embed.addFields( fields.filter( field => !!field.value ) )
 	}
+
+	if( this.unsupportedExtention )
+		description += `\n\n[<raw video link>](${this.full})`
+
+	return embed
+		.setDescription( description )
+		.setImage( this.unsupportedExtention ? this.thumbnail : this.sample )
 }
 
 const Gelbooru = new Booru({
-	...config.boorus.gelbooru,
+	...config.boorus.gelbooru.posts,
 	keys: {
 		id: ( post, pic, tags ) => {
 			tags = tags.replace( /\s+/g, '+' )
@@ -76,6 +85,15 @@ const Gelbooru = new Booru({
 		}
 	},
 	remove_other_keys: false,
+	tag_fetcher( tags ){
+		return this.tagCacher.resolveTags( new Set( tags.split( /\s+/ ) ) )
+	},
+})
+
+Gelbooru.tagCacher = new TagCacher( config.boorus.gelbooru.tags )
+Gelbooru.tagCacher.tags = bakadb.fallback({
+	path: 'tags/gelbooru',
+	defaultValue: {},
 })
 
 Gelbooru.const_params.api_key = tokens.gelbooru.api_key
@@ -83,7 +101,7 @@ Gelbooru.const_params.user_id = tokens.gelbooru.user_id
 // Gelbooru.const_params._token = _tkns.booru_proxy // proxy token
 
 const Yandere = new Booru({
-	...config.boorus.yandere,
+	...config.boorus.yandere.posts,
 	keys: {
 		id: ( post, pic ) => {
 			pic.id = post.id
@@ -95,7 +113,20 @@ const Yandere = new Booru({
 		created_at: ( post, pic ) => pic.created_at = post.created_at * 1000
 	},
 	remove_other_keys: false,
+	tag_fetcher( tags ){
+		return this.tagCacher.resolveTags( new Set( tags.split( /\s+/ ) ) )
+	},
 })
+
+Yandere.tagCacher = Gelbooru.tagCacher
+
+///// sucks balls
+// Yandere.tagCacher = new TagCacher( config.boorus.yandere.tags )
+// Yandere.tagCacher.tags = bakadb.fallback({
+// 	path: 'tags/yandere',
+// 	defaultValue: {},
+// })
+
 // Yandere.const_params._token = _tkns.booru_proxy // proxy token
 
 module.exports = {

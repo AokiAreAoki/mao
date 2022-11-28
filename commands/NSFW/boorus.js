@@ -145,7 +145,7 @@ module.exports = {
 			const botMsg = userMsg.send( getRandomLoadingPhrase() )
 			const s = tags.length === 1 ? '' : 's'
 
-			this.booru.q( tags )
+			this.booru.posts( tags )
 				.then( async result => {
 					let pics = result.pics
 
@@ -164,10 +164,14 @@ module.exports = {
 					if( args.flags.pager.specified ){
 						userMsg.author.createPaginator()
 							.setPages( pics.length )
-							.onPageChanged( ( page, pages ) => result.embed( pics[page], embed => {
-								embed.setFooter({
-									text: `(${page + 1}/${pages}) ` + ( embed.footer?.text || '' )
-								})
+							.onPageChanged( ( page, pages ) => ({
+								content: null,
+								embeds: [pics[page]
+									.embed()
+									.setFooter({
+										text: `Page: ${page + 1}/${pages}`
+									})
+								]
 							}))
 							.setMessage( await botMsg )
 					} else {
@@ -175,16 +179,15 @@ module.exports = {
 							? pics
 							: await getNewPics( result, amount, userMsg )
 
-						botMsg.then( m => m.edit( pics.length === 0
-							? {
-								content: null,
-								embeds: [Embed()
+						botMsg.then( m => m.edit({
+							content: null,
+							embeds: pics.length === 0
+								?  [Embed()
 									.setDescription( `No new pics found by \`${result.tags}\` tag${s}` )
 									.setColor( 0xFF0000 )
-								],
-							}
-							: result.embed( pics )
-						))
+								]
+								: pics.map( pic => pic.embed() ),
+						}))
 					}
 
 					cd( userMsg.member, amount )

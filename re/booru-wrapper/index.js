@@ -1,4 +1,7 @@
 const axios = require( 'axios' )
+const _ = require( 'lodash' )
+const Picture = require( './picture' )
+const BooruResponse = require( './response' )
 
 function resolveOptions( options, target, keys ){
 	for( const prop of keys ){
@@ -58,6 +61,7 @@ class Booru {
 	]
 	const_params = {} // constant query params
 	keys = {} // Response keys
+	tag_fetcher = async v => v // fetches tag data
 	remove_other_keys = false
 
 	// where's array of pics located at
@@ -72,7 +76,9 @@ class Booru {
 	_splitted_path_to_pics = []
 
 	constructor( options ){
-		const keys = [...Object.keys( this ), 'path_to_pics']
+		const keys = Object.keys( this )
+		keys.push( 'path_to_pics' )
+
 		resolveOptions( options, this, keys )
 
 		if( this.url )
@@ -81,7 +87,7 @@ class Booru {
 			throw Error( 'No URL specified' )
 	}
 
-	async q( tags, page, limit ){
+	async posts( tags, page, limit ){
 		const params = {}
 
 		for( const k in this.const_params )
@@ -103,7 +109,13 @@ class Booru {
 		if( status !== 200 )
 			throw Error( statusText )
 
-		const pics = this._splitted_path_to_pics.reduce( ( data, prop ) => data?.[prop], data )
+		const pics = this._splitted_path_to_pics.length === 0
+			? data
+			: _.get( data, this._splitted_path_to_pics )
+
+		await Promise.all( pics.map( async pic => {
+			pic.tags = await this.tag_fetcher( pic.tags )
+		}))
 
 		return new BooruResponse( pics, {
 			tags,
@@ -114,62 +126,8 @@ class Booru {
 	}
 }
 
-class BooruResponse {
-	_resultKeyName = 'pics'
-
-	get results(){
-		return this[this._resultKeyName]
-	}
-
-	set results( value ){
-		this[this._resultKeyName] = value
-	}
-
-	constructor( array, options, resultKeyName = 'pics' ){
-		this._resultKeyName = resultKeyName || this._resultKeyName
-
-		if( !( array instanceof Array ) )
-			array = []
-
-		if( !( this.booru = options.booru ) )
-			throw Error( 'No booru specified in options' )
-
-		const keys = options.keys ?? this.booru.keys
-		const remove_other_keys = options.remove_other_keys ?? this.booru.remove_other_keys
-
-		this.tags = options.tags ?? ''
-		this.page = options.page ?? this.booru.page_offset
-		this.limit = options.limit ?? this.booru.limit
-
-		if( keys instanceof Object ){
-			this.results = []
-
-			array.forEach( oldValue => {
-				const newValue = {}
-
-				for( const key in oldValue ){
-					if( typeof keys[key] === 'string' )
-						newValue[keys[key] || key] = oldValue[key]
-					else if( typeof keys[key] === 'function' )
-						keys[key]( oldValue, newValue, this.tags )
-					else if( !remove_other_keys && key !== keys[key] )
-						newValue[key] = oldValue[key]
-				}
-
-				this.results.push( newValue )
-			})
-		} else
-			this.results = array
-	}
-
-	async parseNextPage( limit ){
-		const response = await this.booru.q( this.tags, ++this.page, limit ?? this.limit )
-		this.results.push( ...response.results )
-		return response
-	}
-}
-
 Booru.BooruResponse = BooruResponse
+Booru.Picture = Picture
 module.exports = Booru
 return // end
 

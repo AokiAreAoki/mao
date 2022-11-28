@@ -3,30 +3,48 @@ log_channel: '893430789306470430'
 
 boorus:
     gelbooru:
-        name: gelbooru.com
-        url: https://gelbooru.com/index.php
-        # - url: https://aoki.000webhostapp.com/glbr/
-        page_offset: 0
-        params:
-            tags: tags
-            page: pid
-            limit: limit
-        const_params:
-            page: dapi
-            s: post
-            q: index
-            json: '1'
-        limit: 100
-        path_to_pics: post
+        posts:
+            name: gelbooru.com
+            url: https://gelbooru.com/index.php
+            # - url: https://aoki.000webhostapp.com/glbr/
+            page_offset: 0
+            params:
+                tags: tags
+                page: pid
+                limit: limit
+            const_params:
+                page: dapi
+                s: post
+                q: index
+                json: '1'
+            limit: 100
+            path_to_pics: post
+        tags:
+            url: https://gelbooru.com/index.php
+            tagParam: names
+            const_params:
+                page: dapi
+                s: tag
+                q: index
+                json: '1'
+            tagSplitter: ' '
+            responsePath: 'tag'
 
     yandere:
-        name: yande.re
-        url: https://yande.re/post.json
-        # - url: https://aoki.000webhostapp.com/yndr/
-        # page_offset is 1 by default
-        params:
-            tags: tags
-            page: page
-            limit: limit
-        const_params:
-        limit: 100
+        posts:
+            name: yande.re
+            url: https://yande.re/post.json
+            # - url: https://aoki.000webhostapp.com/yndr/
+            # page_offset is 1 by default
+            params:
+                tags: tags
+                page: page
+                limit: limit
+            const_params:
+            limit: 100
+        tags: # sucks balls
+            url: https://yande.re/tag.json
+            tagParam: name
+            const_params:
+                limit: 1
+            isUnbulkable: true

@@ -183,8 +183,13 @@ module.exports = {
 							.replace( /<#(\d+)>/gi, `client.channels.cache.get('$1')` ) // Channel
 							.replace( /(<\w*:[\w_]+:(\d+)>)/gi, `client.emojis.resolve('$2','$1')` ) // Emoji
 							.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Role
-							.replace( /@@((?:\/\w+)+)/gi, ( match, path ) => {
+							.replace( /@@((?:\/[\w-]+)+)/gi, ( match, path ) => {
 								path = findInclude( path )
+								autoIncludedFiles.push( '@/' + path )
+								return `require("@/${path}")`
+							})
+							.replace( /@@([\w-]+)/gi, ( match, path ) => {
+								path = findInclude( `node_modules/${path}` )
 								autoIncludedFiles.push( '@/' + path )
 								return `require("@/${path}")`
 							})

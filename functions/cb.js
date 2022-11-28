@@ -1,3 +1,2 @@
-module.exports = function cb( text, lang = '' ){
-	return '```' + lang + '\n' + text + '```'
-}
+const quotes = '```'
+module.exports = ( text, lang = '' ) => `${quotes}${lang}\n${text}\n${quotes}`

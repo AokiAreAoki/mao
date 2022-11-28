@@ -55,7 +55,7 @@ includeFiles({
 // Including modules
 includeFiles({
 	text: 'Including modules',
-	query: 'mao_modules/*.js',
+	query: 'mao_modules/*(.js)?/index.js',
 	callback: inclusion => inclusion.init({}),
 })
 

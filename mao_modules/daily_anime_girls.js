@@ -211,7 +211,7 @@ module.exports = {
 
 						posts.reduce( async ( prevMessage, { daily, post } ) => {
 							await prevMessage
-							const timeout = new Promise( resolve => setTimeout( resolve, .1337 ) )
+							const timeout = new Promise( resolve => setTimeout( resolve, 1337 ) )
 
 							if( !( daily.history instanceof Array ) )
 								daily.history = []

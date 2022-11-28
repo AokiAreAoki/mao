@@ -9,7 +9,7 @@
 	"scripts": {
 		"start": "node .",
 		"dev": "node . --dev",
-		"dev v16.17.1": "\"D:/Program Files/nvm/v16.17.1/node\" . --dev",
+		"dev v16.17.1": "\"\"%NVM_HOME%/v16.17.1/node\" . --dev\"",
 		"eslint": "npx eslint ."
 	},
 	"keywords": [

@@ -6,8 +6,7 @@ module.exports = {
 		const client = require( '@/instances/client' )
 		const bakadb = require( '@/instances/bakadb' )
 		const { Gelbooru, Yandere } = require( '@/instances/booru' )
-		const cb = require( '@/functions/cb' )
-		const Embed = require( '@/functions/Embed' )
+		const checkTypes = require( '@/functions/checkTypes' )
 		const timer = require( '@/re/timer' )
 
 		bakadb.db.dag ??= {
@@ -20,309 +19,330 @@ module.exports = {
 			yandere: Yandere,
 		}
 
-		function capitalize( text ){
-			return text[0].toUpperCase() + text.substring(1)
-		}
-
-		function getDate( date = Date.now() ){
-			const GMT = bakadb.db.dag.GMT ?? 0
-			const postAt = bakadb.db.dag.postAt ?? 0
-			return Math.floor( ( Number( date ) + ( GMT - postAt ) * 3600e3 ) / 86400e3 )
-		}
-
-		function getDateStart( date = getDate() ){
-			return date * 86400e3
-		}
-
+		//// db schema ////
 		// eslint-disable-next-line no-unused-vars
-		function parseXML( xml ){
-			let posts = xml.match( /<post\s+(.+?)\/>/gm )
-			let result = []
-
-			posts.forEach( post => {
-				let post_data = {}
-
-				post.replace( /([\w_-]+)="(.+?)"/g, ( _, k, v ) => {
-					post_data[k] = v
-				})
-
-				result.push( post_data )
-			})
-
-			return result
+		const schema = {
+			dag: {
+				postAt: 21,
+				GMT: 3,
+				lastPost: '<day>',
+				dailies: [
+					//...
+					{
+						title: '<daily title>',
+						tags: '<tags>',
+						source: 'gelbooru' | 'yandere',
+						guild: '<guild id>',
+						channel: '<channel id>',
+						thread: true | false,
+						history: [
+							//...
+							{
+								day: '<day>',
+								channel: '<channel id>',
+								message: '<message id>',
+							},
+							//...
+						],
+					},
+					//...
+				],
+			},
 		}
+		//// //// ////
 
-		// Main function
-		async function postAnimeGirls( channel, printDisabledNotification = true ){
-			// "*" passed
-			if( channel === '*' ){
-				const guilds = bakadb.get( 'dag/data' )
-
-				if( guilds ){
-					let guild
-
-					for( let guild_id in guilds )
-						if( guild = await client.guilds.fetch( guild_id ) )
-							postAnimeGirls( guild, false )
-
-					return true
-				}
-
-				return false
-			}
-
-			// Guild passed
-			if( channel instanceof discord.Guild ){
-				const guild = channel
-				const channels = bakadb.get( 'dag/data', guild.id )
-
-				if( channels ){
-					for( let channel_id in channels )
-						postAnimeGirls( channel_id, false )
-
-					return true
-				}
-
-				return false
-			}
-
-			// Channel passed
-			if( typeof channel === 'number' )
-				channel = String( channel )
-
-			if( typeof channel === 'string' )
-				channel = await client.channels.fetch( channel )
-
-			if( channel instanceof discord.TextChannel ){
-				if( !( channel.guild instanceof discord.Guild ) )
-					throw new Error( 'The channel have no guild' )
-			} else
-				throw new Error( 'The channel arg must be an instance of Discord.TextChannel or an ID of a channel' )
-
-			const today = getDate()
-			const dailyData = bakadb.get( 'dag/data', channel.guild.id, channel.id )
-
-			if( !dailyData )
-				throw new Error( 'This channel have no dailies set up' )
-
-			if( dailyData.disabled ){
-				if( printDisabledNotification ){
-					const message = await channel.send( `Dailies are disabled in this channel` )
-
-					dailyData.last_posts.push({
-						channel_id: message.channel.id,
-						message_id: message.id,
-						date: today,
-					})
-					bakadb.save()
-				}
-
-				return
-			}
-
-			const tags = dailyData.tags ?? ''
-			const source = dailyData.src
-			const Booru = sources[source]
-
-			if( !Booru )
-				throw new Error( `ERROR: Unknown source "${source}"` )
-
-			const message = await channel.send( Embed()
-				.addFields({
-					name: 'Parsing daily anime girls...',
-					value: `${tags ? `Tags: \`${tags}\`` : 'No tags'}`,
-				})
-				.setFooter({ text: 'Powered by ' + Booru.name })
-			)
-
-			if( dailyData.last_posts )
-				undoAnimeGirls( channel, today )
-			else
-				dailyData.last_posts = []
-
-			const postData = {
-				channel_id: channel.id,
-				message_id: message.id,
-				date: today,
-			}
-
-			dailyData.last_posts = dailyData.last_posts.filter( p => today - p.date < 7 )
-			dailyData.last_posts.push( postData )
-			bakadb.save()
-
-			Booru.q( tags )
-				.then( async response => {
-					const startOfTheDay = getDateStart( today )
-					let pic, pics = response.pics.filter( pic => {
-						const postedAt = new Date( pic.created_at )
-						return startOfTheDay > postedAt && startOfTheDay - postedAt < 86400e3
-					})
-
-					if( pics.length !== 0 )
-						// Choose a pic with the best score or else the first one
-						pic = pics.reduce( ( final_pic, cur_pic ) => final_pic.score < cur_pic.score ? cur_pic : final_pic, pics[0] )
-					else {
-						pics = response.pics
-
-						if( pics.length === 0 ){
-							message.edit( Embed()
-								.setDescription( `Tag(s) \`${tags}\` not found :(` )
-								.setColor( 0xFF0000 )
-							)
-							return
-						}
-
-						pic = pics[Math.floor( Math.random() * pics.length )]
-					}
-
-					const tagsParam = new RegExp( `[&\\?]${Booru.params.tags}=.*?(?:(&|$))`, 'i' ),
-						// ^to remove `tags` parameter from url
-						title = capitalize( channel.name.replace( /[-_]+/g, ' ' ) ),
-						url = pic.post_url.replace( tagsParam, '' ),
-						messageData = response.embed( pic )
-
-					messageData.embeds[0].setDescription( `[${title}](${url})` )
-					await message.edit( messageData )
-
-					if( dailyData.doCreateThread ){
-						const date = new Date()
-
-						message.startThread({
-							autoArchiveDuration: 1440, // 1 day
-							name: [
-								String( date.getDate() ).replace( /^(\d)$/, '0$1' ),
-								String( date.getMonth() + 1 ).replace( /^(\d)$/, '0$1' ),
-								String( date.getYear() % 100 ).replace( /^(\d)$/, '0$1' ),
-							].join( '.' ),
-						})
-							.then( () => postData.hasThread = true )
-							.catch( err => {
-								delete postData.hasThread
-								console.error( err )
-							})
-							.then( () => bakadb.save() )
-					}
-				})
-				.catch( err => message.edit({
-					content: cb( err.stack ),
-					embeds: [],
-				}))
-		}
-
-		// Undo function
-		function undoAnimeGirls( channel, date = getDate() ){
-			// "*" passed
-			if( channel === '*' ){
-				const guilds = bakadb.get( 'dag/data' )
-
-				if( guilds ){
-					let guild
-
-					for( let guild_id in guilds )
-						if( guild = client.guilds.cache.get( guild_id ) )
-							undoAnimeGirls( guild, date )
-
-					return true
-				}
-
-				return false
-			}
-
-			// Guild passed
-			if( channel instanceof discord.Guild ){
-				const guild = channel
-				const channels = bakadb.get( 'dag/data', guild.id )
-
-				if( channels ){
-					for( let channel_id in channels )
-						undoAnimeGirls( channel_id, date )
-
-					return true
-				}
-
-				return false
-			}
-
-			// Channel passed
-			if( typeof channel === 'number' )
-				channel = String( channel )
-
-			if( typeof channel === 'string' )
-				channel = client.channels.cache.get( channel )
-
-			if( channel instanceof discord.TextChannel ){
-				if( !( channel.guild instanceof discord.Guild ) )
-					throw new Error( 'The channel have no guild' )
-			} else
-				throw new Error( 'The channel arg must be an instance of Discord.TextChannel or an ID of a channel' )
-
-			const dailyData = bakadb.get( 'dag/data', channel.guild.id, channel.id )
-
-			if( dailyData.last_posts ){
-				let posts = dailyData.last_posts.filter( post => post.date === date )
-				// postS in case if something bad happen and there will be more than 1 post at the same day
-
-				if( posts.length > 0 ){
-					posts.forEach( async post => {
-						const msg = await client.channels.cache.get( post.channel_id )?.messages.fetch( post.message_id )
-
-						if( msg?.deletable ){
-							await msg.edit( Embed()
-								.setDescription( 'Deleted' )
-								.setColor( 0xFF0000 )
-							)
-
-							msg.delete( 1337 )
-							msg.thread?.delete()
-						}
-					})
-
-					dailyData.last_posts = dailyData.last_posts.filter( post => post.date !== date )
-					bakadb.save()
-					return true
-				}
-
-				return false
-			}
-
-			dailyData.last_posts = []
-			bakadb.save()
-			return false
-		}
-
-		// Access to function from main scope
-		module.exports.dag = {
-			post: postAnimeGirls,
-			undo: undoAnimeGirls,
-			postAt( timeH ){
-				bakadb.db.dag.postAt = timeH
-				bakadb.db.dag.last_post = getDate()
+		const DAG = {
+			// settings
+			setPostAt( timeH ){
+				bakadb.set( 'dag/postAt', timeH )
+				bakadb.set( 'dag/last_post', this.currentDay() )
 				bakadb.save()
 			},
 			setGMT( gmt ){
-				bakadb.db.dag.GMT = gmt
-				bakadb.db.dag.last_post = getDate()
+				bakadb.set( 'dag/GMT', gmt )
+				bakadb.set( 'dag/last_post', this.currentDay() )
 				bakadb.save()
+			},
+
+			// converters
+			get offset(){
+				const GMT = bakadb.get( 'dag/GMT' ) ?? 0
+				const postAt = bakadb.get( 'dag/postAt' ) ?? 0
+				return ( GMT - postAt ) * 3600e3
+			},
+			currentDay( date = Date.now() ){
+				return Math.floor( ( Number( date ) + this.offset ) / 86400e3 )
+			},
+			dayToDate( day ){
+				return day
+					? day * 86400e3
+					: Date.now() - ( Date.now() + this.offset ) % 86400e3
+			},
+
+			// filter
+			params: [
+				'guild',
+				'channel',
+				'tags',
+				'source',
+				'thread',
+			],
+			getDailies( filter ){
+				if( typeof filter !== 'object' )
+					throw TypeError([
+						"no `filter` specified",
+						"pass an object containing filter settings",
+						"or a `null` to post all dailies",
+						"",
+					].join( '\n\t' ) )
+
+				const dailies = bakadb.fallback({
+					path: 'dag/dailies',
+					defaultValue: [],
+				})
+
+				if( filter === null )
+					return dailies
+
+				return dailies.filter( daily => {
+					return this.params.every( param => {
+						const fp = filter[param]
+						if( fp == null )
+							return true
+
+						const dp = daily[param]
+						return typeof dp === 'string'
+							? dp.indexOf( fp ) !== -1
+							: dp === fp
+					})
+				})
+			},
+
+			// add daily
+			addDaily({
+				title,
+				guild,
+				channel,
+				tags,
+				source,
+				thread,
+			}){
+				checkTypes( { title }, 'string' )
+				checkTypes( { tags }, 'string' )
+				checkTypes( { source }, 'string' )
+				checkTypes( { guild }, discord.Guild )
+				checkTypes( { channel }, discord.TextChannel )
+				checkTypes( { thread }, 'boolean' )
+
+				const dailies = bakadb.fallback({
+					path: 'dag/dailies',
+					defaultValue: [],
+				})
+
+				dailies.push({
+					title,
+					tags,
+					source,
+					guild,
+					channel,
+					thread,
+					history: []
+				})
+
+				bakadb.save()
+			},
+
+			// posting tree
+			buildTree( filter ){
+				const dailies = this.getDailies( filter )
+				const guilds = {}
+
+				for( const daily of dailies ){
+					const guild = client.guilds.resolve( daily.guild )
+					const channel = client.channels.resolve( daily.channel )
+
+					if( !guild || !channel )
+						continue
+
+					guilds[guild.id] ??= {
+						guild,
+						channels: {},
+					}
+
+					guilds[guild.id].channels[channel.id] ??= {
+						channel,
+						dailies: [],
+					}
+
+					guilds[guild.id].channels[channel.id].dailies.push( daily )
+				}
+
+				return guilds
+			},
+
+			// post
+			async post( filter ){
+				const today = this.currentDay()
+				const guilds = this.buildTree( filter )
+
+				// this.undo( filter )
+
+				for( const gid in guilds ){
+					const {
+						// guild,
+						channels,
+					} = guilds[gid]
+
+					for( const cid in channels ){
+						const {
+							channel,
+							dailies,
+						} = channels[cid]
+
+						if( dailies.length === 0 )
+							return
+
+						const posts = await Promise.all(
+							dailies.map( async daily => ({
+								daily,
+								post: await this.fetch( daily, today ),
+							}))
+						)
+
+						posts.reduce( async ( prevMessage, { daily, post } ) => {
+							await prevMessage
+							const timeout = new Promise( resolve => setTimeout( resolve, .1337 ) )
+
+							if( !( daily.history instanceof Array ) )
+								daily.history = []
+
+							const content = {
+								content: null,
+								embeds: [
+									post.embed({ linkTitle: `Daily ${daily.title}` }),
+								],
+							}
+
+							const lastEntry = daily.history?.pop()
+							let message
+
+							if( lastEntry )
+								message = await client.channels.resolve( lastEntry.channel )
+									.messages.fetch( lastEntry.message )
+									.then( m => m.edit( content ) )
+									.catch( () => null )
+
+							if( !message )
+								message = await channel.send( content )
+
+							const entry = {
+								day: today,
+								channel: channel.id,
+								message: message.id,
+							}
+
+							if( lastEntry )
+								daily.history.forEach( async entry => {
+									await client.channels.resolve( lastEntry.channel )
+										.messages.fetch( lastEntry.message )
+										.then( m => m.delete() )
+
+									daily.history.splice( daily.history.indexOf( entry ), 1 )
+									bakadb.save()
+								})
+
+							daily.history.push( entry )
+							bakadb.save()
+							return timeout
+						}, Promise.resolve() )
+					}
+				}
+			},
+
+			// undo
+			async undo( filter ){
+				const today = this.currentDay()
+
+				return this
+					.getDailies( filter )
+					.map( daily => {
+						if( !daily.history )
+							daily.history = []
+
+						return {
+							global: daily.history,
+							canceled: daily.history.filter( entry => entry.day === today ),
+						}
+					})
+					.reduce( async ( prev, { global, canceled } ) => {
+						await prev
+						await canceled.reduce( async ( prev, entry ) => {
+							await prev
+
+							const channel = client.channels.resolve( entry.channel )
+							await channel.messages.fetch( entry.message )
+								.then( m => m.delete() )
+								.catch( () => {} )
+
+							global.splice( global.indexOf( entry ), 1 )
+							bakadb.save()
+						}, Promise.resolve() )
+					}, Promise.resolve() )
+			},
+
+			// fetch
+			async fetch( { tags, source }, today ){
+				const booru = sources[source]
+
+				if( !booru )
+					throw Error( `Unknown source \`${source}\`` )
+
+				const response = await booru.posts( tags )
+				const pic = this.findBestDaily( response.pics, today )
+				return pic
+			},
+
+			// find best daily
+			findBestDaily( pics, today ){
+				const startOfTheDay = this.dayToDate( today )
+
+				const todaily = pics.filter( pic => {
+					const postedAt = new Date( pic.created_at )
+					return startOfTheDay > postedAt && startOfTheDay - postedAt < 86400e3
+				})
+
+				if( todaily.length !== 0 )
+					// Choose a pic with the best score or else the first one
+					return todaily.reduce( ( final_pic, cur_pic ) => final_pic.score < cur_pic.score ? cur_pic : final_pic, pics[0] )
+
+				return pics.length === 0
+					? null
+					: pics[Math.floor( Math.random() * pics.length )]
 			},
 		}
 
+		module.exports = DAG
+
 		// Poster
-		async function check(){
-			const today = getDate()
-
-			if( bakadb.get( 'dag/last_post' ) === today )
-				return
-
-			bakadb.set( 'dag/last_post', today )
-			bakadb.save()
-
-			postAnimeGirls( '*' )
-				.catch( console.log )
-		}
+		client.once( 'ready', check )
 
 		client.on( 'ready', () => {
 			timer.create( 'daily_anime_girls', 30, 0, check )
-			check()
 		})
+
+		client.on( 'invalidated', () => {
+			timer.remove( 'daily_anime_girls' )
+		})
+
+		async function check(){
+			const today = DAG.currentDay()
+
+			if( bakadb.get( 'dag/lastPost' ) === today )
+				return
+
+			bakadb.set( 'dag/lastPost', today )
+			bakadb.save()
+			DAG.post( null )
+		}
 	}
 }

@@ -17,8 +17,7 @@ function checkTypes( variables, types, throwError = false ){
 
 	for( let name in variables ){
 		const value = variables[name]
-
-		if( types.every( type => {
+		const nonePass = types.every( type => {
 			if( typeof type === 'string' ){
 				if( typeof value !== type )
 					return true
@@ -26,7 +25,9 @@ function checkTypes( variables, types, throwError = false ){
 				return true
 
 			return false
-		}) ){
+		})
+
+		if( nonePass ){
 			if( throwError )
 				throw TypeError( `arg ${name} expected to be an instance of a ${listTypes( types )}, got ${value?.constructor.name ?? typeof value}` )
 

@@ -317,7 +317,7 @@ module.exports = {
 					if( autoIncludedFiles.length !== 0 )
 						__output = `Included files:\n${autoIncludedFiles.join( '\n' )}\n${__output}`
 
-					if( __output ){
+					if( __output && !evalFlags.silent ){
 						if( doPrint )
 							print( evaled )
 

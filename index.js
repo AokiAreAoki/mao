@@ -67,7 +67,10 @@ includeFiles({
 	query: 'commands/**/*.js',
 	callback( inclusion, [, moduleFolder] ){
 		const moduleIsHidden = moduleFolder[0] === '_'
-		const moduleName = moduleFolder.substring( moduleIsHidden ? 1 : 0 )
+		const moduleName = moduleIsHidden
+			? moduleFolder.substring(1)
+			: moduleFolder
+
 		const module = CM.addModule( moduleName, moduleIsHidden )
 
 		inclusion.init({

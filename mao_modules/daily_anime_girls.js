@@ -55,12 +55,12 @@ module.exports = {
 			// settings
 			setPostAt( timeH ){
 				bakadb.set( 'dag/postAt', timeH )
-				bakadb.set( 'dag/last_post', this.currentDay() )
+				bakadb.set( 'dag/lastPost', this.currentDay() )
 				bakadb.save()
 			},
 			setGMT( gmt ){
 				bakadb.set( 'dag/GMT', gmt )
-				bakadb.set( 'dag/last_post', this.currentDay() )
+				bakadb.set( 'dag/lastPost', this.currentDay() )
 				bakadb.save()
 			},
 
@@ -81,6 +81,7 @@ module.exports = {
 
 			// filter
 			params: [
+				'title',
 				'guild',
 				'channel',
 				'tags',
@@ -228,7 +229,7 @@ module.exports = {
 
 							if( lastEntry )
 								message = await client.channels.resolve( lastEntry.channel )
-									.messages.fetch( lastEntry.message )
+									?.messages.fetch( lastEntry.message )
 									.then( m => m.edit( content ) )
 									.catch( () => null )
 

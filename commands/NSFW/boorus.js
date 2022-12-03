@@ -13,17 +13,18 @@ module.exports = {
 				booru: Gelbooru,
 				url: 'gelbooru.com',
 				aliases: 'gelbooru glbr',
+				safeTag: 'rating:general',
 			},
 			{
 				booru: Yandere,
 				url: 'yande.re',
 				aliases: 'yandere yndr',
+				safeTag: 'rating:safe',
 			},
 		]
 
 		const maxPicsPerCommand = 10
 		const maoTag = 'amatsuka_mao'
-		const safeTag = 'rating:general'
 		const usedPics = {}
 		const cooldown = {}
 
@@ -132,10 +133,10 @@ module.exports = {
 				return userMsg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
 
 			const force = args.flags.force.specified && userMsg.author.isMaster()
-			let sfw = tags.find( v => v === safeTag )
+			let sfw = tags.find( v => v === this.booru.safeTag )
 
 			if( !sfw && args.flags.safe.specified ){
-				tags.push( safeTag )
+				tags.push( this.booru.safeTag )
 				sfw = true
 			}
 

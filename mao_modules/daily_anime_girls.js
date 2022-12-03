@@ -224,6 +224,7 @@ module.exports = {
 								],
 							}
 
+							daily.history = daily.history.filter( entry => entry.day === today )
 							const lastEntry = daily.history?.pop()
 							let message
 

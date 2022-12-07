@@ -5,24 +5,32 @@ module.exports = {
 		const fs = require( 'fs' )
 		const { join } = require( 'path' )
 		const bakadb = require( '@/instances/bakadb' )
+		const cb = require( '@/functions/cb' )
 
 		addCommand({
 			aliases: 'get-backup backup',
 			description: 'saves and send a copy of the DB in PMs',
-			callback( msg ){
+			async callback( msg ){
 				bakadb.save( true )
-				
-				const lastSave = fs.readdirSync( bakadb.path )
-					.map( filename => parseInt( filename ) )
-					.filter( n => !isNaN(n) )
-					.reduce( ( a, b ) => Math.max( a, b ), 0 )
-					.toString()
 
-				return msg.author.send({
-					files: [join( bakadb.path, lastSave )]
-				})
-					.then( () => msg.react( '✅' ) )
-					.catch( err => msg.sendcb( err ) )
+				try {
+					const lastSave = fs.readdirSync( bakadb.path )
+						.map( filename => parseInt( filename ) )
+						.filter( n => !isNaN(n) )
+						.reduce( ( a, b ) => Math.max( a, b ), 0 )
+						.toString()
+
+					if( lastSave == '0' )
+						return await msg.send( 'No saves found' )
+
+					await msg.author.send({
+						files: [join( bakadb.path, lastSave )]
+					})
+
+					await msg.react( '✅' )
+				} catch( err ){
+					msg.send( cb( err ) )
+				}
 			},
 		})
 	}

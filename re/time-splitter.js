@@ -63,7 +63,6 @@ class TimeSplitter {
 			let u = this.tu[i]
 			this[u] = Math.floor( ms / tu[u] )
 			ms -= this[u] * tu[u]
-			//console.log(this[u])
 		}
 	}
 

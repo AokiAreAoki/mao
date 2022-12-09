@@ -1,4 +1,3 @@
-const log = console.log
 let runMao = true
 const maoFlags = new Set()
 
@@ -8,8 +7,8 @@ const flagCallbacks = {
 	},
 	'flags'(){
 		runMao = false
-		log( 'List of all flags:' )
-		log( Object.keys( flagCallbacks )
+		console.log( 'List of all flags:' )
+		console.log( Object.keys( flagCallbacks )
 			.map( f => `  --${f}` )
 			.join( '\n' )
 		)
@@ -33,7 +32,15 @@ if( !runMao )
 	return
 
 const cp = require( 'child_process' )
+const killSignals = require( './kill-signals' )
 require( './methods/Set.join' )()
+
+function log( ...args ){
+	if( args.length === 0 )
+		return console.log()
+
+	console.log( '[Wrapper]', ...args )
+}
 
 if( maoFlags.size === 0 )
 	log( `Running Mao with no flags\n` )
@@ -42,9 +49,26 @@ else
 
 let timeout = 0
 let reset = 0
+let mao = null
+let shutdown = false
+
+function intercept(){
+	process.stdin.resume()
+	shutdown = true
+
+	if( mao ){
+		setTimeout( () => {
+			log( 'Mao took too long to shutdown. Force exit.' )
+			process.exit()
+		}, 5e3 )
+	} else
+		process.exit()
+}
+
+killSignals.forEach( signal => process.on( signal, intercept ) )
 
 function start(){
-	const mao = cp.fork( __dirname + '/index.js', Array.from( maoFlags ) )
+	mao = cp.fork( __dirname + '/index.js', [process.pid, ...maoFlags], { detached: false } )
 
 	if( process.platform === 'win32' ){
 		cp.exec( `wmic process where "ProcessID=${process.pid}" CALL setpriority "above normal"` )
@@ -55,13 +79,18 @@ function start(){
 	}
 
 	mao.once( 'exit', code => {
-		console.log( `\nMao exited with code ${code}` )
+		mao = null
 
-		if( code == 228 ) // full exit code (will not restart)
-			return console.log( `Full exit code received. Mao won't be restarted.` )
+		log()
+		log( `Mao exited with code ${code}` )
+
+		if( code == 228 || shutdown ){ // full exit code (will not restart)
+			log( `Full exit code received. Mao won't be restarted.` )
+			process.exit()
+		}
 
 		if( code === 0 ){
-			console.log( 'Restarting...\n' )
+			log( 'Restarting...\n' )
 			start()
 		} else {
 			if( reset < Date.now() )
@@ -70,7 +99,8 @@ function start(){
 			if( timeout < 10 )
 				timeout += Math.ceil( ( 10 - timeout ) * .25 )
 
-			console.log( `Restart in`, timeout, `seconds\n` )
+			log( `Restart in`, timeout, `seconds` )
+			log()
 			setTimeout( start, timeout * 1e3 )
 			reset = Date.now() + 30e3
 		}

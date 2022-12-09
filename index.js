@@ -2,11 +2,20 @@ module.exports = {
 	iom: 'mao',
 	flags: {},
 	startedAt: Date.now(),
+	initializedIn: -1,
 	initializedAt: -1,
+	isLoggedIn: false,
 	loggedIn: -1,
 }
 
-process.argv.slice(2).forEach( flag => {
+const args = process.argv.slice(2)
+let wrapperPID = parseInt( args[0] )
+
+if( !isNaN( wrapperPID ) ){
+	args.shift()
+}
+
+args.forEach( flag => {
 	module.exports.flags[flag] = true
 })
 
@@ -23,6 +32,7 @@ if( !fs.existsSync( './tokens.yml' ) ){
 require( './alias' )
 // eslint-disable-next-line no-global-assign
 require = global.alias
+require( '@/graceful-shutdown' )
 const numsplit = require( '@/functions/numsplit' )
 const includeFiles = require( '@/functions/includeFiles' )
 
@@ -38,6 +48,8 @@ const client = require( '@/instances/client' )
 
 client.once( 'ready', () => {
 	module.exports.loggedIn = Date.now() - module.exports.initializedAt
+	module.exports.isLoggedIn = true
+
 	console.log( 'Logged in as ' + client.user.tag )
 
 	client.on( 'ready', () => {

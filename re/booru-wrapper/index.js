@@ -109,9 +109,13 @@ class Booru {
 		if( status !== 200 )
 			throw Error( statusText )
 
-		const pics = this._splitted_path_to_pics.length === 0
+		let pics = this._splitted_path_to_pics.length === 0
 			? data
 			: _.get( data, this._splitted_path_to_pics )
+
+		pics = pics instanceof Array
+			? pics
+			: []
 
 		await Promise.all( pics.map( async pic => {
 			pic.tags = await this.tag_fetcher( pic.tags )

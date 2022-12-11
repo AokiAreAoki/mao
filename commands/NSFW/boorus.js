@@ -11,15 +11,13 @@ module.exports = {
 		const boorus = [
 			{
 				booru: Gelbooru,
-				url: 'gelbooru.com',
-				aliases: 'gelbooru glbr',
 				safeTag: 'rating:general',
+				aliases: 'gelbooru glbr',
 			},
 			{
 				booru: Yandere,
-				url: 'yande.re',
-				aliases: 'yandere yndr',
 				safeTag: 'rating:safe',
+				aliases: 'yandere yndr',
 			},
 		]
 
@@ -127,16 +125,16 @@ module.exports = {
 				return
 			}
 
-			const tags = args.map( t => t.toLowerCase().replace( /\s/g, '_' ) )
+			const tags = Array.from( args, t => t.toLowerCase().replace( /\s/g, '_' ) )
 
 			if( tags.some( t => t === maoTag ) )
 				return userMsg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
 
 			const force = args.flags.force.specified && userMsg.author.isMaster()
-			let sfw = tags.find( v => v === this.booru.safeTag )
+			let sfw = tags.find( v => v === this.safeTag )
 
 			if( !sfw && args.flags.safe.specified ){
-				tags.push( this.booru.safeTag )
+				tags.push( this.safeTag )
 				sfw = true
 			}
 
@@ -212,7 +210,7 @@ module.exports = {
 				description: {
 					short: 'hot girls',
 					full: [
-						`Searches and posts pics from \`${settings.url}\``,
+						`Searches and posts pics from \`${settings.booru.url}\``,
 						`This is NSFW command and only available in NSFW channels`,
 						`* Add \`--safe\` flag or \`rating:general\` tag to use it in non-NSFW channel`,
 						`~~** tho i do not guarantee any safety~~`,
@@ -225,6 +223,7 @@ module.exports = {
 			})
 
 			command.booru = settings.booru
+			command.safeTag = settings.safeTag
 		}
 	}
 }

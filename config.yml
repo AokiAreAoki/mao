@@ -6,7 +6,7 @@ boorus:
         posts:
             name: gelbooru.com
             url: https://gelbooru.com/index.php
-            # - url: https://aoki.000webhostapp.com/glbr/
+            # url: https://aoki.000webhostapp.com/glbr/
             page_offset: 0
             params:
                 tags: tags
@@ -29,20 +29,19 @@ boorus:
                 json: '1'
             tagSplitter: ' '
             responsePath: 'tag'
-
     yandere:
         posts:
             name: yande.re
             url: https://yande.re/post.json
-            # - url: https://aoki.000webhostapp.com/yndr/
-            # page_offset is 1 by default
+            # url: https://aoki.000webhostapp.com/yndr/
+            # page_offset: is 1 by default
             params:
                 tags: tags
                 page: page
                 limit: limit
             const_params:
             limit: 100
-        tags: # sucks balls
+        tags: # sucks balls, no bulk request support
             url: https://yande.re/tag.json
             tagParam: name
             const_params:

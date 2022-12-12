@@ -4,6 +4,7 @@ module.exports = {
 	init(){
 		const client = require( '@/instances/client' )
 		const MM = require( '@/instances/message-manager' )
+		const TEMP_FOLDER = require( '@/instances/temp-folder' )
 		const cp = require( 'child_process' )
 		const fs = require( 'fs' )
 		const processing = require( '@/functions/processing' )
@@ -120,13 +121,18 @@ module.exports = {
 					if( cache.get( key ) )
 						return cache.get( key ).value
 
-					const directLinkPromise = spawnAsync( 'yt-dlp', ['--get-url', url[0]] )
-					cache.set( key, directLinkPromise )
+						const directLinkPromise = spawnAsync( 'yt-dlp', ['--get-url', url[0]] )
+							.then( directLink => {
+								cache.set( key, directLink )
+								return directLink
+							})
+							.catch( err => {
+								cache.delete( key )
+								throw err
+							})
 
-					return directLinkPromise.then( directLink => {
-						cache.set( key, directLink )
-						return directLink
-					})
+					cache.set( key, directLinkPromise )
+					return directLinkPromise
 				}))
 
 				return links
@@ -158,23 +164,28 @@ module.exports = {
 					}
 
 					const args = ['-o', '%(id)s.%(ext)s', url[0]]
-					await spawnAsync( 'yt-dlp', args, { cwd: "/tmp" } )
+					await spawnAsync( 'yt-dlp', args, { cwd: TEMP_FOLDER } )
 
 					args.unshift( '--get-filename' )
-					const pathPromise = spawnAsync( 'yt-dlp', args, { cwd: "/tmp" } )
-					cache.set( key, pathPromise )
+					const pathPromise = spawnAsync( 'yt-dlp', args, { cwd: TEMP_FOLDER } )
+						.then( path => {
+							cache.set( key, path )
+							return path
+						})
+						.catch( err => {
+							cache.delete( key )
+							throw err
+						})
 
-					return pathPromise.then( path => {
-						cache.set( key, path )
-						return path
-					})
+					cache.set( key, pathPromise )
+					return pathPromise
 				}))
 
 				return files
 					.map( paths => paths?.split( '\n' ) )
 					.flat(1)
 					.filter( s => !!s )
-					.map( path => new discord.MessageAttachment( join( '/tmp', path ), path ) )
+					.map( path => new discord.MessageAttachment( join( TEMP_FOLDER, path ), path ) )
 			},
 		]
 
@@ -189,8 +200,10 @@ module.exports = {
 			let reaction = null
 
 			function react(){
-				immediate ??= setImmediate( () => {
-					reaction ??= msg.react( processing( '👌' ) )
+				reaction ??= new Promise( resolve => {
+					immediate ??= setImmediate( () => {
+						resolve( msg.react( processing( '👌' ) ) )
+					})
 				})
 			}
 
@@ -209,6 +222,12 @@ module.exports = {
 					.join( '\n' )
 				)
 				.then( s => s || null )
+				.catch( async err => {
+					await reaction
+					await msg.reactions.removeAll()
+					msg.react( '❌' )
+					throw err
+				})
 
 			clearImmediate( immediate )
 			const hasSomething = content || files.length !== 0

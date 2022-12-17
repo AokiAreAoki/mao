@@ -326,13 +326,13 @@ module.exports = {
 		module.exports = DAG
 
 		// Poster
-		client.once( 'ready', check )
+		client.once( discord.Events.ClientReady, check )
 
-		client.on( 'ready', () => {
+		client.on( discord.Events.ClientReady, () => {
 			timer.create( 'daily_anime_girls', 30, 0, check )
 		})
 
-		client.on( 'invalidated', () => {
+		client.on( discord.Events.Invalidated, () => {
 			timer.remove( 'daily_anime_girls' )
 		})
 

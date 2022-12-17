@@ -44,7 +44,7 @@ module.exports = {
 				],
 			},
 			callback: async ( msg, args ) => {
-				if( !msg.member.permissions.has( discord.Permissions.FLAGS.MANAGE_CHANNELS ) )
+				if( !msg.member.permissions.has( discord.PermissionsBitField.Flags.ManageChannels ) )
 					return msg.send( `You don't have permission` )
 
 				if( !/^\d+$/.test( args[0] ) )

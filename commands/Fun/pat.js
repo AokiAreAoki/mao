@@ -46,7 +46,7 @@ module.exports = {
 					content: null,
 					embeds: [embed],
 					files: [
-						new discord.MessageAttachment( gif, 'pat.gif' )
+						new discord.Attachment( gif, 'pat.gif' )
 					],
 				})
 			},

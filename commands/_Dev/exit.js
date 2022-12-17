@@ -2,6 +2,7 @@
 require = global.alias
 module.exports = {
 	init({ addCommand }){
+		const { Events } = require( 'discord.js' )
 		const bakadb = require( '@/instances/bakadb' )
 		const { db } = bakadb
 		const client = require( '@/instances/client' )
@@ -9,7 +10,7 @@ module.exports = {
 		const numsplit = require( '@/functions/numsplit' )
 		const shutdown = require( '@/functions/shutdown' )
 
-		client.once( 'ready', async () => {
+		client.once( Events.ClientReady, async () => {
 			const {
 				initializedIn,
 				loggedIn,

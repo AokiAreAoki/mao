@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias
+const { Events } = require( 'discord.js' )
 const CommandManager = require( '@/re/command-manager' )
 const MM = require( '@/instances/message-manager' )
 const client = require( '@/instances/client' )
@@ -31,7 +32,7 @@ if( flags.dev ){
 	const missplaced_props = []
 	let print = ( command, property ) => missplaced_props.push( [command, property] )
 
-	client.once( 'ready', () => {
+	client.once( Events.ClientReady, () => {
 		print = ( command, property ) => {
 			console.log()
 			console.log( '[CM] Warning: misplaced properties found:' )

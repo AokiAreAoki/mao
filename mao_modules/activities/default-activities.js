@@ -2,6 +2,7 @@ const { ActivityManager } = require( '.' )
 
 // eslint-disable-next-line no-global-assign
 require = global.alias
+const { Events } = require( 'discord.js' )
 const client = require( '@/instances/client' )
 const TimeSplitter = require( '@/re/time-splitter' )
 
@@ -18,7 +19,7 @@ ActivityManager.pushActivity( 'PLAYING', () => {
 // msg rate
 const msgrate = []
 
-client.on( 'messageCreate', msg => {
+client.on( Events.MessageCreate, msg => {
 	if( msg.member && !msg.author.bot )
 		msgrate.push( Date.now() + 60e3 )
 })

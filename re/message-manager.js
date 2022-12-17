@@ -68,10 +68,10 @@ class MessageManager {
 	}
 
 	setupEventHandlers(){
-		this.client.on( 'messageCreate', msg => this.handleMessage( msg, false ) )
+		this.client.on( discord.Events.MessageCreate, msg => this.handleMessage( msg, false ) )
 
 		if( this.handleEdits )
-			this.client.on( 'messageUpdate', ( oldMsg, newMsg ) => {
+			this.client.on( discord.Events.MessageUpdate, ( oldMsg, newMsg ) => {
 				if( oldMsg.content !== newMsg.content ){
 					newMsg.waiter?.cancel()
 					newMsg.deleteAnswers()
@@ -81,7 +81,7 @@ class MessageManager {
 			})
 
 		if( this.handleDeletion )
-			this.client.on( 'messageDelete', msg => {
+			this.client.on( discord.Events.MessageDelete, msg => {
 				msg.waiter?.cancel()
 				msg.deleteAnswers()
 				msg.deleted = true

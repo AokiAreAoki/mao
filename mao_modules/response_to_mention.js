@@ -33,7 +33,7 @@ module.exports = {
 		let mentionRE = /^(mao|мао)/i
 		// = /^(mao|мао)([~_\-\s]((ch|s)an|чан|сан|тян))?~?\s*((stupid|shit)\s+bot|baka|бака|дура|дурында)\s*~?[!.]?$/i
 
-		client.on( 'ready', () => {
+		client.on( discord.Events.ClientReady, () => {
 			mentionRE = new RegExp( `^(?:mao|мао|<@!?(${client.user.id})>)`, 'i' )
 
 			emojis.forEach( id => {

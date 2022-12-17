@@ -24,13 +24,13 @@ module.exports = {
 
 				const emoji = client.emojis.resolve( `977190531291557889` )
 				const components = codes
-					.map( ( code, i ) => new discord.MessageButton()
+					.map( ( code, i ) => new discord.ButtonBuilder()
 						.setStyle( `LINK` )
 						.setURL( redeemLink + code )
 						.setLabel( `Redeem code #${i+1}` )
 						.setEmoji( emoji )
 					)
-					.map( button => new discord.MessageActionRow()
+					.map( button => new discord.ActionRowBuilder()
 						.addComponents( button )
 					)
 

@@ -33,6 +33,7 @@ require( './alias' )
 // eslint-disable-next-line no-global-assign
 require = global.alias
 require( '@/graceful-shutdown' )
+const { Events } = require( 'discord.js' )
 const numsplit = require( '@/functions/numsplit' )
 const includeFiles = require( '@/functions/includeFiles' )
 
@@ -46,13 +47,13 @@ includeFiles({
 // On client ready
 const client = require( '@/instances/client' )
 
-client.once( 'ready', () => {
+client.once( Events.ClientReady, () => {
 	module.exports.loggedIn = Date.now() - module.exports.initializedAt
 	module.exports.isLoggedIn = true
 
 	console.log( 'Logged in as ' + client.user.tag )
 
-	client.on( 'ready', () => {
+	client.on( Events.ClientReady, () => {
 		console.log( "I'm back" )
 	})
 })

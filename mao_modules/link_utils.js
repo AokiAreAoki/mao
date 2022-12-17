@@ -185,7 +185,7 @@ module.exports = {
 					.map( paths => paths?.split( '\n' ) )
 					.flat(1)
 					.filter( s => !!s )
-					.map( path => new discord.MessageAttachment( join( TEMP_FOLDER, path ), path ) )
+					.map( path => new discord.Attachment( join( TEMP_FOLDER, path ), path ) )
 			},
 		]
 
@@ -212,7 +212,7 @@ module.exports = {
 				.then( links => links
 					.flat(1)
 					.filter( link => {
-						if( link instanceof discord.MessageAttachment ){
+						if( link instanceof discord.Attachment ){
 							files.push( link )
 							return false
 						}

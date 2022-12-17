@@ -33,7 +33,7 @@ module.exports = {
 
 			if( typeof content === 'object' ){
 				switch( content?.constructor ){
-					case discord.MessageEmbed:
+					case discord.EmbedBuilder:
 						options.embeds = [content]
 						break
 

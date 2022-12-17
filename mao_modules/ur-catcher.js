@@ -2,12 +2,13 @@
 require = global.alias
 module.exports = {
 	init(){
+		const { Events } = require( 'discord.js' )
 		const client = require( '@/instances/client' )
 		const config = require( '@/config.yml' )
 		const cb = require( '@/functions/cb' )
 		const Embed = require( '@/functions/Embed' )
 
-		client.once( 'ready', () => {
+		client.once( Events.ClientReady, () => {
 			const URs = {} // Unhandled Rejections
 
 			function sendUnhandledRejection( rejection ){

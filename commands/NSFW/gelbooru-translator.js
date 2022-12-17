@@ -175,7 +175,7 @@ module.exports = {
 								.setFooter({ text: 'Powered by ' + Gelbooru.name })
 							],
 							files: [
-								new discord.MessageAttachment( path, 'tr.jpg' )
+								new discord.Attachment( path, 'tr.jpg' )
 							],
 						})
 							.finally( () => fs.unlinkSync( path ) )

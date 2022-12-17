@@ -1,5 +1,6 @@
 module.exports = {
 	init(){
+		const { Events } = require( 'discord.js' )
 		const client = global.alias( '@/instances/client' )
 		const timer = global.alias( '@/re/timer' )
 		const bakadb = global.alias( '@/instances/bakadb' )
@@ -85,7 +86,7 @@ module.exports = {
 					})
 					.sort( ( a, b ) => a.deadline - b.deadline )
 
-				client.on( 'ready', () => ActivityManager.reset() )
+				client.on( Events.ClientReady, () => ActivityManager.reset() )
 				this.reset()
 			}
 
@@ -141,7 +142,7 @@ module.exports = {
 		ActivityManager.Activity = Activity
 		module.exports.ActivityManager = ActivityManager
 
-		client.once( 'ready', () => ActivityManager.init( client ) )
+		client.once( Events.ClientReady, () => ActivityManager.init( client ) )
 		require( './default-activities' )
 	}
 }

@@ -270,7 +270,8 @@ module.exports = {
 								}
 
 								switch( evaled.constructor?.name ){
-									case 'MessageEmbed':
+									case 'Embed':
+									case 'EmbedBuilder':
 									case 'Jimp':
 										msg.send( evaled )
 										return
@@ -324,7 +325,7 @@ module.exports = {
 						msg.sendcb( __output )
 						msg.isCommand = true
 					} else if( doPrint ){
-						if( !evalFlags.cb && !msg.member.permissions.has( discord.Permissions.FLAGS.EMBED_LINKS ) )
+						if( !evalFlags.cb && !msg.member.permissions.has( discord.PermissionsBitField.Flags.EmbedLinks ) )
 							evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
 
 						await msg.send( evalFlags.cb ? cb( evaled, evalFlags.cb.value ) : evaled )

@@ -4,7 +4,6 @@ const { flags } = require( '@/index' )
 const tokens = require( '@/tokens.yml' )
 const discord = require( 'discord.js' )
 
-discord.Message
 const client = new discord.Client({
 	restRequestTimeout: 60e3,
 	makeCache: discord.Options.cacheWithLimits({
@@ -24,21 +23,15 @@ const client = new discord.Client({
 		},
 	}),
 	intents: [
-		'GUILDS',
-		//'GUILD_MEMBERS',
-		//'GUILD_BANS',
-		//'GUILD_EMOJIS',
-		'GUILD_INTEGRATIONS',
-		//'GUILD_WEBHOOKS',
-		//'GUILD_INVITES',
-		'GUILD_VOICE_STATES',
-		//'GUILD_PRESENCES',
-		'GUILD_MESSAGES',
-		'GUILD_MESSAGE_REACTIONS',
-		//'GUILD_MESSAGE_TYPING',
-		'DIRECT_MESSAGES',
-		'DIRECT_MESSAGE_REACTIONS',
-		//'DIRECT_MESSAGE_TYPING',
+		discord.IntentsBitField.Flags.Guilds,
+		discord.IntentsBitField.Flags.GuildMessages,
+		discord.IntentsBitField.Flags.GuildIntegrations,
+		discord.IntentsBitField.Flags.GuildVoiceStates,
+		discord.IntentsBitField.Flags.GuildMessages,
+		discord.IntentsBitField.Flags.GuildMessageReactions,
+		discord.IntentsBitField.Flags.DirectMessages,
+		discord.IntentsBitField.Flags.DirectMessageReactions,
+		discord.IntentsBitField.Flags.MessageContent,
 	],
 })
 
@@ -49,8 +42,8 @@ client.login( tokens.discord[flags.dev ? 'dev' : 'mao'] )
 		process.exit(2)
 	})
 
-client.on( 'error', err => {
-	console.log( 'Client error happaned:' )
+client.on( discord.Events.Error, err => {
+	console.log( 'Client error happened:' )
 	console.log( err )
 })
 

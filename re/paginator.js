@@ -59,18 +59,18 @@ class Paginator {
 				return buttons
 			}
 
-			return new discord.MessageButton()
+			return new discord.ButtonBuilder()
 				.setCustomId( button.id )
 				.setLabel( button.label )
 				.setEmoji( button.emoji )
-				.setStyle( button.style ?? `SECONDARY` )
+				.setStyle( button.style ?? discord.ButtonStyle.Secondary )
 		}
 
 		Paginator.buttonRows = makeButtons( Paginator.buttonRows )
 	}
 
 	static setClient( client ){
-		client.on( 'interactionCreate', i => {
+		client.on( discord.Events.InteractionCreate, i => {
 			if( i.isButton() )
 				i.message.paginator?._react(i)
 		})
@@ -232,7 +232,7 @@ class Paginator {
 
 	getButtons(){
 		return Paginator.buttonRows
-			.map( buttons => new discord.MessageActionRow().addComponents(
+			.map( buttons => new discord.ActionRowBuilder().addComponents(
 				buttons.map( button => button instanceof Array
 					? button.choose( this, button )
 					: button

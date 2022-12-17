@@ -121,15 +121,15 @@ module.exports = {
 					if( cache.get( key ) )
 						return cache.get( key ).value
 
-						const directLinkPromise = spawnAsync( 'yt-dlp', ['--get-url', url[0]] )
-							.then( directLink => {
-								cache.set( key, directLink )
-								return directLink
-							})
-							.catch( err => {
-								cache.delete( key )
-								throw err
-							})
+					const directLinkPromise = spawnAsync( 'yt-dlp', ['--get-url', url[0]] )
+						.then( directLink => {
+							cache.set( key, directLink )
+							return directLink
+						})
+						.catch( err => {
+							cache.delete( key )
+							throw err
+						})
 
 					cache.set( key, directLinkPromise )
 					return directLinkPromise

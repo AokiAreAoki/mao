@@ -31,7 +31,12 @@ class CommandManager extends require( 'events' ) {
 	}
 
 	addModule( modulePrintname, isHidden = false ){
-		const module = new Module( modulePrintname, this )
+		let module = this.modules.get( Module.unprintname( modulePrintname ) )
+
+		if( module )
+			return module
+
+		module = new Module( modulePrintname, this )
 		this.modules.set( module.name, module )
 
 		if( isHidden )

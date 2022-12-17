@@ -47,14 +47,16 @@ module.exports = {
 
 				CM.modules.forEach( module => {
 					if( module.commands.length !== 0 && !module.isHidden ){
-						const commands = module.commands.map( c => {
-							let command = `\`${c.name}\``
+						const commands = module.commands
+							.map( command => {
+								let string = `\`${command.name}\``
 
-							if( c.subcommands.length !== 0 )
-								command += `(${c.subcommands.length})`
+								if( command.subcommands.length !== 0 )
+									string += `(${command.subcommands.length})`
 
-							return command
-						}).join( ', ' )
+								return string
+							})
+							.join( ', ' )
 
 						emb.addFields({ name: module.printname, value: commands })
 					}

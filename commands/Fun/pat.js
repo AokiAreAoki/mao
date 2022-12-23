@@ -32,7 +32,7 @@ module.exports = {
 					if( !member )
 						return ( await message ).edit( 'User not found' )
 
-					url = member.user.avatarURL({ format: 'jpg' })
+					url = member.user.avatarURL({ extension: 'jpg' })
 					embed.setDescription( `You are patting ${member}\nThey must be really happy rn` )
 				}
 
@@ -46,7 +46,7 @@ module.exports = {
 					content: null,
 					embeds: [embed],
 					files: [
-						new discord.Attachment( gif, 'pat.gif' )
+						new discord.AttachmentBuilder( gif, { name: 'pat.gif' } )
 					],
 				})
 			},

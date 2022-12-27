@@ -15,13 +15,13 @@ module.exports = {
 				const uptime = new TimeSplitter({
 					// eslint-disable-next-line no-undef
 					seconds: Math.floor( process.uptime() ),
-				})
-
-				msg.send( 'Uptime: ' + uptime.toString({
+				}).toString({
 					maxTU: 2,
 					ignoreZeros: true,
 					separator: `, `,
-				}))
+				})
+
+				msg.send( 'Uptime: ' + uptime )
 			},
 		})
 

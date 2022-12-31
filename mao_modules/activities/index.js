@@ -1,17 +1,17 @@
 module.exports = {
 	init(){
-		const { Events } = require( 'discord.js' )
+		const { Events, ActivityType } = require( 'discord.js' )
 		const client = global.alias( '@/instances/client' )
 		const timer = global.alias( '@/re/timer' )
 		const bakadb = global.alias( '@/instances/bakadb' )
 
 		const activityTypes = {
-			PLAYING: true,
-			LISTENING: true,
-			WATCHING: true,
-			COMPETING: true,
-			STREAMING: true,
-			CUSTOM_STATUS: false, // for users only
+			playing: ActivityType.Playing,
+			streaming: ActivityType.Streaming,
+			listening: ActivityType.Listening,
+			watching: ActivityType.Watching,
+			custom: ActivityType.Custom,
+			competing: ActivityType.Competing,
 		}
 
 		function Activity( options ){
@@ -19,11 +19,11 @@ module.exports = {
 				return Activity({ callback: options })
 
 			const activity = {
-				type: options.type ? options.type.toUpperCase() : 'PLAYING',
+				type: options.type ? activityTypes[options.type.toLowerCase()] : activityTypes.playing,
 			}
 
-			if( !activityTypes[activity.type] )
-				throw Error( `Unknown activity type: "${activity.type}", expected one of ${Object.keys( activityTypes ).join( ' ' )}` )
+			if( typeof activity.type !== 'number' )
+				throw Error( `Unknown activity type: "${options.type}", expected one of: ${Object.keys( activityTypes ).join( ' ' )}` )
 
 			if( typeof options.name === 'string' )
 				activity.name = options.name
@@ -140,7 +140,7 @@ module.exports = {
 		}
 
 		ActivityManager.Activity = Activity
-		module.exports.ActivityManager = ActivityManager
+		module.exports = ActivityManager
 
 		client.once( Events.ClientReady, () => ActivityManager.init( client ) )
 		require( './default-activities' )

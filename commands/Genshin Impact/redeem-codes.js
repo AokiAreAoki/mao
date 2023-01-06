@@ -25,7 +25,7 @@ module.exports = {
 				const emoji = client.emojis.resolve( `977190531291557889` )
 				const components = codes
 					.map( ( code, i ) => new discord.ButtonBuilder()
-						.setStyle( `LINK` )
+						.setStyle( discord.ButtonStyle.Link )
 						.setURL( redeemLink + code )
 						.setLabel( `Redeem code #${i+1}` )
 						.setEmoji( emoji )

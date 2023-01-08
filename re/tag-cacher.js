@@ -5,7 +5,6 @@ const axios = require( 'axios' ).create()
 const axiosRetry = require( 'axios-retry' )
 const _ = require( 'lodash' )
 const decodeHTMLEntities = require( '@/functions/decodeHTMLEntities' )
-const { setTimeout: wait } = require( 'timers/promises' )
 Set.prototype.merge = function( set ){
 	set.forEach( v => this.add(v) )
 }

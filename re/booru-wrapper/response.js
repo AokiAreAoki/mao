@@ -33,6 +33,9 @@ module.exports = class BooruResponse {
 			pics.forEach( oldPic => {
 				const newPic = {}
 
+				if( typeof keys._before === 'function' )
+					keys._before( oldPic, newPic, this.tags )
+
 				for( const key in oldPic ){
 					if( typeof keys[key] === 'string' )
 						newPic[keys[key] || key] = oldPic[key]
@@ -41,6 +44,9 @@ module.exports = class BooruResponse {
 					else if( !remove_other_keys && key !== keys[key] )
 						newPic[key] = oldPic[key]
 				}
+
+				if( typeof keys._after === 'function' )
+					keys._after( oldPic, newPic, this.tags )
 
 				this.results.push( newPic )
 			})

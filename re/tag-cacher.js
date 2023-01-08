@@ -1,13 +1,19 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias
 const fs = require( 'fs' )
-const axios = require( 'axios' )
+const axios = require( 'axios' ).create()
+const axiosRetry = require( 'axios-retry' )
 const _ = require( 'lodash' )
 const decodeHTMLEntities = require( '@/functions/decodeHTMLEntities' )
-
+const { setTimeout: wait } = require( 'timers/promises' )
 Set.prototype.merge = function( set ){
 	set.forEach( v => this.add(v) )
 }
+
+axiosRetry( axios, {
+	retries: 5,
+	retryDelay: axiosRetry.exponentialDelay,
+})
 
 class TagCacher {
 	static tagTypes = [
@@ -111,7 +117,10 @@ class TagCacher {
 				params: {
 					...this.const_params,
 					[this.tagParam]: uncachedTags.join( this.tagSplitter ),
-				}
+				},
+				onRetry(){
+					console.log( 'Tag API failed. Retrying...' )
+				},
 			})
 				.then( response => _.get( response.data.tag, this.responsePath, response.data.tag ) )
 

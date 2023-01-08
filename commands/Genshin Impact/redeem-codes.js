@@ -11,7 +11,7 @@ module.exports = {
 		addCommand({
 			aliases: 'redeem-codes codes',
 			description: {
-				single: `sends fancy messages with code redeem links`,
+				single: `sends fancy message with code redeem links`,
 				usages: [
 					[`<...codes>`, ``],
 				],

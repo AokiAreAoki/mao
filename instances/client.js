@@ -44,7 +44,7 @@ client.login( tokens.discord[flags.dev ? 'dev' : 'mao'] )
 
 client.on( discord.Events.Error, err => {
 	console.log( 'Client error happened:' )
-	console.log( err )
+	process.emit( 'unhandledRejection', err )
 })
 
 module.exports = client

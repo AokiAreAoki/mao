@@ -119,10 +119,6 @@ class Booru {
 
 		await Promise.all( pics.map( async pic => {
 			pic.tags = await this.tag_fetcher( pic.tags )
-				.catch( err => {
-					process.emit( 'unhandledRejection', err )
-					return new Map()
-				})
 		}))
 
 		return new BooruResponse( pics, {

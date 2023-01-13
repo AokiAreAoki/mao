@@ -2,7 +2,6 @@
 require = global.alias
 module.exports = {
 	init({ addCommand }){
-		const fs = require( 'fs' )
 		const axios = require( 'axios' )
 		const discord = require( 'discord.js' )
 		const Jimp = require( 'jimp' )
@@ -137,52 +136,43 @@ module.exports = {
 				if( !translations )
 					return message.edit( `No translations found for this picture` )
 
-				return Jimp.read( pic.full ?? pic.sample ).then( async image => {
-					const font = await loadAdaptiveFont( image.bitmap.height )
+				const image = await Jimp.read( pic.full ?? pic.sample )
+				const font = await loadAdaptiveFont( image.bitmap.height )
 
-					translations.forEach( async ({ x, y, width, height, text }) => {
-						text = text.replace( /\s*<br\s*\/>\s*/gi, ' ' )
+				translations.forEach( async ({ x, y, width, height, text }) => {
+					text = text.replace( /\s*<br\s*\/>\s*/gi, ' ' )
 
-						const textWidth = text.split( /\s+/g ).reduce( ( maxWidth, word ) => {
-							const wordWidth = Jimp.measureText( font, word )
-							return wordWidth > maxWidth ? wordWidth : maxWidth
-						}, width )
-						const textHeight = Jimp.measureTextHeight( font, text, textWidth )
+					const textWidth = text.split( /\s+/g ).reduce( ( maxWidth, word ) => {
+						const wordWidth = Jimp.measureText( font, word )
+						return wordWidth > maxWidth ? wordWidth : maxWidth
+					}, width )
+					const textHeight = Jimp.measureTextHeight( font, text, textWidth )
 
-						x += ( width - textWidth ) / 2
-						y += ( height - textHeight ) / 2
+					x += ( width - textWidth ) / 2
+					y += ( height - textHeight ) / 2
 
-						drawRect( image, solidBlack, x, y, textWidth, textHeight )
-						image.print( font, x, y, {
-							text,
-							alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-							alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
-						}, textWidth, textHeight )
-					})
+					drawRect( image, solidBlack, x, y, textWidth, textHeight )
+					image.print( font, x, y, {
+						text,
+						alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+						alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
+					}, textWidth, textHeight )
+				})
 
-					let path; do
-						path = `/tmp/glbr-tr/${Date.now()}.jpg`
-					while( fs.existsSync( path ) )
-
-					try {
-						await image.writeAsync( path )
-
-						return message.edit({
-							content: null,
-							embeds: [Embed()
-								.setDescription( `[Original](${pic.post_url})` )
-								.setImage( 'attachment://tr.jpg' )
-								.setFooter({ text: 'Powered by ' + Gelbooru.name })
-							],
-							files: [
-								new discord.Attachment( path, 'tr.jpg' )
-							],
+				return message.edit({
+					content: null,
+					embeds: [Embed()
+						.setDescription( `[Original](${pic.post_url})` )
+						.setImage( 'attachment://tr.jpg' )
+						.setFooter({ text: 'Powered by ' + Gelbooru.name })
+					],
+					files: [
+						new discord.AttachmentBuilder( await image.getBufferAsync( Jimp.MIME_JPEG ), {
+							name: 'tr.jpg',
 						})
-							.finally( () => fs.unlinkSync( path ) )
-					} catch( err ){
-						return message.edit( cb( err ) )
-					}
-				}) // Jimp.read
+					],
+				})
+					.catch( err => message.edit( cb( err ) ) )
 			}, // callback
 		}) // addCommand
 	} // init

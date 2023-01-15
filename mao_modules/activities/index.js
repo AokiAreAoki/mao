@@ -132,7 +132,7 @@ module.exports = {
 				checkTypes( { deadline }, 'string' )
 				checkTypes( { callback }, 'function' )
 
-				if( !activityTypes[type.toLowerCase()] )
+				if( activityTypes[type.toLowerCase()] == null )
 					throw Error( `\`type\` must be one of: ${Object.keys( activityTypes ).join( ', ' )}` )
 
 				const customActivities = bakadb.fallback({

@@ -91,7 +91,7 @@ module.exports = {
 					})
 					.sort( ( a, b ) => a.deadline - b.deadline )
 
-				client.on( Events.ClientReady, () => ActivityManager.reset() )
+				client.on( Events.ShardReady, () => ActivityManager.reset() )
 				this.reset()
 			}
 

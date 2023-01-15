@@ -328,7 +328,7 @@ module.exports = {
 		// Poster
 		client.once( discord.Events.ClientReady, check )
 
-		client.on( discord.Events.ClientReady, () => {
+		client.on( discord.Events.ShardReady, () => {
 			timer.create( 'daily_anime_girls', 30, 0, check )
 		})
 

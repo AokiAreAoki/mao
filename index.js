@@ -53,7 +53,7 @@ client.once( Events.ClientReady, () => {
 
 	console.log( 'Logged in as ' + client.user.tag )
 
-	client.on( Events.ClientReady, () => {
+	client.on( Events.ShardReady, () => {
 		console.log( "I'm back" )
 	})
 })

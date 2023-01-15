@@ -9,7 +9,7 @@ module.exports = {
 
 		const interval = 30
 
-		client.on( Events.ClientReady, () => {
+		client.on( Events.ShardReady, () => {
 			timer.create( 'totaluptime', interval, 0, () => {
 				db.totaluptime = Math.round( ( ( db.totaluptime ?? 0 ) + interval / 60 ) * 10 ) / 10
 			})

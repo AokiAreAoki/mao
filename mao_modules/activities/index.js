@@ -2,8 +2,9 @@ module.exports = {
 	init(){
 		const { Events, ActivityType } = require( 'discord.js' )
 		const client = global.alias( '@/instances/client' )
-		const timer = global.alias( '@/re/timer' )
 		const bakadb = global.alias( '@/instances/bakadb' )
+		const timer = global.alias( '@/re/timer' )
+		const checkTypes = global.alias( '@/functions/checkTypes' )
 
 		const activityTypes = {
 			playing: ActivityType.Playing,
@@ -19,7 +20,11 @@ module.exports = {
 				return Activity({ callback: options })
 
 			const activity = {
-				type: options.type ? activityTypes[options.type.toLowerCase()] : activityTypes.playing,
+				type: typeof options.type === 'string'
+					? activityTypes[options.type.toLowerCase()]
+					: typeof options.type === 'number'
+						? options.type
+						: activityTypes.playing,
 			}
 
 			if( typeof activity.type !== 'number' )
@@ -122,7 +127,14 @@ module.exports = {
 			}
 
 			// set custom activity
-			static setCA( name, deadline, type, callback ){
+			static setCA({ name, deadline, type, callback }){
+				checkTypes( { name }, 'string' )
+				checkTypes( { deadline }, 'string' )
+				checkTypes( { callback }, 'function' )
+
+				if( !activityTypes[type.toLowerCase()] )
+					throw Error( `\`type\` must be one of: ${Object.keys( activityTypes ).join( ', ' )}` )
+
 				const customActivities = bakadb.fallback({
 					path: 'customActivities',
 					defaultValue: [],

@@ -13,7 +13,7 @@ module.exports = function checkTypes( variables, types, throwError = false ){
 	if( !( types instanceof Array ) )
 		types = [types]
 
-	for( let name in variables ){
+	for( const name in variables ){
 		const value = variables[name]
 		const nonePass = types.every( type => {
 			if( typeof type === 'string' ){

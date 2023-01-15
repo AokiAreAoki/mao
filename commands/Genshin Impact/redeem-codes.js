@@ -6,6 +6,7 @@ module.exports = {
 		const discord = require( 'discord.js' )
 		const Embed = require( '@/functions/Embed' )
 
+		const emojiID = `1063048589770756136`
 		const redeemLink = `https://genshin.hoyoverse.com/m/en/gift?code=`
 
 		addCommand({
@@ -22,13 +23,13 @@ module.exports = {
 				if( codes.length === 0 )
 					return msg.send( `Give me some codes` )
 
-				const emoji = client.emojis.resolve( `977190531291557889` )
+				const emoji = client.emojis.resolve( emojiID )
 				const components = codes
 					.map( ( code, i ) => new discord.ButtonBuilder()
 						.setStyle( discord.ButtonStyle.Link )
 						.setURL( redeemLink + code )
 						.setLabel( `Redeem code #${i+1}` )
-						.setEmoji( emoji )
+						.setEmoji( emojiID )
 					)
 					.map( button => new discord.ActionRowBuilder()
 						.addComponents( button )

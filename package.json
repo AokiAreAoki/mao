@@ -8,6 +8,7 @@
 	},
 	"scripts": {
 		"start": "node .",
+		"start16": "\"\"%NVM_HOME%/v16.17.1/node\" .\"",
 		"dev": "node . --dev",
 		"dev16": "\"\"%NVM_HOME%/v16.17.1/node\" . --dev\"",
 		"eslint": "npx eslint ."

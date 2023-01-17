@@ -9,10 +9,11 @@ module.exports = {
 			if( !( category instanceof discord.CategoryChannel ) )
 				throw Error( `category must be an instance of CategoryChannel` )
 
-			const channels = Array.from( category.children ).map( e => e[1] )
+			const channels = Array.from( category.children.cache.values() )
 
 			channels.sort( ( a, b ) => {
-				a = a.name, b = b.name
+				a = a.name
+				b = b.name
 				let i = 0
 
 				do {
@@ -24,12 +25,12 @@ module.exports = {
 				return -1
 			})
 
-			channels.nothichChanged = true
+			channels.nothingChanged = true
 
 			for( let i = 0; i < channels.length; ++i )
 				if( channels[i].position !== i ){
 					await channels[i].setPosition(i)
-					channels.nothichChanged = false
+					channels.nothingChanged = false
 				}
 
 			return channels.length !== 0 ? channels : null
@@ -55,7 +56,7 @@ module.exports = {
 				if( !category )
 					return msg.send( `Category with ID \`${args[0]}\` not found` )
 
-				if( category.type !== 'GUILD_CATEGORY' )
+				if( category.type !== discord.ChannelType.GuildCategory )
 					return msg.send( `The ID you provided belongs to a non-category type channel` )
 
 				const messagePromise = msg.send( `Sorting \`#${category.name}\`...` )
@@ -70,7 +71,7 @@ module.exports = {
 					message.edit( `Hmm... Seems like this category is empty` )
 				else if( channels.length === 1 )
 					message.edit( `Hmm... Seems like this category has only one channel` )
-				else if( channels.nothichChanged )
+				else if( channels.nothingChanged )
 					message.edit( `All channels are sorted in the right order` )
 				else
 					message.edit( `Done! ${channels.length} channels have been sorted` )

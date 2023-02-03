@@ -46,4 +46,3 @@ boorus:
             tagParam: name
             const_params:
                 limit: 1
-            isUnbulkable: true

@@ -117,9 +117,9 @@ class Booru {
 			? pics
 			: []
 
-		await Promise.all( pics.map( async pic => {
+		await Promise.all( pics.map( async pic => (
 			pic.tags = await this.tag_fetcher( pic.tags )
-		}))
+		)))
 
 		return new BooruResponse( pics, {
 			tags,

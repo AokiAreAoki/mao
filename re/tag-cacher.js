@@ -38,7 +38,6 @@ class TagCacher {
 		url,
 		tagParam = 'names',
 		const_params = {},
-		isUnbulkable = false,
 		tagSplitter = ' ',
 		responsePath = '',
 	}){
@@ -46,7 +45,6 @@ class TagCacher {
 		this.endpoint = url
 		this.tagParam = tagParam
 		this.const_params = const_params
-		this.isUnbulkable = isUnbulkable
 		this.tagSplitter = tagSplitter
 		this.responsePath = responsePath
 
@@ -70,29 +68,40 @@ class TagCacher {
 		}
 	}
 
-	async resolveTags( tagSet ){
-		if( this.isUnbulkable )
-			return this._resolveTags( tagSet )
+	async resolveTags( tagSet, noFetch = false ){
+		if( noFetch ){
+			const tags = new Map()
+
+			for( const undecodedTagname of tagSet ){
+				const tagname = decodeHTMLEntities( undecodedTagname )
+				const tag = await this.tags[tagname]
+
+				if( tag?._cacheExpire && tag._cacheExpire > Date.now() )
+					tags.set( tagname, tag )
+			}
+
+			return tags
+		}
 
 		this.accumulatedTags.merge( tagSet )
 		this.resolveTimeout ??= new Promise( resolve => {
 			setTimeout( async () => {
-				resolve( this._resolveTags( this.accumulatedTags ) )
+				resolve( this.fetchTags( this.accumulatedTags ) )
 				this.accumulatedTags = new Set()
 				this.resolveTimeout = null
-			}, 10 )
+			}, 100 )
 		})
 
-		return this.resolveTimeout.then( () => this._resolveTags( tagSet ) )
+		return this.resolveTimeout.then( () => this.resolveTags( tagSet, true ) )
 	}
 
-	async _resolveTags( tagSet ){
+	async fetchTags( tagSet ){
 		const tags = new Map()
 		const uncachedTags = []
 
 		for( const undecodedTagname of tagSet ){
 			const tagname = decodeHTMLEntities( undecodedTagname )
-			const tag = this.tags[tagname]
+			const tag = await this.tags[tagname]
 
 			if( !tag?._cacheExpire || tag._cacheExpire < Date.now() )
 				uncachedTags.push( tagname )
@@ -103,45 +112,38 @@ class TagCacher {
 		if( uncachedTags.length === 0 )
 			return tags
 
-		return this.request ??= new Promise( resolve => {
-			const tagsPromise = this.isUnbulkable
-				? Promise.all( uncachedTags.map( tag => axios
-					.get( this.endpoint, {
-						params: {
-							...this.const_params,
-							[this.tagParam]: tag,
-						}
+		const newTagsPromise = axios
+			.get( this.endpoint, {
+				params: {
+					...this.const_params,
+					[this.tagParam]: uncachedTags.join( this.tagSplitter ),
+				},
+				onRetry(){
+					console.log( 'Tag API failed. Retrying...' )
+				},
+			})
+			.then( response => _.get( response.data.tag, this.responsePath, response.data.tag ) )
+			.then( newTags => {
+				if( newTags instanceof Array ){
+					newTags.forEach( tag => {
+						tag.name = decodeHTMLEntities( tag.name )
+						tag.type = TagCacher.getTagType( tag.type )
+						tag._cacheExpire = Date.now() + 3600e3 * 24 * 7
+						tags.set( tag.name, this.tags[tag.name] = tag )
 					})
-					.then( response => _.get( response.data.tag, this.responsePath, response.data.tag ) )
-				))
-				: axios
-					.get( this.endpoint, {
-						params: {
-							...this.const_params,
-							[this.tagParam]: uncachedTags.join( this.tagSplitter ),
-						},
-						onRetry(){
-							console.log( 'Tag API failed. Retrying...' )
-						},
-					})
-					.then( response => _.get( response.data.tag, this.responsePath, response.data.tag ) )
-
-			tagsPromise.then( newTags => {
-				if( !( newTags instanceof Array ) )
-					return
-
-				newTags.forEach( tag => {
-					tag.name = decodeHTMLEntities( tag.name )
-					tag.type = TagCacher.getTagType( tag.type )
-					tag._cacheExpire = Date.now() + 3600e3 * 24 * 7
-					tags.set( tag.name, this.tags[tag.name] = tag )
-				})
+				}
 
 				this.saveCache()
 				this.request = null
-				resolve( tags )
+				return tags
 			})
+
+		uncachedTags.forEach( tagname => {
+			this.tags[tagname] = newTagsPromise
+				.then( map => map.get( tagname ) )
 		})
+
+		return newTagsPromise
 	}
 
 	collectGarbage(){

@@ -24,6 +24,15 @@ class BakaDB extends events {
 			encode: ( obj, path ) => this._encode( obj, path ),
 			decode: ( str, path ) => this._decode( str, path ),
 		},
+		Promise: {
+			encode: promise => {
+				if( !promise.bakadbIsAwaiting ){
+					promise.bakadbIsAwaiting = true
+					promise.then( () => this.save() )
+				}
+			},
+			decode: () => {},
+		},
 	}
 
 	constructor(){

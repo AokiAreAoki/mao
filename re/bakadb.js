@@ -3,6 +3,20 @@ const join = require( 'path' ).join
 const events = require( 'events' )
 const _ = require( 'lodash' )
 
+String.prototype.matchFirst = function( re, cb ){
+	let matched = this.match( re )
+	let string = null
+
+	if( matched ){
+		string = matched[1] ?? matched[0]
+
+		if( string && typeof cb === 'function' )
+			cb( string )
+	}
+
+	return string
+}
+
 class BakaDB extends events {
 	saveThrottle = 100
 	backups_limit = 10

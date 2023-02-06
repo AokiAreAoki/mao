@@ -4,13 +4,13 @@
 	"description": "yes",
 	"main": "mao.js",
 	"engines": {
-		"node": "16.17.1"
+		"node": "16.17.0"
 	},
 	"scripts": {
 		"start": "node .",
-		"start16": "\"\"%NVM_HOME%/v16.17.1/node\" .\"",
+		"start16": "\"\"%NVM_HOME%/v16.17.0/node\" .\"",
 		"dev": "node . --dev",
-		"dev16": "\"\"%NVM_HOME%/v16.17.1/node\" . --dev\"",
+		"dev16": "\"\"%NVM_HOME%/v16.17.0/node\" . --dev\"",
 		"eslint": "npx eslint ."
 	},
 	"keywords": [

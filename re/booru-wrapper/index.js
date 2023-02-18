@@ -1,7 +1,13 @@
-const axios = require( 'axios' )
+const axios = require( 'axios' ).create()
+const axiosRetry = require( 'axios-retry' )
 const _ = require( 'lodash' )
 const Picture = require( './picture' )
 const BooruResponse = require( './response' )
+
+axiosRetry( axios, {
+	retries: 5,
+	retryDelay: axiosRetry.exponentialDelay,
+})
 
 function resolveOptions( options, target, keys ){
 	for( const prop of keys ){

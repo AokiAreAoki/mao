@@ -204,21 +204,16 @@ module.exports = {
 						if( dailies.length === 0 )
 							return
 
-						const posts = await Promise.all(
-							dailies.map( async daily => ({
-								daily,
-								post: await this.fetch( daily, today ),
-							}))
-						)
-
 						const delay = bakadb.fallback({
 							path: 'dag/delay',
 							defaultValue: 0,
 						})
 
-						posts.reduce( async ( prevMessage, { daily, post } ) => {
+						dailies.reduce( async ( prevMessage, daily ) => {
 							await prevMessage
-							const timeout = new Promise( resolve => setTimeout( resolve, delay ) )
+							const minDelay = new Promise( resolve => setTimeout( resolve, delay ) )
+
+							const post = await this.fetch( daily, today )
 
 							if( !( daily.history instanceof Array ) )
 								daily.history = []
@@ -261,7 +256,7 @@ module.exports = {
 
 							daily.history.push( entry )
 							bakadb.save()
-							return timeout
+							return minDelay
 						}, Promise.resolve() )
 					}
 				}

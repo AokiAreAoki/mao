@@ -26,6 +26,7 @@ module.exports = {
 				postAt: 21,
 				GMT: 3,
 				lastPost: '<day>',
+				delay: 1337,
 				dailies: [
 					//...
 					{
@@ -210,9 +211,14 @@ module.exports = {
 							}))
 						)
 
+						const delay = bakadb.fallback({
+							path: 'dag/delay',
+							defaultValue: 0,
+						})
+
 						posts.reduce( async ( prevMessage, { daily, post } ) => {
 							await prevMessage
-							const timeout = new Promise( resolve => setTimeout( resolve, 1337 ) )
+							const timeout = new Promise( resolve => setTimeout( resolve, delay ) )
 
 							if( !( daily.history instanceof Array ) )
 								daily.history = []

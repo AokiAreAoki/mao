@@ -95,12 +95,12 @@ module.exports = {
 
 		const utils = [
 			// Discord CDN link fixer
-			async msg => {
-				const badURLs = msg.content.match( /https?:\/\/media\.discordapp\.net\/\S+\.(?:mp4|webm|mov)/gi )
+			// async msg => {
+			// 	const badURLs = msg.content.match( /https?:\/\/media\.discordapp\.net\/\S+\.(?:mp4|webm|mov)/gi )
 
-				if( badURLs && badURLs.length !== 0 )
-					return badURLs.map( url => url.replace( /^https?:\/\/media\.discordapp\.net/, 'https://cdn.discordapp.com' ) )
-			},
+			// 	if( badURLs && badURLs.length !== 0 )
+			// 		return badURLs.map( url => url.replace( /^https?:\/\/media\.discordapp\.net/, 'https://cdn.discordapp.com' ) )
+			// },
 
 			// Twitter direct links provider
 			async ( msg, cache, react ) => {
@@ -164,14 +164,19 @@ module.exports = {
 					}
 
 					const args = ['-o', '%(id)s.%(ext)s', url[0]]
-					await spawnAsync( 'yt-dlp', args, { cwd: TEMP_FOLDER } )
 
-					args.unshift( '--get-filename' )
-					const pathPromise = spawnAsync( 'yt-dlp', args, { cwd: TEMP_FOLDER } )
-						.then( path => {
-							cache.set( key, path )
-							return path
-						})
+					const pathPromise = spawnAsync( 'yt-dlp', [...args, '--get-filename'], { cwd: TEMP_FOLDER } )
+						.then( path => spawnAsync( 'yt-dlp', args, { cwd: TEMP_FOLDER } )
+							.then( stdout => {
+								if( stdout ){
+									cache.set( key, path )
+									return path
+								}
+
+								cache.delete( key )
+								return null
+							})
+						)
 						.catch( err => {
 							cache.delete( key )
 							throw err

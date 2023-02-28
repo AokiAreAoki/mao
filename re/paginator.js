@@ -23,9 +23,8 @@ class Paginator {
 		],
 		[ // second row
 			[ // toggle lock
-				function( paginator, buttons ){ // button switcher
-					return buttons[Number( paginator.authorOnly )]
-				},
+				// button switcher
+				( paginator, buttons ) => buttons[Number( paginator.authorOnly )],
 				{ // lock
 					id: `lock`,
 					label: `Lock buttons`,
@@ -113,11 +112,11 @@ class Paginator {
 		return this
 	}
 
-	setMessage( message, isExternalMessage = true ){
+	setMessage( message, _isExternalMessage = true ){
 		this.message = message
 		message.paginator = this
 
-		if( isExternalMessage )
+		if( _isExternalMessage )
 			message.edit( this.getPageContent() )
 
 		message.edit({ components: this.getButtons() })

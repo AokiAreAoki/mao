@@ -1,11 +1,13 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias
 module.exports = {
-	init(){
+	init({ addCommand }){
 		const { currency_converter: token } = require( '@/tokens.yml' )
 		const axios = require( 'axios' )
 		const MM = require( '@/instances/message-manager' )
+		const Embed = require( '@/functions/Embed' )
 		const numsplit = require( '@/functions/numsplit' )
+		const prettyRound = require( '@/functions/prettyRound' )
 
 		const convertRE = /\b(\d[\d\s_,]*(?:\.[\d\s_,]+)?(?:e-?\d+)?)?\s*(\w{3})\s*to\s*(\w{3})\b/gi
 		const numSplitterRE = /[\s_,]+/g
@@ -31,6 +33,22 @@ module.exports = {
 
 			return rates
 		}
+
+		addCommand({
+			aliases: 'currencies crns',
+			description: 'returns list of all available currencies',
+			callback: async msg => msg.send( Embed()
+				.setTitle( "Available currencies" )
+				.setDescription( Object.keys( await getCurrencies() )
+					.map( c => `\`${c}\`` )
+					.join( ', ' ),
+				)
+				.addFields([{
+					name: `Usage`,
+					value: `• \`[<number>] <currency1> to <currency2>\`.`,
+				}])
+			),
+		})
 
 		MM.pushHandler( 'currency-converter', false, async msg => {
 			const expressions = Array.from( msg.content.matchAll( convertRE ) )
@@ -59,13 +77,8 @@ module.exports = {
 					if( isNaN( value ) || isNaN( rate ) )
 						return
 
-					let value2 = value * rate
-					let zeros = value2 < 1 ? 1e3 : 1e2
-
-					if( value2 >= 1e-3 )
-						value2 = Math.round( value2 * zeros ) / zeros
-
-					return `${numsplit( value )} ${a} is ${numsplit( value2 )} ${b}`
+					const value2 = value * rate
+					return `${numsplit( value )} ${a} is ${numsplit( prettyRound( value2 ) )} ${b}`
 				})
 				.filter( rate => {
 					if( !rate )

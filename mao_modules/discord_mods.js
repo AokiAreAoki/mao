@@ -329,10 +329,10 @@ module.exports = {
 		}
 
 		/// Advanced setActivity
-		let repeat,
-			quota = 0,
-			quotaReset = 0,
-			lastRequest = 0
+		let repeat
+		let quota = 0
+		let quotaReset = 0
+		let lastRequest = 0
 
 		discord.ClientUser.prototype.original_setActivity = discord.ClientUser.prototype.setActivity
 		discord.ClientUser.prototype.setActivity = function( name, options ){

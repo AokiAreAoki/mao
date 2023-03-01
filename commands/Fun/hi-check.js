@@ -26,10 +26,10 @@ module.exports = {
 				await msg.getReferencedMessage()
 					.then( ref => ref && msgs.unshift( ref ) )
 
-				const hiMsg = msgs.find( m => /hi+/i.test( m.content ) )
+				const hiMsg = msgs.find( m => /\bhi+\b/i.test( m.content ) )
 
 				if( hiMsg ){
-					const state = states.at( hiMsg.content.matchFirst( /h(i+)/i ).length - 1 ) || states.at(-1)
+					const state = states.at( hiMsg.content.matchFirst( /\bh(i+)\b/i ).length - 1 ) || states.at(-1)
 					return hiMsg.send( start + state )
 				}
 

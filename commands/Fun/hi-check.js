@@ -2,8 +2,6 @@
 require = global.alias
 module.exports = {
 	init({ addCommand }){
-
-		const start = "This person is "
 		const states = [
 			"normal",
 			"lgbt",
@@ -19,14 +17,18 @@ module.exports = {
 			aliases: 'hi-check check-hi hi',
 			description: 'determines a state of a person by their `hi`',
 			callback: async msg => {
-				const msgs = await msg.channel.messages.fetch({ limit: 100, before: msg.id })
-					.then( c => c.toArray() )
-					.catch( () => [] )
+				const msgs = await msg.channel.messages.fetch({
+					limit: 100,
+					before: msg.id,
+				}).catch( () => [] )
 
 				await msg.getReferencedMessage()
 					.then( ref => ref && msgs.unshift( ref ) )
 
-				const hiMsg = msgs.find( m => m.id !== msg.id && !msg.isCommand && /\bhi+\b/i.test( m.content ) )
+				const hiMsg = msgs.find( m => m.id !== msg.id
+					&& !m.isCommand
+					&& /\bhi+\b/i.test( m.content )
+				)
 
 				return hiMsg
 					? msg.send([

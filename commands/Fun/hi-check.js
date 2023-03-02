@@ -26,7 +26,7 @@ module.exports = {
 				await msg.getReferencedMessage()
 					.then( ref => ref && msgs.unshift( ref ) )
 
-				const hiMsg = msgs.find( m => m.id !== msg.id && /\bhi+\b/i.test( m.content ) )
+				const hiMsg = msgs.find( m => m.id !== msg.id && !msg.isCommand && /\bhi+\b/i.test( m.content ) )
 
 				return hiMsg
 					? msg.send([

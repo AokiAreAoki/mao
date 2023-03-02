@@ -28,12 +28,13 @@ module.exports = {
 
 				const hiMsg = msgs.find( m => /\bhi+\b/i.test( m.content ) )
 
-				if( hiMsg ){
-					const state = states.at( hiMsg.content.matchFirst( /\bh(i+)\b/i ).length - 1 ) || states.at(-1)
-					return hiMsg.send( start + state )
-				}
-
-				return msg.send( "No `hi`s found" )
+				return hiMsg
+					? msg.send([
+						hiMsg.author.toString(),
+						'is',
+						states.at( hiMsg.content.matchFirst( /\bh(i+)\b/i ).length - 1 ) || states.at(-1),
+					].join( ' ' ) )
+					: msg.send( "No `hi`s found" )
 			}
 		})
 	}

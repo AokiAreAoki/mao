@@ -6,6 +6,8 @@ module.exports = {
 		const MM = require( '@/instances/message-manager' )
 		const timer = require( '@/re/timer' )
 
+		const HI_LIFETIME = 600e3
+		const COOLDOWN = 900e3
 		const states = [
 			"normal",
 			"lgbt",
@@ -48,7 +50,7 @@ module.exports = {
 				return
 
 			const lvl = hiLvl( msg.content )
-			const deadline = Date.now() + 60e3
+			const deadline = Date.now() + HI_LIFETIME
 
 			streak.deadline = deadline
 			streak.entries = streak.entries.filter( e => e.deadline > Date.now() )
@@ -67,7 +69,7 @@ module.exports = {
 					'is having a ketamine overdose',
 				].join( ' ' ) )
 
-				streak.deadline = streak.cooldown = Date.now() + 120e3
+				streak.deadline = streak.cooldown = Date.now() + COOLDOWN
 			}
 		})
 

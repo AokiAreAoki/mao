@@ -93,7 +93,7 @@ module.exports = {
 					? msg.send([
 						hiMsg.author.toString(),
 						'is',
-						states.at( hiLvl( hiMsg ) ) || states.at(-1),
+						states.at( hiLvl( hiMsg.content ) ) || states.at(-1),
 					].join( ' ' ) )
 					: msg.send( "No `hi`s found" )
 			}

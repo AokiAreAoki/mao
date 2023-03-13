@@ -74,7 +74,7 @@ module.exports = {
 		})
 
 		addCommand({
-			aliases: 'hi-check check-hi hi',
+			aliases: 'hi-check check-hi',
 			description: 'determines a state of a person by their `hi`',
 			callback: async msg => {
 				const msgs = await msg.channel.messages.fetch({

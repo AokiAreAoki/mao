@@ -8,7 +8,7 @@ module.exports = {
 
 		addCommand({
 			aliases: 'update-slash',
-			description: 'updates remove slash commands',
+			description: 'updates remote slash commands',
 			callback: async msg => {
 				const m = msg.send( processing() )
 

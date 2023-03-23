@@ -61,8 +61,6 @@ module.exports = {
 				streak.entries.reduce( ( sum, entry ) => sum + entry.lvl, 0 ) / streak.entries.length
 			)
 
-			console.log( '- Streak:', streak, sumLvl )
-
 			if( sumLvl + streak.entries.length * 2 > 10 ){
 				msg.send([
 					msg.author.toString(),

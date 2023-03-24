@@ -177,10 +177,6 @@ module.exports = {
 						.then( async path => {
 							const stdout = await ytdl( url[0], flags )
 							cache.set( key, path )
-
-							console.log( 'stdout:', stdout )
-							console.log( 'ytdl:', path )
-
 							return path
 						})
 						.catch( err => {

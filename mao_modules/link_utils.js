@@ -8,9 +8,9 @@ module.exports = {
 		const cp = require( 'child_process' )
 		const fs = require( 'fs' )
 		const processing = require( '@/functions/processing' )
-		const discord = require( 'discord.js' )
 		const { join } = require( 'path' )
 		const binarySearch = require( '@/functions/binarySearch' )
+		const ytdl = require( 'youtube-dl-exec' )
 
 		const cacheTimeout = 2 * 24 * 3600e3
 
@@ -86,10 +86,10 @@ module.exports = {
 
 		function spawnAsync( program, args, options ){
 			return new Promise( resolve => {
-				const ytdl = cp.spawn( program, args, options )
+				const process = cp.spawn( program, args, options )
 				let stdout = ''
-				ytdl.stdout.on( 'data', chunk => stdout += chunk )
-				ytdl.once( 'exit', code => resolve( code === 0 ? stdout : null ) )
+				process.stdout.on( 'data', chunk => stdout += chunk )
+				process.once( 'exit', code => resolve( code === 0 ? stdout : null ) )
 			})
 		}
 
@@ -163,20 +163,26 @@ module.exports = {
 							return path
 					}
 
-					const args = ['-o', '%(id)s.%(ext)s', url[0]]
+					// const format = `webm`
+					const flags = {
+						// recodeVideo: format,
+						formatSort: `codec:h264`,
+						o: join( TEMP_FOLDER, `%(id)s.%(ext)s` ),
+					}
 
-					const pathPromise = spawnAsync( 'yt-dlp', [...args, '--get-filename'], { cwd: TEMP_FOLDER } )
-						.then( path => spawnAsync( 'yt-dlp', args, { cwd: TEMP_FOLDER } )
-							.then( stdout => {
-								if( stdout ){
-									cache.set( key, path )
-									return path
-								}
+					const pathPromise = ytdl( url[0], {
+						...flags,
+						getFilename: true,
+					})
+						.then( async path => {
+							const stdout = await ytdl( url[0], flags )
+							cache.set( key, path )
 
-								cache.delete( key )
-								return null
-							})
-						)
+							console.log( 'stdout:', stdout )
+							console.log( 'ytdl:', path )
+
+							return path
+						})
 						.catch( err => {
 							cache.delete( key )
 							throw err
@@ -190,12 +196,12 @@ module.exports = {
 					.map( paths => paths?.split( '\n' ) )
 					.flat(1)
 					.filter( s => !!s )
-					.map( path => new discord.Attachment( join( TEMP_FOLDER, path ), path ) )
+					// .map( path => join( TEMP_FOLDER, path ) )
 			},
 		]
 
 		const caches = {}
-		utils.forEach( callback => caches[callback] = new TempCache( cacheTimeout ) )
+		utils.forEach( ( _, i ) => caches[i] = new TempCache( cacheTimeout ) )
 
 		MM.pushHandler( 'link_utils', false, async msg => {
 			if( msg.author.bot || msg.author.id === client.user.id )
@@ -213,16 +219,19 @@ module.exports = {
 			}
 
 			const files = []
-			const content = await Promise.all( utils.map( util => util( msg, caches[util], react ) ) )
+			const content = await Promise.all( utils.map( ( util, i ) => util( msg, caches[i], react ) ) )
 				.then( links => links
 					.flat(1)
 					.filter( link => {
-						if( link instanceof discord.Attachment ){
-							files.push( join( TEMP_FOLDER, link ) )
+						if( !link )
+							return false
+
+						if( !link.toLowerCase().startsWith( 'http' ) ){
+							files.push( link )
 							return false
 						}
 
-						return !!link
+						return true
 					})
 					.join( '\n' )
 				)

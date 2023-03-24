@@ -218,7 +218,7 @@ module.exports = {
 					.flat(1)
 					.filter( link => {
 						if( link instanceof discord.Attachment ){
-							files.push( link )
+							files.push( join( TEMP_FOLDER, link ) )
 							return false
 						}
 

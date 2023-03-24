@@ -175,7 +175,7 @@ module.exports = {
 						getFilename: true,
 					})
 						.then( async path => {
-							const stdout = await ytdl( url[0], flags )
+							await ytdl( url[0], flags )
 							cache.set( key, path )
 							return path
 						})

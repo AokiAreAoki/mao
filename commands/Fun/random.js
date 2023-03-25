@@ -41,7 +41,7 @@ module.exports = {
 				let numbers = []
 
 				for( let i = 0; i < x; ++i )
-					numbers.push( min + Math.round( Math.random() * ( max - 1 ) ) + 1 )
+					numbers.push( min + Math.floor( Math.random() * ( max + 1 - min ) ) )
 
 				msg.send( `**${msg.member.displayName}** rolled **${numbers.join( '**, **' )}**` )
 			},

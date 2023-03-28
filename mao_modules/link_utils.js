@@ -144,6 +144,7 @@ module.exports = {
 				let links = [
 					/https?:\/\/(?:\w+\.)?(reddit)\.com\/r\/(\S+)/gmi,
 					/https?:\/\/(?:\w+\.)?(tiktok)\.com\/(\w+)/gmi,
+					/https?:\/\/(?:\w+\.)?(instagram)\.com\/reel\/(\w+)/gmi,
 				]
 					.map( re => Array.from( msg.content.matchAll( re ) ) )
 					.flat(1)

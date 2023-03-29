@@ -127,9 +127,8 @@ module.exports = {
 							cache.set( key, directLink )
 							return directLink
 						})
-						.catch( err => {
-							cache.delete( key )
-							throw err
+						.catch( () => {
+							cache.set( null )
 						})
 
 					cache.set( key, directLinkPromise )

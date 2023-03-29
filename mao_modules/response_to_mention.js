@@ -53,7 +53,7 @@ module.exports = {
 			if( msg.content.matchFirst( /(thanks?|thx)\s*mao/ ) )
 				return msg.send( 'no problem', 0 )
 
-			if( msg.content.matchFirst( /(who|hu)/ ) ){
+			if( msg.content.matchFirst( /^(who|hu)$/ ) ){
 				if( msg.author.huCD && msg.author.huCD > Date.now() )
 					return
 

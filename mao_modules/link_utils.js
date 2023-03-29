@@ -84,6 +84,7 @@ module.exports = {
 			}
 		}
 
+		// eslint-disable-next-line no-unused-vars
 		function spawnAsync( program, args, options ){
 			return new Promise( resolve => {
 				const process = cp.spawn( program, args, options )

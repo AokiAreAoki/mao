@@ -8,7 +8,9 @@ module.exports = {
 
 		const responses = [
 			`%user`,
+			`(yes|no)`,
 			`(Hi|Yes), (%user|cutie)~`,
+			`who`,
 			`no u`,
 			`nya(~)?`,
 			`?`,
@@ -50,6 +52,18 @@ module.exports = {
 
 			if( msg.content.matchFirst( /(thanks?|thx)\s*mao/ ) )
 				return msg.send( 'no problem', 0 )
+
+			if( msg.content.matchFirst( /(who|hu)/ ) ){
+				if( msg.author.huCD && msg.author.huCD > Date.now() )
+					return
+
+				msg.author.huCD = Date.now() + 10e3
+				const text = Math.random() < .75
+					? 'tao'
+					: 'tao, yeah'
+
+				return msg.send( text, 0 )
+			}
 
 			const mention = msg.content.matchFirst( mentionRE )
 

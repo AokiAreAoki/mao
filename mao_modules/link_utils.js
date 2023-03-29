@@ -121,7 +121,7 @@ module.exports = {
 					if( cache.get( key ) )
 						return cache.get( key ).value
 
-					const directLinkPromise = spawnAsync( 'yt-dlp', ['--get-url', url[0]] )
+					const directLinkPromise = ytdl( url[0], { getUrl: true } )
 						.then( directLink => {
 							cache.set( key, directLink )
 							return directLink

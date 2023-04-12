@@ -24,7 +24,7 @@ const client = new discord.Client({
 	}),
 	intents: [
 		discord.IntentsBitField.Flags.Guilds,
-		discord.IntentsBitField.Flags.GuildMessages,
+		discord.IntentsBitField.Flags.GuildMembers,
 		discord.IntentsBitField.Flags.GuildIntegrations,
 		discord.IntentsBitField.Flags.GuildVoiceStates,
 		discord.IntentsBitField.Flags.GuildMessages,

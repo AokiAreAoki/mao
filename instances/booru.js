@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias
+const HttpsProxyAgent = require( 'https-proxy-agent' )
 const bakadb = require( '@/instances/bakadb' )
 const Booru = require( '@/re/booru-wrapper' )
 const TagCacher = require( '@/re/tag-cacher' )
@@ -60,6 +61,12 @@ Booru.Picture.prototype.embed = function({
 		.setImage( this.unsupportedExtension ? this.thumbnail : this.sample )
 }
 
+const httpsAgent = new HttpsProxyAgent({
+	host: 'proxy.antizapret.prostovpn.org',
+	port: '80',
+	// auth: 'username:password',
+})
+
 const Gelbooru = new Booru({
 	...config.boorus.gelbooru.posts,
 	keys: {
@@ -88,6 +95,7 @@ const Gelbooru = new Booru({
 	},
 })
 
+Gelbooru.httpsAgent = httpsAgent
 Gelbooru.tagCacher = new TagCacher( config.boorus.gelbooru.tags )
 Gelbooru.tagCacher.tags = bakadb.fallback({
 	path: 'tags/gelbooru',
@@ -116,6 +124,7 @@ const Yandere = new Booru({
 	},
 })
 
+Yandere.httpsAgent = httpsAgent
 Yandere.tagCacher = Gelbooru.tagCacher
 
 ///// sucks balls

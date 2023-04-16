@@ -1,13 +1,8 @@
-const axios = require( 'axios' ).create()
+const axios = require( 'axios' )
 const axiosRetry = require( 'axios-retry' )
 const _ = require( 'lodash' )
 const Picture = require( './picture' )
 const BooruResponse = require( './response' )
-
-axiosRetry( axios, {
-	retries: 5,
-	retryDelay: axiosRetry.exponentialDelay,
-})
 
 function resolveOptions( options, target, keys ){
 	for( const prop of keys ){
@@ -69,6 +64,8 @@ class Booru {
 	keys = {} // Response keys
 	tag_fetcher = async v => v // fetches tag data
 	remove_other_keys = false
+	retries = 5
+	httpsAgent
 
 	// where's array of pics located at
 	set path_to_pics( path ){
@@ -91,6 +88,15 @@ class Booru {
 			this.url = this.url.replace( /\/*$/, '' )
 		else
 			throw Error( 'No URL specified' )
+
+		this.axios = axios.create({
+			httpsAgent: this.httpsAgent
+		})
+
+		axiosRetry( this.axios, {
+			retries: this.retries,
+			retryDelay: axiosRetry.exponentialDelay,
+		})
 	}
 
 	async posts( tags, page, limit ){
@@ -110,7 +116,7 @@ class Booru {
 			status,
 			statusText,
 			data,
-		} = await axios.get( this.url, { params } )
+		} = await this.axios.get( this.url, { params } )
 
 		if( status !== 200 )
 			throw Error( statusText )

@@ -184,8 +184,11 @@ module.exports = {
 
 			// post
 			async post( filter, refetchPosted = false ){
+				console.log( 'Posting dailies...' )
+
 				const today = this.currentDay()
 				const guilds = this.buildTree( filter )
+				const totalDailies = this.getDailies( filter ).length
 
 				for( const gid in guilds ){
 					const {
@@ -207,14 +210,12 @@ module.exports = {
 							defaultValue: 0,
 						})
 
-						console.log( 'Posting dailies...' )
-
 						dailies.reduce( async ( prevMessage, daily, index ) => {
 							await prevMessage
 							let minDelay = Promise.resolve()
 
 							function logProgress( text ){
-								console.log( `- [${index + 1}/${dailies.length}] ${text}` )
+								console.log( `- [${index + 1}/${totalDailies}] ${text}` )
 							}
 
 							async function getContent(){

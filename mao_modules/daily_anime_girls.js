@@ -188,6 +188,8 @@ module.exports = {
 
 				const today = this.currentDay()
 				const guilds = this.buildTree( filter )
+
+				let index = 0
 				const totalDailies = this.getDailies( filter ).length
 
 				for( const gid in guilds ){
@@ -210,12 +212,12 @@ module.exports = {
 							defaultValue: 0,
 						})
 
-						dailies.reduce( async ( prevMessage, daily, index ) => {
+						dailies.reduce( async ( prevMessage, daily ) => {
 							await prevMessage
 							let minDelay = Promise.resolve()
 
 							function logProgress( text ){
-								console.log( `- [${index + 1}/${totalDailies}] ${text}` )
+								console.log( `- [${++index}/${totalDailies}] ${text}` )
 							}
 
 							async function getContent(){

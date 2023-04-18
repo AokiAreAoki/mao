@@ -61,6 +61,14 @@ Booru.Picture.prototype.embed = function({
 		.setImage( this.unsupportedExtension ? this.thumbnail : this.sample )
 }
 
+/** Proxies:
+ * proxy.antizapret.prostovpn.org
+ * proxy-ssl.antizapret.prostovpn.org
+ * proxy-fbtw-ssl.antizapret.prostovpn.org
+ * proxy-nossl.antizapret.prostovpn.org
+ * vpn.antizapret.prostovpn.org
+ */
+
 const httpsAgent = new HttpsProxyAgent({
 	host: 'proxy.antizapret.prostovpn.org',
 	port: '80',

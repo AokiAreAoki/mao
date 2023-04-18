@@ -183,11 +183,9 @@ module.exports = {
 			},
 
 			// post
-			async post( filter ){
+			async post( filter, refetchPosted = false ){
 				const today = this.currentDay()
 				const guilds = this.buildTree( filter )
-
-				// this.undo( filter )
 
 				for( const gid in guilds ){
 					const {
@@ -209,20 +207,31 @@ module.exports = {
 							defaultValue: 0,
 						})
 
-						dailies.reduce( async ( prevMessage, daily ) => {
+						console.log( 'Posting dailies...' )
+
+						dailies.reduce( async ( prevMessage, daily, index ) => {
 							await prevMessage
-							const minDelay = new Promise( resolve => setTimeout( resolve, delay ) )
+							let minDelay = Promise.resolve()
 
-							const post = await this.fetch( daily, today )
+							function logProgress( text ){
+								console.log( `- [${index + 1}/${dailies.length}] ${text}` )
+							}
 
-							if( !( daily.history instanceof Array ) )
-								daily.history = []
+							async function getContent(){
+								minDelay = new Promise( resolve => setTimeout( resolve, delay ) )
+								const post = await this.fetch( daily, today )
 
-							const content = {
-								content: null,
-								embeds: [
-									post.embed({ linkTitle: `Daily ${daily.title}` }),
-								],
+								if( !( daily.history instanceof Array ) )
+									daily.history = []
+
+								const content = {
+									content: null,
+									embeds: [
+										post.embed({ linkTitle: `Daily ${daily.title}` }),
+									],
+								}
+
+								return content
 							}
 
 							daily.history = daily.history.filter( entry => entry.day === today )
@@ -232,11 +241,21 @@ module.exports = {
 							if( lastEntry )
 								message = await client.channels.resolve( lastEntry.channel )
 									?.messages.fetch( lastEntry.message )
-									.then( m => m.edit( content ) )
+									.then( async m => {
+										if( refetchPosted ){
+											logProgress( `re-fetching...` )
+											return m.edit( await getContent() )
+										}
+
+										logProgress( `skipped.` )
+										return m
+									})
 									.catch( () => null )
 
-							if( !message )
-								message = await channel.send( content )
+							if( !message ){
+								logProgress( `fetching...` )
+								message = await channel.send( await getContent() )
+							}
 
 							const entry = {
 								day: today,

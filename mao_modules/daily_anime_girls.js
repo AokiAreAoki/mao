@@ -220,9 +220,9 @@ module.exports = {
 								console.log( `- [${++index}/${totalDailies}] ${text}` )
 							}
 
-							async function getContent(){
+							async function getContent( post ){
 								minDelay = new Promise( resolve => setTimeout( resolve, delay ) )
-								const post = await this.fetch( daily, today )
+								post = await post
 
 								if( !( daily.history instanceof Array ) )
 									daily.history = []
@@ -247,7 +247,7 @@ module.exports = {
 									.then( async m => {
 										if( refetchPosted ){
 											logProgress( `re-fetching...` )
-											return m.edit( await getContent() )
+											return m.edit( await getContent( this.fetch( daily, today ) ) )
 										}
 
 										logProgress( `skipped.` )
@@ -257,7 +257,7 @@ module.exports = {
 
 							if( !message ){
 								logProgress( `fetching...` )
-								message = await channel.send( await getContent() )
+								message = await channel.send( await getContent( this.fetch( daily, today ) ) )
 							}
 
 							const entry = {

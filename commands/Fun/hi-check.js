@@ -20,12 +20,12 @@ module.exports = {
 		]
 
 		const hasHi = string => /(\bhi+|:3+)\b/i.test( string )
-		const hiLvl = string => {
-			const match = string.match( /(?:\bh(i+)|:(3+))\b/i )
-			return match
+		const hiLvl = string => Array.from( string.matchAll( /(?:\bh(i+)|:(3+))\b/gi ) )
+			.map( match => match
 				? ( match[1] || match[2] ).length - 1
 				: 0
-		}
+			)
+			.reduce( ( acc, lvl ) => acc + lvl, 0 )
 
 		let streaks = new Collection()
 

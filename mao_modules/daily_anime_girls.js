@@ -212,8 +212,7 @@ module.exports = {
 							defaultValue: 0,
 						})
 
-						dailies.reduce( async ( prevMessage, daily ) => {
-							await prevMessage
+						const postDaily = async daily => {
 							let minDelay = Promise.resolve()
 
 							function logProgress( text ){
@@ -279,6 +278,14 @@ module.exports = {
 							daily.history.push( entry )
 							bakadb.save()
 							return minDelay
+						}
+
+						dailies.reduce( async ( prevMessage, daily ) => {
+							await prevMessage
+							await postDaily( daily )
+								.catch( err => {
+									process.emit( `unhandledRejection`, err )
+								})
 						}, Promise.resolve() )
 					}
 				}

@@ -74,6 +74,27 @@ module.exports = {
 			return Array.from( this.values() )
 		}
 
+		/// EmbedBuilder ///
+
+		// EmbedBuilder.setDescription
+		discord.EmbedBuilder.prototype.original_setDescription = discord.EmbedBuilder.prototype.setDescription
+		discord.EmbedBuilder.prototype.setDescription = function( description ){
+			this.original_addFields( cutIfLimit( description, 4096 ) )
+		}
+
+		// EmbedBuilder.addFields
+		discord.EmbedBuilder.prototype.original_addFields = discord.EmbedBuilder.prototype.addFields
+		discord.EmbedBuilder.prototype.addFields = function( ...fields ){
+			fields = fields.flat(1)
+
+			fields.forEach( field => {
+				field.name = cutIfLimit( field.name, 256 )
+				field.value = cutIfLimit( field.value, 1024 )
+			})
+
+			this.original_addFields( fields )
+		}
+
 		/// TextChannel ///
 
 		// TextChannel.cacheLastMessages

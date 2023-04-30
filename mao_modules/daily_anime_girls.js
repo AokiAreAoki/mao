@@ -184,7 +184,10 @@ module.exports = {
 
 			// post
 			async post( filter, refetchPosted = false ){
-				console.log( 'Posting dailies...' )
+				console.log( refetchPosted
+					? `[DAG] re-posting...`
+					: `[DAG] posting...`
+				)
 
 				const today = this.currentDay()
 				const guilds = this.buildTree( filter )
@@ -280,15 +283,24 @@ module.exports = {
 							return minDelay
 						}
 
-						dailies.reduce( async ( prevMessage, daily ) => {
+						await dailies.reduce( async ( prevMessage, daily ) => {
 							await prevMessage
+								.catch( err => {
+									process.emit( `unhandledRejection`, err )
+									throw err
+								})
+
 							await postDaily( daily )
 								.catch( err => {
 									process.emit( `unhandledRejection`, err )
+									throw err
 								})
 						}, Promise.resolve() )
 					}
 				}
+
+				if( index === 0 )
+					console.log( `[DAG] everything is already posted` )
 			},
 
 			// undo

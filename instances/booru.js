@@ -33,22 +33,30 @@ Booru.Picture.prototype.embed = function({
 		const fields = displayTags
 			? Array.from( types.entries(), ([type, tags]) => ({
 				name: type,
-				value: tags.map( tag => `\`${tag.name}\`` ).join( ', ' ),
+				value: tags
+					.map( tag => `\`${tag.name}\`` )
+					.join( ', ' ),
 			}))
 			: displayableTagTypes.map( type => ({
 				name: type,
-				value: types.get( type ).map( tag => `\`${tag.name}\`` ).join( '\n' ),
+				value: types
+					.get( type )
+					.map( tag => `\`${tag.name}\`` )
+					.join( ', ' ),
 			}))
 
-		fields.push({
-			name: 'rating',
-			value: `\`${this.rating}\``,
-			inline: true,
-		}, {
-			name: 'score',
-			value: `\`${this.score}\``,
-			inline: true,
-		})
+		fields.push(
+			{
+				name: 'rating',
+				value: `\`${this.rating}\``,
+				inline: true,
+			},
+			{
+				name: 'score',
+				value: `\`${this.score}\``,
+				inline: true,
+			},
+		)
 
 		embed.addFields( fields.filter( field => !!field.value ) )
 	}

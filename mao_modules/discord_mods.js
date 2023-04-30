@@ -79,7 +79,7 @@ module.exports = {
 		// EmbedBuilder.setDescription
 		discord.EmbedBuilder.prototype.original_setDescription = discord.EmbedBuilder.prototype.setDescription
 		discord.EmbedBuilder.prototype.setDescription = function( description ){
-			return this.original_addFields( cutIfLimit( description, 4096 ) )
+			return this.original_setDescription( cutIfLimit( description, 4096 ) )
 		}
 
 		// EmbedBuilder.addFields

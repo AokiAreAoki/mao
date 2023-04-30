@@ -270,8 +270,8 @@ module.exports = {
 
 							if( lastEntry )
 								daily.history.forEach( async entry => {
-									await client.channels.resolve( lastEntry.channel )
-										.messages.fetch( lastEntry.message )
+									await client.channels.resolve( entry.channel )
+										.messages.fetch( entry.message )
 										.then( m => m.delete() )
 
 									daily.history.splice( daily.history.indexOf( entry ), 1 )

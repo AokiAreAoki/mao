@@ -6,11 +6,18 @@ module.exports = {
 		const discord = require( 'discord.js' )
 		const Embed = require( '@/functions/Embed' )
 
-		const emojiID = `1063048589770756136`
-		const redeemLink = `https://genshin.hoyoverse.com/m/en/gift?code=`
+		const primogemEmojiID = `1063048589770756136`
+		const stellarJadeEmojiID = `1112055114916696114`
+
+		const GIRedeemLink = `https://genshin.hoyoverse.com/m/en/gift?code=`
+		const HSRRedeemLink = `https://hsr.hoyoverse.com/gift?code=`
 
 		addCommand({
 			aliases: 'redeem-codes codes',
+			flags: [
+				['gi', 'codes for genshin impact'],
+				['hsr', 'codes for honkai star rail'],
+			],
 			description: {
 				single: `sends fancy message with code redeem links`,
 				usages: [
@@ -22,6 +29,26 @@ module.exports = {
 
 				if( codes.length === 0 )
 					return msg.send( `Give me some codes` )
+
+				const gi = args.flags.gi.specified
+				const hsr = args.flags.hsr.specified
+				let redeemLink, emojiID
+
+				if( gi ){
+					if( hsr ){
+						msg.send( `You can't specify both flags` )
+						return
+					}
+
+					redeemLink = GIRedeemLink
+					emojiID = primogemEmojiID
+				} else if( hsr ){
+					redeemLink = HSRRedeemLink
+					emojiID = stellarJadeEmojiID
+				} else {
+					msg.send( `Please specify for which game those code(s) are using one of the following flags: \`--gi\`, \`--hsr\`` )
+					return
+				}
 
 				const emoji = client.emojis.resolve( emojiID )
 				const components = codes

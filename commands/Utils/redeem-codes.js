@@ -35,10 +35,8 @@ module.exports = {
 				let redeemLink, emojiID
 
 				if( gi ){
-					if( hsr ){
-						msg.send( `You can't specify both flags` )
-						return
-					}
+					if( hsr )
+						return msg.send( `You can't specify both flags` )
 
 					redeemLink = GIRedeemLink
 					emojiID = primogemEmojiID
@@ -46,8 +44,7 @@ module.exports = {
 					redeemLink = HSRRedeemLink
 					emojiID = stellarJadeEmojiID
 				} else {
-					msg.send( `Please specify for which game those code(s) are using one of the following flags: \`--gi\`, \`--hsr\`` )
-					return
+					return msg.send( `Please specify for which game those code(s) are using one of the following flags: \`--gi\`, \`--hsr\`` )
 				}
 
 				const emoji = client.emojis.resolve( emojiID )

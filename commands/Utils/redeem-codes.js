@@ -12,6 +12,9 @@ module.exports = {
 		const GIRedeemLink = `https://genshin.hoyoverse.com/m/en/gift?code=`
 		const HSRRedeemLink = `https://hsr.hoyoverse.com/gift?code=`
 
+		const description = `sends fancy message with code redeem link(s)`
+		const pleaseSpecifyFlag = `Please specify for which game those code(s) are using one of flags`
+
 		addCommand({
 			aliases: 'redeem-codes codes',
 			flags: [
@@ -19,9 +22,13 @@ module.exports = {
 				['hsr', 'codes for honkai star rail'],
 			],
 			description: {
-				single: `sends fancy message with code redeem links`,
+				short: description,
+				full: [
+					description,
+					pleaseSpecifyFlag,
+				],
 				usages: [
-					[`<...codes>`, ``],
+					[`<...codes>`, `<--gi|--hsr>`, ``],
 				],
 			},
 			callback( msg, args ){
@@ -44,7 +51,7 @@ module.exports = {
 					redeemLink = HSRRedeemLink
 					emojiID = stellarJadeEmojiID
 				} else {
-					return msg.send( `Please specify for which game those code(s) are using one of the following flags: \`--gi\`, \`--hsr\`` )
+					return msg.send( pleaseSpecifyFlag )
 				}
 
 				const emoji = client.emojis.resolve( emojiID )

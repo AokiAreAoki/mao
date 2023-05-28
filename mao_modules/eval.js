@@ -13,8 +13,10 @@ module.exports = {
 		const MM = require( '@/instances/message-manager' )
 		const cb = require( '@/functions/cb' )
 		const numsplit = require( '@/functions/numsplit' )
+		const processing = require( '@/functions/processing' )
 		const includeFiles = require( '@/functions/includeFiles' )
 		const printify = require( '@/re/printifier' )
+		const Response = require( '@/re/response' )
 
 		let evalPrefix = /^>>+\s*/i
 
@@ -128,6 +130,8 @@ module.exports = {
 				let prefix = said.matchFirst( evalPrefix )
 				let ref = await msg.getReferencedMessage()
 
+				const response = new Response( msg )
+
 				if( prefix )
 					said = said.substring( prefix.length )
 				else if( !db.evalall?.[msg.author.id] )
@@ -172,11 +176,6 @@ module.exports = {
 						})
 					}
 
-					// eslint-disable-next-line no-inner-declarations
-					function say( ...args ){
-						return msg.send( ...args )
-					}
-
 					if( !evalFlags.noparse ){
 						code = code
 							.replace( /<@!?(\d+)>/gi, `( here.guild.members.cache.get('$1') || client.users.cache.get('$1') )` ) // Member || User
@@ -195,9 +194,12 @@ module.exports = {
 							})
 					}
 
-					evaled = evalFlags.dontawait
-						? eval( code )
-						: await eval( code )
+					evaled = eval( code )
+
+					if( !evalFlags.dontawait && evaled instanceof Promise ){
+						await response.update( processing( `Pending promise...` ) )
+						evaled = await evaled
+					}
 
 					const doPrint = !!( () => {
 						if( evalFlags.whats ){
@@ -273,7 +275,7 @@ module.exports = {
 									case 'Embed':
 									case 'EmbedBuilder':
 									case 'Jimp':
-										msg.send( evaled )
+										response.update( evaled )
 										return
 
 									case 'Array':
@@ -322,13 +324,13 @@ module.exports = {
 						if( doPrint )
 							print( evaled )
 
-						msg.sendcb( __output )
+						response.update( cb( __output ) )
 						msg.isCommand = true
 					} else if( doPrint ){
 						if( !evalFlags.cb && !msg.member.permissions.has( discord.PermissionsBitField.Flags.EmbedLinks ) )
 							evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
 
-						await msg.send( evalFlags.cb ? cb( evaled, evalFlags.cb.value ) : evaled )
+						await response.update( evalFlags.cb ? cb( evaled, evalFlags.cb.value ) : evaled )
 						msg.isCommand = true
 						return abortHQ()
 					}
@@ -337,9 +339,9 @@ module.exports = {
 				} catch( err ){
 					if( __printerr ){
 						if( err )
-							msg.sendcb( err?.stack )
+							response.update( cb( err?.stack ) )
 						else
-							msg.send( `OK, i caught the error but somewhat i've got ${err} instead of error...` )
+							response.update( `OK, i caught the error but somewhat i've got ${err} instead of error...` )
 
 						return abortHQ()
 					}

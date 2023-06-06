@@ -1,6 +1,8 @@
 maoclr: 0x970045
 log_channel: '893430789306470430'
 
+socksProxy: socks5://172.16.1.177:1080
+
 boorus:
     gelbooru:
         posts:

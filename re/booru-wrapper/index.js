@@ -65,7 +65,7 @@ class Booru {
 	tag_fetcher = async v => v // fetches tag data
 	remove_other_keys = false
 	retries = 5
-	httpsAgent
+	proxyAgent
 
 	// where's array of pics located at
 	set path_to_pics( path ){
@@ -90,7 +90,8 @@ class Booru {
 			throw Error( 'No URL specified' )
 
 		this.axios = axios.create({
-			httpsAgent: this.httpsAgent
+			httpAgent: this.proxyAgent,
+			httpsAgent: this.proxyAgent,
 		})
 
 		axiosRetry( this.axios, {

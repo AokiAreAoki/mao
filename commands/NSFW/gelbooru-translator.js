@@ -162,7 +162,7 @@ module.exports = {
 				return message.edit({
 					content: null,
 					embeds: [Embed()
-						.setDescription( `[Original](${pic.post_url})` )
+						.setDescription( `[Original](${pic.postURL})` )
 						.setImage( 'attachment://tr.jpg' )
 						.setFooter({ text: 'Powered by ' + Gelbooru.name })
 					],

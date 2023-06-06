@@ -9,22 +9,22 @@ boorus:
             name: gelbooru.com
             url: https://gelbooru.com/index.php
             # url: https://aoki.000webhostapp.com/glbr/
-            page_offset: 0
+            pageOffset: 0
             params:
                 tags: tags
                 page: pid
                 limit: limit
-            const_params:
+            constParams:
                 page: dapi
                 s: post
                 q: index
                 json: '1'
             limit: 100
-            path_to_pics: post
+            pathToPics: post
         tags:
             url: https://gelbooru.com/index.php
             tagParam: names
-            const_params:
+            constParams:
                 page: dapi
                 s: tag
                 q: index
@@ -41,10 +41,10 @@ boorus:
                 tags: tags
                 page: page
                 limit: limit
-            const_params:
+            constParams:
             limit: 100
         tags: # sucks balls, no bulk request support
             url: https://yande.re/tag.json
             tagParam: name
-            const_params:
+            constParams:
                 limit: 1

@@ -20,12 +20,12 @@ module.exports = class BooruResponse {
 		if( !( this.booru = options.booru ) )
 			throw Error( 'No booru specified in options' )
 
-		const keys = options.keys ?? this.booru.keys
+		const keys = options.keys ?? this.booru.config.keys
 		const remove_other_keys = options.remove_other_keys ?? this.booru.remove_other_keys
 
 		this.tags = options.tags ?? ''
-		this.page = options.page ?? this.booru.page_offset
-		this.limit = options.limit ?? this.booru.limit
+		this.page = options.page ?? this.booru.config.page_offset
+		this.limit = options.limit ?? this.booru.config.limit
 
 		if( keys ){
 			this.results = []

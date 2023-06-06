@@ -21,7 +21,7 @@ Booru.Picture.prototype.embed = function({
 	addFields = true,
 } = {} ){
 	const embed = Embed()
-	let description = title || `[${linkTitle || this.booru.name || '<unknown booru>'}](${this.post_url})`
+	let description = title || `[${linkTitle || this.booru.name || '<unknown booru>'}](${this.postURL})`
 
 	if( addFields || displayTags ){
 		const types = new Map( TagCacher.tagTypes.map( type => [type, []] ) )
@@ -69,84 +69,75 @@ Booru.Picture.prototype.embed = function({
 		.setImage( this.unsupportedExtension ? this.thumbnail : this.sample )
 }
 
-/** Proxies:
- * proxy.antizapret.prostovpn.org
- * proxy-ssl.antizapret.prostovpn.org
- * proxy-fbtw-ssl.antizapret.prostovpn.org
- * proxy-nossl.antizapret.prostovpn.org
- * vpn.antizapret.prostovpn.org
- */
+// Use proxy if launched on linux (usually means on the host)
+const torProxyAgent = process.platform === 'linux'
+	? new SocksProxyAgent( config.socksProxy )
+	: undefined
 
-const torProxyAgent = new SocksProxyAgent( config.socksProxy )
-
-const Gelbooru = new Booru({
-	...config.boorus.gelbooru.posts,
-	keys: {
-		id( post, pic, tags ){
-			tags = tags.replace( /\s+/g, '+' )
-			pic.id = post.id
-			pic.post_url = `https://gelbooru.com/index.php?page=post&s=view&id=${pic.id}&tags=${tags.replace( /\)/g, '%29' )}`
-		},
-		score: '',
-		file_url( post, pic ){
-			pic.hasSample = post.sample == 1
-			pic.sample = post.file_url
-			pic.full = post.file_url
-
-			if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
-				pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
-					? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
-					: pic.full
-			} else
-				pic.unsupportedExtension = pic.full.matchFirst( /\.(\w+)$/i ).toUpperCase()
-		},
-	},
-	remove_other_keys: false,
-	tag_fetcher( tags ){
-		return this.tagCacher.resolveTags( new Set( tags.split( /\s+/ ) ) )
-	},
-})
-
-Gelbooru.proxyAgent = torProxyAgent
-Gelbooru.tagCacher = new TagCacher( config.boorus.gelbooru.tags )
-Gelbooru.tagCacher.tags = bakadb.fallback({
+const tagCacher = new TagCacher( config.boorus.gelbooru.tags )
+tagCacher.tags = bakadb.fallback({
 	path: 'tags/gelbooru',
 	defaultValue: {},
 })
 
-Gelbooru.const_params.api_key = tokens.gelbooru.api_key
-Gelbooru.const_params.user_id = tokens.gelbooru.user_id
-// Gelbooru.const_params._token = _tkns.booru_proxy // proxy token
+const Gelbooru = new Booru({
+	config: {
+		...config.boorus.gelbooru.posts,
+		keys: {
+			id( post, pic, tags ){
+				tags = tags.replace( /\s+/g, '+' )
+				pic.id = post.id
+				pic.postURL = `https://gelbooru.com/index.php?page=post&s=view&id=${pic.id}&tags=${tags.replace( /\)/g, '%29' )}`
+			},
+			score: '',
+			file_url( post, pic ){
+				pic.hasSample = post.sample == 1
+				pic.sample = post.file_url
+				pic.full = post.file_url
 
-const Yandere = new Booru({
-	...config.boorus.yandere.posts,
-	keys: {
-		id( post, pic ){
-			pic.id = post.id
-			pic.post_url = 'https://yande.re/post/show/' + pic.id
+				if( /\.(jpe?g|png|gif|bmp)$/i.test( pic.full ) ){
+					pic.sample = pic.hasSample && !pic.full.endsWith( '.gif' )
+						? pic.full.replace( /\/images\/((\w+\/)+)(\w+\.)\w+/, '/samples/$1sample_$3jpg' )
+						: pic.full
+				} else
+					pic.unsupportedExtension = pic.full.matchFirst( /\.(\w+)$/i ).toUpperCase()
+			},
 		},
-		score: '',
-		file_url: 'full',
-		sample_url: 'sample',
-		created_at: ( post, pic ) => pic.created_at = post.created_at * 1000,
 	},
-	remove_other_keys: false,
-	tag_fetcher( tags ){
-		return this.tagCacher.resolveTags( new Set( tags.split( /\s+/ ) ) )
+	removeOtherKeys: false,
+	tagCacher,
+	tagFetcher( tags ){
+		return tagCacher.resolveTags( new Set( tags ) )
 	},
+	proxyAgent: torProxyAgent,
 })
 
-Yandere.proxyAgent = torProxyAgent
-Yandere.tagCacher = Gelbooru.tagCacher
+Gelbooru.config.constParams.api_key = tokens.gelbooru.api_key
+Gelbooru.config.constParams.user_id = tokens.gelbooru.user_id
 
-///// sucks balls
-// Yandere.tagCacher = new TagCacher( config.boorus.yandere.tags )
-// Yandere.tagCacher.tags = bakadb.fallback({
-// 	path: 'tags/yandere',
-// 	defaultValue: {},
-// })
+const Yandere = new Booru({
+	config: {
+		...config.boorus.yandere.posts,
+		keys: {
+			id( post, pic ){
+				pic.id = post.id
+				pic.postURL = 'https://yande.re/post/show/' + pic.id
+			},
+			score: '',
+			file_url: 'full',
+			sample_url: 'sample',
+			created_at: ( post, pic ) => pic.created_at = post.created_at * 1000,
+		},
+	},
+	removeOtherKeys: false,
+	tagCacher,
+	tagFetcher( tags ){
+		return tagCacher.resolveTags( new Set( tags ) )
+	},
+	proxyAgent: torProxyAgent,
+})
 
-// Yandere.const_params._token = _tkns.booru_proxy // proxy token
+// Yandere.config.constParams._token = _tkns.booru_proxy // proxy token
 
 module.exports = {
 	Gelbooru,

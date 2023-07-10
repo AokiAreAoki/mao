@@ -89,8 +89,8 @@ class Booru {
 		this.proxyAgent = options.proxyAgent ?? undefined
 
 		this.axios = axios.create({
-			httpAgent: options.proxyAgent,
-			httpsAgent: options.proxyAgent,
+			httpAgent: this.proxyAgent,
+			httpsAgent: this.proxyAgent,
 		})
 
 		axiosRetry( this.axios, {

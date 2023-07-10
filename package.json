@@ -34,7 +34,7 @@
 		"pet-pet-gif": "^1.0.9",
 		"socks-proxy-agent": "^8.0.1",
 		"yaml": "^2.1.3",
-		"youtube-dl-exec": "^2.4.0"
+		"youtube-dl-exec": "^2.4.6"
 	},
 	"devDependencies": {
 		"eslint": "^8.25.0"

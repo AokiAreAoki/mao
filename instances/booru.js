@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias
-const { SocksProxyAgent } = require('socks-proxy-agent');
+const { SocksProxyAgent } = require( 'socks-proxy-agent' )
 const bakadb = require( '@/instances/bakadb' )
 const Booru = require( '@/re/booru-wrapper' )
 const TagCacher = require( '@/re/tag-cacher' )
@@ -70,7 +70,7 @@ Booru.Picture.prototype.embed = function({
 }
 
 // Use proxy if launched on linux (usually means on the host)
-const torProxyAgent = process.platform === 'linux'
+const proxyAgent = process.platform === 'linux'
 	? new SocksProxyAgent( config.socksProxy )
 	: undefined
 
@@ -109,7 +109,7 @@ const Gelbooru = new Booru({
 	tagFetcher( tags ){
 		return tagCacher.resolveTags( new Set( tags ) )
 	},
-	proxyAgent: torProxyAgent,
+	proxyAgent,
 })
 
 Gelbooru.config.constParams.api_key = tokens.gelbooru.api_key
@@ -134,7 +134,7 @@ const Yandere = new Booru({
 	tagFetcher( tags ){
 		return tagCacher.resolveTags( new Set( tags ) )
 	},
-	proxyAgent: torProxyAgent,
+	proxyAgent: proxyAgent,
 })
 
 // Yandere.config.constParams._token = _tkns.booru_proxy // proxy token

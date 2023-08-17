@@ -1,12 +1,12 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias
-const { SocksProxyAgent } = require( 'socks-proxy-agent' )
 const bakadb = require( '@/instances/bakadb' )
 const Booru = require( '@/re/booru-wrapper' )
 const TagCacher = require( '@/re/tag-cacher' )
 const Embed = require( '@/functions/Embed' )
 const tokens = require( '@/tokens.yml' )
 const config = require( '@/config.yml' )
+const proxyAgent = require( '@/instances/proxyAgent' )
 
 const displayableTagTypes = [
 	'artist',
@@ -69,12 +69,11 @@ Booru.Picture.prototype.embed = function({
 		.setImage( this.unsupportedExtension ? this.thumbnail : this.sample )
 }
 
-// Use proxy if launched on linux (usually means on the host)
-const proxyAgent = process.platform === 'linux'
-	? new SocksProxyAgent( config.socksProxy )
-	: undefined
+const tagCacher = new TagCacher({
+	...config.boorus.gelbooru.tags,
+	proxyAgent,
+})
 
-const tagCacher = new TagCacher( config.boorus.gelbooru.tags )
 tagCacher.tags = bakadb.fallback({
 	path: 'tags/gelbooru',
 	defaultValue: {},
@@ -134,7 +133,7 @@ const Yandere = new Booru({
 	tagFetcher( tags ){
 		return tagCacher.resolveTags( new Set( tags ) )
 	},
-	proxyAgent: proxyAgent,
+	proxyAgent,
 })
 
 // Yandere.config.constParams._token = _tkns.booru_proxy // proxy token

@@ -5,14 +5,10 @@ const axios = require( 'axios' ).create()
 const axiosRetry = require( 'axios-retry' )
 const _ = require( 'lodash' )
 const decodeHTMLEntities = require( '@/functions/decodeHTMLEntities' )
+
 Set.prototype.merge = function( set ){
 	set.forEach( v => this.add(v) )
 }
-
-axiosRetry( axios, {
-	retries: 5,
-	retryDelay: axiosRetry.exponentialDelay,
-})
 
 class TagCacher {
 	static tagTypes = [
@@ -40,6 +36,7 @@ class TagCacher {
 		const_params = {},
 		tagSplitter = ' ',
 		responsePath = '',
+		proxyAgent,
 	}){
 		this.path = path
 		this.endpoint = url
@@ -47,6 +44,16 @@ class TagCacher {
 		this.const_params = const_params
 		this.tagSplitter = tagSplitter
 		this.responsePath = responsePath
+
+		this.axios = axios.create({
+			httpAgent: proxyAgent,
+			httpsAgent: proxyAgent,
+		})
+
+		axiosRetry( this.axios, {
+			retries: 5,
+			retryDelay: axiosRetry.exponentialDelay,
+		})
 
 		if( this.path == null )
 			return
@@ -112,7 +119,7 @@ class TagCacher {
 		if( uncachedTags.length === 0 )
 			return tags
 
-		const newTagsPromise = axios
+		const newTagsPromise = this.axios
 			.get( this.endpoint, {
 				params: {
 					...this.const_params,

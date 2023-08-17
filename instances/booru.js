@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias
-const { SocksProxyAgent } = require( 'socks-proxy-agent' )
+const { SocksProxyAgent } = require('socks-proxy-agent');
 const bakadb = require( '@/instances/bakadb' )
 const Booru = require( '@/re/booru-wrapper' )
 const TagCacher = require( '@/re/tag-cacher' )
@@ -109,8 +109,7 @@ const Gelbooru = new Booru({
 	tagFetcher( tags ){
 		return tagCacher.resolveTags( new Set( tags ) )
 	},
-	httpAgent: torProxyAgent,
-	httpsAgent: torProxyAgent,
+	proxyAgent: torProxyAgent,
 })
 
 Gelbooru.config.constParams.api_key = tokens.gelbooru.api_key

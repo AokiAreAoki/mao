@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias
 const fs = require( 'fs' )
-const axios = require( 'axios' ).create()
+const axios = require( 'axios' )
 const axiosRetry = require( 'axios-retry' )
 const _ = require( 'lodash' )
 const decodeHTMLEntities = require( '@/functions/decodeHTMLEntities' )

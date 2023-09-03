@@ -2,7 +2,7 @@
 require = global.alias
 module.exports = {
 	init({ addCommand }){
-		const axios = require( 'axios' )
+		const axios = require( '@/instances/axios' )
 		const discord = require( 'discord.js' )
 		const Jimp = require( 'jimp' )
 		const { Gelbooru } = require( '@/instances/booru' )

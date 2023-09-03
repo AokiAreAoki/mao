@@ -67,6 +67,7 @@ Booru.Picture.prototype.embed = function({
 	return embed
 		.setDescription( description )
 		.setImage( this.unsupportedExtension ? this.thumbnail : this.sample )
+		.setFooter({ text: new Date().toLocaleString( 'ru' ) })
 }
 
 const tagCacher = new TagCacher({

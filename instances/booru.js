@@ -21,7 +21,7 @@ Booru.Picture.prototype.embed = function({
 	addFields = true,
 } = {} ){
 	const embed = Embed()
-	let description = title || `[${linkTitle || this.booru.name || '<unknown booru>'}](${this.postURL})`
+	let description = title || `[${linkTitle || this.booru.config.name || '<unknown booru>'}](${this.postURL})`
 
 	if( addFields || displayTags ){
 		const types = new Map( TagCacher.tagTypes.map( type => [type, []] ) )

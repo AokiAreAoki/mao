@@ -52,6 +52,16 @@ module.exports = {
 			'hot',
 			'.-.',
 			'...',
+
+			`https://c.tenor.com/D2UpGO2TCA4AAAAM/itpedia-hot-tubs-hot-tubs.gif`,
+			`https://tenor.com/view/haram-heisenberg-gif-20680378`,
+			`https://i.gifer.com/GBon.gif`,
+			`https://tenor.com/view/frog-kermit-muppets-idiot-stupid-gif-11872194`,
+			`https://tenor.com/view/3d-saul-saul-goodman-adamghik-gif-23876766`,
+			`https://tenor.com/view/haram-gif-26607190`,
+			`https://tenor.com/view/genshin-impact-yae-miko-guuji-yae-gif-25060162`,
+			`https://media.discordapp.net/attachments/836214900057440262/937231057491722250/scripting.gif`,
+			`https://tenor.com/view/waiting-for-waiting-discord-discord-mod-nsfw-gif-20063899`,
 		]
 		const getRandomLoadingPhrase = () => loadingPhrases[Math.floor( Math.random() * loadingPhrases.length )]
 

@@ -22,13 +22,6 @@ args.forEach( flag => {
 if( module.exports.flags.dev )
 	module.exports.iom = 'dev'
 
-const fs = require( 'fs' )
-
-if( !fs.existsSync( './tokens.yml' ) ){
-	console.log( '\nFile "tokens.yml" does not exist, exit.' )
-	process.exit( 228 )
-}
-
 require( './alias' )
 // eslint-disable-next-line no-global-assign
 require = global.alias
@@ -77,7 +70,7 @@ const CM = require( '@/instances/command-manager' )
 
 includeFiles({
 	text: 'Including commands',
-	query: 'commands/**/*.js',
+	query: 'commands/**/*(.js)?/index.js',
 	callback( inclusion, [, moduleFolder] ){
 		const moduleIsHidden = moduleFolder[0] === '_'
 		const moduleName = moduleIsHidden

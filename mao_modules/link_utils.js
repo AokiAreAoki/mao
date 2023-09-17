@@ -11,8 +11,12 @@ module.exports = {
 		const { join } = require( 'path' )
 		const binarySearch = require( '@/functions/binarySearch' )
 		const ytdl = require( 'youtube-dl-exec' )
+		const { socksProxy } = require( '@/config.yml' )
 
 		const cacheTimeout = 2 * 24 * 3600e3
+		const proxy = process.platform === 'linux'
+			? socksProxy
+			: undefined
 
 		function Entry({
 			value,
@@ -122,7 +126,10 @@ module.exports = {
 					if( cache.get( key ) )
 						return cache.get( key ).value
 
-					const directLinkPromise = ytdl( url[0], { getUrl: true } )
+					const directLinkPromise = ytdl( url[0], {
+						getUrl: true,
+						proxy,
+					})
 						.then( directLink => {
 							cache.set( key, directLink )
 							return directLink
@@ -169,6 +176,7 @@ module.exports = {
 						// recodeVideo: format,
 						formatSort: `codec:h264`,
 						o: join( TEMP_FOLDER, `%(id)s.%(ext)s` ),
+						proxy,
 					}
 
 					const pathPromise = ytdl( url[0], {

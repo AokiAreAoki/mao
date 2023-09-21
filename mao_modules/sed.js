@@ -37,16 +37,20 @@ module.exports = {
 				return msg.send( cb( err ) )
 			}
 
-			const m = await msg.channel.messages.fetch({
+			const messages = await msg.channel.messages.fetch({
 				before: msg.id,
 				limit: 100,
 			})
-				.then( mm => mm.find( m => regexp.test( m.content ) ) )
+			const message = messages.find( m => !m.isCommand && !m.isSED && regexp.test( m.content ) )
 
-			return msg.send( m
-				? `${m.author}: ${m.content.replace( regexp, replacement )}`
+			return msg.send( message
+				? `${message.author}: ${message.content.replace( regexp, replacement )}`
 				: `Could not find any matches`
 			)
+				.then( m => {
+					m.isSED = true
+					return m
+				})
 		})
 	}
 }

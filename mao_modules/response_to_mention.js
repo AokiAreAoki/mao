@@ -50,10 +50,10 @@ module.exports = {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
 
-			if( msg.content.matchFirst( /(thanks?|thx)\s+([you]+\s+)?mao/ ) )
+			if( msg.content.matchFirst( /(thanks?|thx)\s+([you]+\s+)?mao/i ) )
 				return msg.send( 'no problem', 0 )
 
-			if( msg.content.matchFirst( /^(who|hu)\??$/ ) ){
+			if( msg.content.matchFirst( /^(who|hu)\??$/i ) ){
 				if( msg.author.huCD && msg.author.huCD > Date.now() )
 					return
 

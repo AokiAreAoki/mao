@@ -1,15 +1,16 @@
 
 class Response {
+	destination = null
 	message = null
 
-	constructor( msgOrChannel ){
-		this.channel = msgOrChannel
+	constructor( messageOrChannel ){
+		this.destination = messageOrChannel
 	}
 
 	async update( content ){
 		return this.message
 			? this.message.edit( content )
-			: this.message = await this.channel.send( content )
+			: this.message = await this.destination.send( content )
 	}
 }
 

@@ -125,6 +125,7 @@ module.exports = {
 			if( ismaster ){
 				let said = msg.content
 				let here = msg.channel
+				let guild = here.guild
 				let mem = msg.member
 				let me = msg.author
 				let prefix = said.matchFirst( evalPrefix )

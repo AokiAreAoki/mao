@@ -6,7 +6,7 @@ const localCommands = require( './commands' )
 require = global.alias
 const { flags } = require( '@/index' )
 
-async function updateRemoveCommand(){
+async function updateRemoteCommand(){
 	const remoteCommands = await rest.get( routes.commands() )
 
 	if( flags.dev ){
@@ -28,4 +28,4 @@ async function updateRemoveCommand(){
 	})
 }
 
-module.exports = updateRemoveCommand
+module.exports = updateRemoteCommand

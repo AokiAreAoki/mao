@@ -23,8 +23,14 @@ async function updateRemoteCommand(){
 			console.log( `[SCM] remote command \`${cmd.name}\` has been deleted.` )
 		}, Promise.resolve() )
 
+	const commandData = []
+
+	for( const command of localCommands.values() ){
+		commandData.push( command.data.toJSON() )
+	}
+
 	rest.put( routes.commands(), {
-		body: localCommands.commandData,
+		body: commandData,
 	})
 }
 

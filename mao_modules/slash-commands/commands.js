@@ -32,4 +32,3 @@ const commands = [
 ]
 
 module.exports = new Map( commands.map( cmd => [cmd.data.name, cmd] ) )
-module.exports.commandData = commands.map( cmd => cmd.data.toJSON() )

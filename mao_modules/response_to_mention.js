@@ -13,6 +13,7 @@ module.exports = {
 			`who`,
 			`no u`,
 			`nya(~)?`,
+			`kys`,
 			`?`,
 		]
 

@@ -55,8 +55,8 @@ module.exports = {
 							if( transliteratedText )
 								msg.send( Embed()
 									.setAuthor({
-										name: message.member.user.tag,
-										iconURL: message.member.user.avatarURL(),
+										name: message.author.tag,
+										iconURL: message.author.avatarURL(),
 									})
 									.setDescription( transliteratedText )
 								)
@@ -70,8 +70,8 @@ module.exports = {
 						if( transliteratedText )
 							msg.send( Embed()
 								.setAuthor({
-									name: msg.member.user.tag,
-									iconURL: msg.member.user.avatarURL(),
+									name: msg.author.tag,
+									iconURL: msg.author.avatarURL(),
 								})
 								.setDescription( transliteratedText )
 							)
@@ -96,8 +96,8 @@ module.exports = {
 					if( transliteratedText )
 						msg.send( Embed()
 							.setAuthor({
-								name: message.member.user.tag,
-								iconURL: message.member.user.avatarURL(),
+								name: message.author.tag,
+								iconURL: message.author.avatarURL(),
 							})
 							.setDescription( transliteratedText )
 						)

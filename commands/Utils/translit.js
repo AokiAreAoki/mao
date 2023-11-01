@@ -4,9 +4,9 @@ module.exports = {
 	init({ addCommand }){
 		const Embed = require( '@/functions/Embed' )
 
-		let en = `qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>?@#$^&\`~`
-		let ru = `йцукенгшщзхъфывапролджэячсмитьбю.ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,"№;:?ёЁ`
-		let toEN = {}, toRU = {}
+		const en = `qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>?@#$^&\`~`
+		const ru = `йцукенгшщзхъфывапролджэячсмитьбю.ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,"№;:?ёЁ`
+		const toEN = {}, toRU = {}
 
 		for( let i = 0; i < en.length; ++i ){
 			toEN[ru[i]] = en[i]
@@ -44,51 +44,65 @@ module.exports = {
 				lang = lang == 'en'
 
 				if( args[1] ){
-					let text = args.getRaw(1)
+					const text = args.getRaw(1)
 
 					if( text.match( /^\d+$/ ) ){ // Message ID provided
-						let m = await msg.channel.messages.fetch( args[1] )
+						const message = await msg.channel.messages.fetch( args[1] )
 
-						if( m ){
-							text = transliterate( lang, m.content )
+						if( message ){
+							const transliteratedText = transliterate( lang, message.content )
 
-							if( text )
+							if( transliteratedText )
 								msg.send( Embed()
-									.setAuthor( m.member.user.tag, m.member.user.avatarURL() )
-									.setDescription( text )
+									.setAuthor({
+										name: message.member.user.tag,
+										iconURL: message.member.user.avatarURL(),
+									})
+									.setDescription( transliteratedText )
 								)
 							else
 								msg.send( 'Failed to transliterate the message.' )
 						} else
 							msg.send( 'Failed to fetch the message! The message doesn\'t exist, or is in another channel.' )
 					} else { // Text provided
-						text = transliterate( lang, text )
+						const transliteratedText = transliterate( lang, text )
 
-						if( text )
+						if( transliteratedText )
 							msg.send( Embed()
-								.setAuthor( msg.member.user.tag, msg.member.user.avatarURL() )
-								.setDescription( text )
+								.setAuthor({
+									name: msg.member.user.tag,
+									iconURL: msg.member.user.avatarURL(),
+								})
+								.setDescription( transliteratedText )
 							)
 						else
 							msg.send( 'Failed to transliterate the message.' )
 					}
 				} else { // Nothing provided
+					let message = null
+					const ref = await msg.getReferencedMessage()
 					const mm = await msg.channel.messages.fetch({ limit: 1, before: msg.id })
 
-					if( mm.size == 0 )
-						msg.send( 'Previous message not found.' )
-					else {
-						let m = mm.first()
-						let text = transliterate( lang, m.content )
+					if( ref )
+						message = ref
+					else if( mm.size != 0 )
+						message = mm.first()
 
-						if( text )
-							msg.send( Embed()
-								.setAuthor( m.member.user.tag, m.member.user.avatarURL() )
-								.setDescription( text )
-							)
-						else
-							msg.send( 'Failed to transliterate the message.' )
-					}
+					if( !message )
+						msg.send( 'Previous message not found.' )
+
+					const transliteratedText = transliterate( lang, message.content )
+
+					if( transliteratedText )
+						msg.send( Embed()
+							.setAuthor({
+								name: message.member.user.tag,
+								iconURL: message.member.user.avatarURL(),
+							})
+							.setDescription( transliteratedText )
+						)
+					else
+						msg.send( 'Failed to transliterate the message.' )
 				}
 			},
 		})

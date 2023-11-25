@@ -99,10 +99,10 @@ module.exports = {
 
 		// TextChannel.cacheLastMessages
 		discord.TextChannel.prototype.cacheLastMessages = async function(){
-			const msgs = await this.messages.fetch({ limit: 100 })
+			const messages = await this.messages.fetch({ limit: 100 })
 				.then( msgs => msgs.map( m => m ) )
 
-			for( const msg of msgs ){
+			for( const msg of messages ){
 				const ref = await msg.getReferencedMessage()
 
 				if( !ref )
@@ -111,7 +111,7 @@ module.exports = {
 				ref.addAnswer( msg )
 			}
 
-			return msgs
+			return messages
 		}
 
 		// TextChannel.sendTyping

@@ -1,5 +1,6 @@
 const discord = require( 'discord.js' )
 const { Collection } = discord
+const Response = require( './response' )
 
 function listTypes( types ){
 	types = types.map( type => type?.name ?? String( type ) )
@@ -53,11 +54,25 @@ class MessageManager {
 		this.handleEdits = !!handleEdits
 		this.handleDeletion = !!handleDeletion
 
-		discord.Message.prototype.deleteAnswers = async function(){
+		discord.Message.prototype.deleteAnswers = async function( includeResponse = false ){
 			if( this._answers instanceof Collection )
 				if( this._answers.size !== 0 ){
-					const promise = this.channel.bulkDelete( this._answers.filter( m => !m.deleted ) )
+					const messagesToDelete = this._answers.filter( m => {
+						if( m.deleted )
+							return false
+
+						if( !includeResponse && m === this.response.message )
+							return false
+
+						return true
+					})
+
+					const promise = this.channel.bulkDelete( messagesToDelete )
 					this._answers.clear()
+
+					if( !includeResponse )
+						this.addAnswer( this.response.message )
+
 					return promise
 				}
 			else
@@ -68,7 +83,10 @@ class MessageManager {
 	}
 
 	setupEventHandlers(){
-		this.client.on( discord.Events.MessageCreate, msg => this.handleMessage( msg, false ) )
+		this.client.on( discord.Events.MessageCreate, msg => {
+			msg.response = new Response( msg )
+			this.handleMessage( msg, false )
+		})
 
 		if( this.handleEdits )
 			this.client.on( discord.Events.MessageUpdate, ( oldMsg, newMsg ) => {
@@ -83,10 +101,9 @@ class MessageManager {
 		if( this.handleDeletion )
 			this.client.on( discord.Events.MessageDelete, msg => {
 				msg.waiter?.cancel()
-				msg.deleteAnswers()
+				msg.deleteAnswers( true )
 				msg.deleted = true
 			})
-
 	}
 
 	pushHandler( name, markMessagesAsCommand, callback ){

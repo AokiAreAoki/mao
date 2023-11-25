@@ -16,7 +16,7 @@ module.exports = {
 		const processing = require( '@/functions/processing' )
 		const includeFiles = require( '@/functions/includeFiles' )
 		const printify = require( '@/re/printifier' )
-		const Response = require( '@/re/response' )
+		const Response = require( '@/re/message-manager/response' )
 
 		let evalPrefix = /^>>+\s*/i
 
@@ -130,8 +130,7 @@ module.exports = {
 				let me = msg.author
 				let prefix = said.matchFirst( evalPrefix )
 				let ref = await msg.getReferencedMessage()
-
-				const response = new Response( msg )
+				let response = msg.response
 
 				if( prefix )
 					said = said.substring( prefix.length )
@@ -155,8 +154,8 @@ module.exports = {
 				code.matchFirst( /```(?:[\w+]+\s+)?(.+)```/s, it => code = it )
 
 				let __printerr = !!prefix
-				let abortHandlersQueue = false
-				let abortHQ = () => abortHandlersQueue = true
+				let shouldHandlerQueueBeAborted = false
+				const abortHandlerQueue = () => shouldHandlerQueueBeAborted = true
 
 				try {
 					if( __printerr && !code.match( /\S/ ) )
@@ -333,22 +332,22 @@ module.exports = {
 
 						await response.update( evalFlags.cb ? cb( evaled, evalFlags.cb.value ) : evaled )
 						msg.isCommand = true
-						return abortHQ()
+						return abortHandlerQueue()
 					}
 
-					return abortHQ()
+					return abortHandlerQueue()
 				} catch( err ){
 					if( __printerr ){
-						if( err )
+						if( err?.stack )
 							response.update( cb( err?.stack ) )
 						else
 							response.update( `OK, i caught the error but somewhat i've got ${err} instead of error...` )
 
-						return abortHQ()
+						return abortHandlerQueue()
 					}
 				}
 
-				return abortHandlersQueue
+				return shouldHandlerQueueBeAborted
 			}
 		})
 	}

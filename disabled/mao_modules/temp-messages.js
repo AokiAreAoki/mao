@@ -40,6 +40,7 @@ module.exports = {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
 
+			const session = msg.response.session
 			const match = msg.content.match( /[\s\n]\/temp\s*((\d+)d)?\s*((\d+)h)?\s*((\d+)m)?\s*((\d+)s)?$/i )
 
 			if( !match )
@@ -49,7 +50,7 @@ module.exports = {
 			for( const k in db.temp_messages )
 				if( db.temp_messages[k].userId == msg.author.id )
 					if( ++tms >= max_tms )
-						return msg.send( "You've reached the limit of temporary messages" )
+						return session( "You've reached the limit of temporary messages" )
 
 			const lifetime = new TimeSplitter({
 				days: match[2] ? parseInt( match[2] ) : 0,
@@ -70,14 +71,16 @@ module.exports = {
 			}
 			bakadb.save()
 
-			return msg.send( Embed()
-				.setAuthor( '@' + msg.author.tag, msg.author.avatarURL() )
-				.setDescription( 'Your message will be deleted in ' + lifetime.toString({
-					separator: ', ',
-					and: true,
-					ignoreZeros: true,
-				}))
-			).then( m => m.delete( 4e3 ) )
+			return session
+				.update( Embed()
+					.setAuthor( '@' + msg.author.tag, msg.author.avatarURL() )
+					.setDescription( 'Your message will be deleted in ' + lifetime.toString({
+						separator: ', ',
+						and: true,
+						ignoreZeros: true,
+					}))
+				)
+				.then( m => m.delete( 4e3 ) )
 		})
 	}
 }

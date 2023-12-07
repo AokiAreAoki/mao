@@ -8,25 +8,27 @@ const TimeSplitter = require( '@/re/time-splitter' )
 
 // uptime
 ActivityManager.pushActivity( 'PLAYING', () => {
-	return `for ` + new TimeSplitter({ seconds: process.uptime() })
+	const duration = new TimeSplitter({ seconds: process.uptime() })
 		.toString({
 			maxTU: 1,
 			ignoreZeros: true,
 			separator: ', '
 		})
+
+	return `for ${duration}`
 })
 
 // msg rate
-const msgrate = []
+const messageRate = []
 
 client.on( Events.MessageCreate, msg => {
 	if( msg.member && !msg.author.bot )
-		msgrate.push( Date.now() + 60e3 )
+		messageRate.push( Date.now() + 60e3 )
 })
 
 setInterval( () => {
-	while( msgrate.length !== 0 && msgrate[0] < Date.now() )
-		msgrate.shift()
+	while( messageRate.length !== 0 && messageRate[0] < Date.now() )
+		messageRate.shift()
 }, 1337 )
 
-ActivityManager.pushActivity( 'PLAYING', () => `${msgrate.length} msg${msgrate.length === 1 ? '' : 's'}/min` )
+ActivityManager.pushActivity( 'PLAYING', () => `${messageRate.length} msg${messageRate.length === 1 ? '' : 's'}/min` )

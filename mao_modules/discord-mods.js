@@ -25,12 +25,6 @@ module.exports = {
 		}
 
 		function handleArgs( content, options = {} ){
-			options.content ??= null
-			options.embeds ??= []
-			options.files ??= []
-			options.allowedMentions ??= {}
-			options.allowedMentions.repliedUser ??= false
-
 			if( content == null )
 				throw new Error( 'content can not be ' + String( content ) )
 
@@ -55,12 +49,17 @@ module.exports = {
 
 					default:
 						options = content
-						options.allowedMentions ??= {}
-						options.allowedMentions.repliedUser ??= false
 						break
 				}
-			} else
+			} else {
 				options.content = String( content )
+			}
+
+			options.content ??= null
+			options.embeds ??= []
+			options.files ??= []
+			options.allowedMentions ??= {}
+			options.allowedMentions.repliedUser ??= false
 
 			if( options.cb ){
 				options.content = cb( options.content )

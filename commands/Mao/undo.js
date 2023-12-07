@@ -7,12 +7,12 @@ module.exports = {
 		addCommand({
 			aliases: 'undo',
 			description: 'removes last command or edited message',
-			callback: async msg => {
+			async callback({ msg, session }){
 				msg.isCommand = false
 
 				if( msg.hasBeenEdited ){
 					await msg.react( processing( '👌' ) )
-					await msg.deleteAnswers()
+					await msg.deleteAnswers( true )
 					await msg.delete()
 					return
 				}
@@ -27,14 +27,14 @@ module.exports = {
 
 				if( commandMessage ){
 					commandMessage.isCommand = false
-					commandMessage.deleteAnswers()
+					commandMessage.deleteAnswers( true )
 					msg.channel.purge( [msg, commandMessage], 1337 )
 					return
 				}
 
 				msg.channel.purge([
 					msg,
-					await msg.send( 'No commands found' ),
+					await session.update( 'No commands found' ),
 				], 3e3 )
 			},
 		})

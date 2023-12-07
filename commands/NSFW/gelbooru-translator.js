@@ -6,7 +6,6 @@ module.exports = {
 		const discord = require( 'discord.js' )
 		const Jimp = require( 'jimp' )
 		const { Gelbooru } = require( '@/instances/booru' )
-		const cb = require( '@/functions/cb' )
 		const clamp = require( '@/functions/clamp' )
 		const Embed = require( '@/functions/Embed' )
 		const processing = require( '@/functions/processing' )
@@ -97,13 +96,12 @@ module.exports = {
 					[`<ID of a post/link to post/link to image from gelbooru CDN>`, 'searches for translation on gelbooru and draws the translation on a pic'],
 				],
 			},
-			callback: async ( msg, args ) => {
-				const message = await msg.send( processing( '👌' ) )
-
+			async callback({ args, session }){
+				session.update( processing( '👌' ) )
 				let tags = ''
 
 				if( !args[0] )
-					return message.edit( `Please provide a link to a gelbooru post or a link to a picture stored on gelbooru CDN` )
+					return session.update( `Please provide a link to a gelbooru post or a link to a picture stored on gelbooru CDN` )
 
 				let id = args[0].matchFirst( /^\d+$/ )
 
@@ -119,22 +117,18 @@ module.exports = {
 				}
 
 				if( !tags )
-					return message.edit( `Post ID or image MD not found` )
+					return session.update( `Post ID or image MD not found` )
 
 				const pic = await Gelbooru.posts( tags )
 					.then( r => r.pics[0] )
 
 				if( !pic )
-					return message.edit( `Failed to parse picture` )
+					return session.update( `Failed to parse picture` )
 
 				const translations = await parseTranslation( id )
-					.catch( async err => {
-						await message.edit( cb( err ) )
-						throw err
-					})
 
 				if( !translations )
-					return message.edit( `No translations found for this picture` )
+					return session.update( `No translations found for this picture` )
 
 				const image = await Jimp.read( pic.full ?? pic.sample )
 				const font = await loadAdaptiveFont( image.bitmap.height )
@@ -159,8 +153,7 @@ module.exports = {
 					}, textWidth, textHeight )
 				})
 
-				return message.edit({
-					content: null,
+				return session.update({
 					embeds: [Embed()
 						.setDescription( `[Original](${pic.postURL})` )
 						.setImage( 'attachment://tr.jpg' )
@@ -172,8 +165,7 @@ module.exports = {
 						})
 					],
 				})
-					.catch( err => message.edit( cb( err ) ) )
-			}, // callback
-		}) // addCommand
-	} // init
+			},
+		})
+	}
 }

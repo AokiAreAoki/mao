@@ -14,14 +14,16 @@ const CM = new CommandManager( client, prefix, true )
 CM.setModuleAccessor( ( user, module ) => !module.isHidden || user.isMaster() )
 MM.unshiftHandler( 'commands', true, ( ...args ) => CM.handleMessage( ...args ) )
 
+const nextReaction = new WeakMap()
+
 CM.on( 'cant-access', ( msg, command ) => {
+	const session = msg.response.session
+
 	console.log( `[CM] User "${msg.author.username}" (${msg.author.id}) tried to access "${command.name}" command` )
 
-	msg.author.nextWeirdReaction ??= Date.now() + 1337
-
-	if( msg.author.nextWeirdReaction < Date.now() ){
-		msg.author.nextWeirdReaction = Date.now() + 13370
-		msg.send( ':/' )
+	if( nextReaction.get( msg.author ) && nextReaction.get( msg.author ) < Date.now() ){
+		nextReaction.set( msg.author, Date.now() + 13370 )
+		session.update( ':/' )
 	}
 })
 
@@ -29,8 +31,8 @@ module.exports = CM
 
 // dev debugger
 if( flags.dev ){
-	const missplaced_props = []
-	let print = ( command, property ) => missplaced_props.push( [command, property] )
+	const misplaced_props = []
+	let print = ( command, property ) => misplaced_props.push( [command, property] )
 
 	client.once( Events.ClientReady, () => {
 		print = ( command, property ) => {
@@ -42,7 +44,7 @@ if( flags.dev ){
 			console.log()
 		}
 
-		missplaced_props.forEach( warn => print( ...warn ) )
+		misplaced_props.forEach( warn => print( ...warn ) )
 	})
 
 	const description_props = [

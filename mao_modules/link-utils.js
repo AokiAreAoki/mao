@@ -208,10 +208,11 @@ module.exports = {
 		const caches = {}
 		utils.forEach( ( _, i ) => caches[i] = new TempCache( cacheTimeout ) )
 
-		MM.pushHandler( 'link_utils', false, async msg => {
+		MM.pushHandler( 'link-utils', false, async msg => {
 			if( msg.author.bot || msg.author.id === client.user.id )
 				return
 
+			const session = msg.response.session
 			let immediate = null
 			let reaction = null
 
@@ -252,7 +253,7 @@ module.exports = {
 			const hasSomething = content || files.length !== 0
 
 			if( hasSomething )
-				await msg.send({ content, files })
+				await session.update({ content, files })
 
 			if( reaction ){
 				await reaction

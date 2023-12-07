@@ -15,11 +15,11 @@ module.exports = {
 					['0xFF8000', 'converts $1 to RGB (`255, 128, 0`)'],
 				],
 			},
-			callback: ( msg, args ) => {
+			callback({ args, session }){
 				const stringHEX = args[0].matchFirst( /(?:0x|#)(([0-9a-f]{3}){1,2})/i )
 
 				if( !stringHEX )
-					return msg.send( 'Invalid hex provided' )
+					return session.update( 'Invalid hex provided' )
 
 				const hex = Number( '0x' + stringHEX )
 				const shortHEX = hex.length === 3
@@ -39,7 +39,7 @@ module.exports = {
 				if( shortHEX )
 					rgb.map( n => n + ( n << 4 ) )
 
-				msg.send( Embed()
+				session.update( Embed()
 					.setDescription( `0x${stringHEX} = **${rgb.join( ', ' )}**` )
 					.setColor( hex )
 				)
@@ -57,14 +57,14 @@ module.exports = {
 					['255', '128', '0', 'converts $1, $2, $3 to HEX (`0xFF8000`)'],
 				],
 			},
-			callback: ( msg, args ) => {
+			callback({ args, session }){
 				const rgb = args.slice( 0, 3 )
 				const hex = rgb.reduce( ( hex, axis ) => {
 					axis = Number( axis ).toString(16)
 					return hex + ( axis < 0x10 ? '0' : '' ) + axis
 				}, '' )
 
-				msg.send( Embed()
+				session.update( Embed()
 					.setDescription( `${rgb.join( ', ' )} = **0x${hex}**` )
 					.setColor( rgb )
 				)

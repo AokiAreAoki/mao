@@ -1,4 +1,3 @@
-
 const { Collection } = require( '../node_modules/discord.js' )
 
 String.prototype.matchFirst = function( re, cb ){
@@ -12,6 +11,9 @@ String.prototype.matchFirst = function( re, cb ){
 
 	return matched
 }
+
+const quotes = '```'
+const cb = ( text, lang = '' ) => `${quotes}${lang}\n${text}\n${quotes}`
 
 class CommandManager extends require( 'events' ) {
 	client
@@ -115,7 +117,7 @@ class CommandManager extends require( 'events' ) {
 			: []
 	}
 
-	handleMessage( msg ){
+	async handleMessage( msg ){
 		msg.getReferencedMessage().then( m => {
 			if( m?.deleteAfterDelay )
 				m.delay?.expand()
@@ -147,13 +149,15 @@ class CommandManager extends require( 'events' ) {
 		] = this.findCommandAndArgs( msg.content.substring( prefix.length ) )
 
 		if( command ){
+			msg.isCommand = true
+
 			if( !this.canAccessModule( msg.author, command.module ) )
 				return this.emit( 'cant-access', msg, command )
 
-			msg.isCommand = true
+			const session = msg.response.session
 
 			if( !( command.callback instanceof Function ) ){
-				command.sendHelp( msg )
+				await session.update( command.help )
 				return true
 			}
 
@@ -168,7 +172,13 @@ class CommandManager extends require( 'events' ) {
 				})
 			}
 
-			command.callback.call( command, msg, args, args.getRaw )
+			try {
+				await command.callback.call( command, { msg, args, session } )
+			} catch( error ){
+				session.update( cb( error ) )
+				console.error( `[CommandManager] Error executing callback of "${command.name}" command: ${error}` )
+			}
+
 			return true
 		}
 	}
@@ -328,8 +338,8 @@ class Command {
 		return list
 	}
 
-	sendHelp( messageOrChannel ){
-		return messageOrChannel.send( String( this.description ) )
+	get help(){
+		return String( this.description )
 	}
 
 	toString(){

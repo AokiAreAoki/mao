@@ -5,9 +5,9 @@ module.exports = {
 		addCommand({
 			aliases: 'cache',
 			description: `caches 100 last messages in current channel`,
-			async callback( msg ){
+			async callback({ msg, session }){
 				const msgs = await msg.channel.cacheLastMessages()
-				msg.send( `Cached last ${msgs.length} messages in ${msg.channel}` )
+				session.update( `Cached last ${msgs.length} messages in ${msg.channel}` )
 			}
 		})
 	}

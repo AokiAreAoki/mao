@@ -4,7 +4,6 @@ module.exports = {
 	init({ addCommand }){
 		const client = require( '@/instances/client' )
 		const { Gelbooru, Yandere } = require( '@/instances/booru' )
-		const cb = require( '@/functions/cb' )
 		const clamp = require( '@/functions/clamp' )
 		const Embed = require( '@/functions/Embed' )
 
@@ -24,7 +23,6 @@ module.exports = {
 		const maxPicsPerCommand = 10
 		const maoTag = 'amatsuka_mao'
 		const usedPics = {}
-		const cooldown = {}
 
 		const loadingPhrases = [
 			'Processing...',
@@ -65,16 +63,22 @@ module.exports = {
 		]
 		const getRandomLoadingPhrase = () => loadingPhrases[Math.floor( Math.random() * loadingPhrases.length )]
 
-		function cd( user, x ){
+		const cooldown = new WeakMap()
+		const spamRestrictions = new WeakMap()
+
+		function setCoolDown( user, power ){
 			const id = user.id || user
 
 			if( typeof id !== 'string' )
 				return
 
-			if( typeof x === 'number' )
-				return cooldown[id] = Math.max( cd( user ), Date.now() ) + Math.sin( x * Math.PI / maxPicsPerCommand / 2 ) * 5e3
+			const nextRequest = Math.max( getCoolDown( user ), Date.now() ) + Math.sin( power * Math.PI / maxPicsPerCommand / 2 ) * 5e3
+			cooldown.set( id, nextRequest )
+			return nextRequest
+		}
 
-			return cooldown[id] ?? 0
+		function getCoolDown( user ){
+			return cooldown.get( user.id || user ) ?? 0
 		}
 
 		async function getNewPics( booruResponse, amount, msg ){
@@ -120,17 +124,17 @@ module.exports = {
 			return newPics
 		}
 
-		async function sharedCallback( userMsg, args ){
-			if( !userMsg.member.antispam || userMsg.member.antispam < Date.now() )
-				userMsg.member.antispam = Date.now() + 1337
+		async function sharedCallback({ msg, args, session }){
+			if( !spamRestrictions.get( msg.member ) || spamRestrictions.get( msg.member ) < Date.now() )
+				spamRestrictions.set( msg.member, Date.now() + 1337 )
 			else
-				return userMsg.react( '❌' )
+				return msg.react( '❌' )
 
-			if( cd( userMsg.member ) > Date.now() )
-				return userMsg.send( `**Cool down, baka!** \`${Math.floor( cd( userMsg.member, 1 ) - Date.now() ) / 1e3}\` seconds left` )
+			if( getCoolDown( msg.member ) > Date.now() )
+				return session.update( `**Cool down, baka!** \`${Math.floor( getCoolDown( msg.member, 1 ) - Date.now() ) / 1e3}\` seconds left` )
 
 			if( !this.booru ){
-				userMsg.send( `Internal error happened: unknown booru: "${args[-1]}"` )
+				session.update( `Internal error happened: unknown booru: "${args[-1]}"` )
 				console.warn( `unknown booru: "${args[-1]}"` )
 				return
 			}
@@ -138,9 +142,9 @@ module.exports = {
 			const tags = Array.from( args, t => t.toLowerCase().replace( /\s/g, '_' ) )
 
 			if( tags.some( t => t === maoTag ) )
-				return userMsg.send( client.emojis.cache.get( '721677327649603594' ).toString() )
+				return session.update( client.emojis.cache.get( '721677327649603594' ).toString() )
 
-			const force = args.flags.force.specified && userMsg.author.isMaster()
+			const force = args.flags.force.specified && msg.author.isMaster()
 			let sfw = tags.find( v => v === this.safeTag )
 
 			if( !sfw && args.flags.safe.specified ){
@@ -148,64 +152,55 @@ module.exports = {
 				sfw = true
 			}
 
-			if( !sfw && !userMsg.channel.nsfw && !force )
-				return userMsg.send( 'This isn\'t an NSFW channel!' );
+			if( !sfw && !msg.channel.nsfw && !force )
+				return session.update( 'This isn\'t an NSFW channel!' );
 
-			const botMsg = userMsg.send( getRandomLoadingPhrase() )
+			session.update( getRandomLoadingPhrase() )
 			const s = tags.length === 1 ? '' : 's'
 
-			this.booru.posts( tags )
-				.then( async result => {
-					let pics = result.pics
+			const result = await this.booru.posts( tags )
+			let pics = result.pics
 
-					if( pics.length === 0 )
-						return botMsg.then( m => m.edit({
-							content: null,
-							embeds: [Embed()
-								.setDescription( `Nothing found by \`${result.tags}\` tag${s} :(` )
-								.setColor( 0xFF0000 )
-							],
-						}))
-
-					let amount = parseInt( args.flags.x[0] )
-					amount = isNaN( amount ) ? 1 : clamp( amount, 0, maxPicsPerCommand )
-
-					if( args.flags.pager.specified ){
-						userMsg.author.createPaginator()
-							.setPages( pics.length )
-							.onPageChanged( ( page, pages ) => ({
-								content: null,
-								embeds: [pics[page]
-									.embed()
-									.setFooter({
-										text: `Page: ${page + 1}/${pages}`
-									})
-								]
-							}))
-							.setMessage( await botMsg )
-					} else {
-						pics = pics.length === 1
-							? pics
-							: await getNewPics( result, amount, userMsg )
-
-						botMsg.then( m => m.edit({
-							content: null,
-							embeds: pics.length === 0
-								?  [Embed()
-									.setDescription( `No new pics found by \`${result.tags}\` tag${s}` )
-									.setColor( 0xFF0000 )
-								]
-								: pics.map( pic => pic.embed() ),
-						}))
-					}
-
-					cd( userMsg.member, amount )
-					delete userMsg.member.antispam
+			if( pics.length === 0 )
+				return session.update({
+					embeds: [Embed()
+						.setDescription( `Nothing found by \`${result.tags}\` tag${s} :(` )
+						.setColor( 0xFF0000 )
+					],
 				})
-				.catch( err => {
-					botMsg.then( m => m.edit( { content: cb( err ), embeds: [] } ) )
-					console.error( err )
+
+			let amount = parseInt( args.flags.x[0] )
+			amount = isNaN( amount ) ? 1 : clamp( amount, 0, maxPicsPerCommand )
+
+			if( args.flags.pager.specified ){
+				msg.author.createPaginator()
+					.setPages( pics.length )
+					.onPageChanged( ( page, pages ) => ({
+						embeds: [pics[page]
+							.embed()
+							.setFooter({
+								text: `Page: ${page + 1}/${pages}`
+							})
+						]
+					}))
+					.setMessage( await session.response.message )
+			} else {
+				pics = pics.length === 1
+					? pics
+					: await getNewPics( result, amount, msg )
+
+				session.update({
+					embeds: pics.length === 0
+						?  [Embed()
+							.setDescription( `No new pics found by \`${result.tags}\` tag${s}` )
+							.setColor( 0xFF0000 )
+						]
+						: pics.map( pic => pic.embed() ),
 				})
+			}
+
+			setCoolDown( msg.member, amount )
+			spamRestrictions.delete( msg.member )
 		}
 
 		for( const settings of boorus ){

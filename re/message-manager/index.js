@@ -55,28 +55,31 @@ class MessageManager {
 		this.handleDeletion = !!handleDeletion
 
 		discord.Message.prototype.deleteAnswers = async function( includeResponse = false ){
-			if( this._answers instanceof Collection )
-				if( this._answers.size !== 0 ){
-					const messagesToDelete = this._answers.filter( m => {
-						if( m.deleted )
-							return false
-
-						if( !includeResponse && m === this.response.message )
-							return false
-
-						return true
-					})
-
-					const promise = this.channel.bulkDelete( messagesToDelete )
-					this._answers.clear()
-
-					if( !includeResponse )
-						this.addAnswer( this.response.message )
-
-					return promise
-				}
-			else
+			if( !( this._answers instanceof Collection ) ){
 				this._answers = new Collection()
+				return
+			}
+
+			if( this._answers.size === 0 )
+				return
+
+			const messagesToDelete = this._answers.filter( message => {
+				if( message.deleted )
+					return false
+
+				if( !includeResponse && this.response.message && message.id === this.response.message.id )
+					return false
+
+				return true
+			})
+
+			const promise = this.channel.bulkDelete( messagesToDelete )
+			this._answers.clear()
+
+			if( !includeResponse && this.response.message )
+				this.addAnswer( this.response.message )
+
+			return promise
 		}
 
 		this.setupEventHandlers()
@@ -91,9 +94,12 @@ class MessageManager {
 		if( this.handleEdits )
 			this.client.on( discord.Events.MessageUpdate, ( oldMsg, newMsg ) => {
 				if( oldMsg.content !== newMsg.content ){
-					newMsg.waiter?.cancel()
-					newMsg.deleteAnswers()
+					oldMsg.waiter?.cancel()
+					oldMsg.deleteAnswers()
+
 					newMsg.hasBeenEdited = true
+
+					newMsg.response.resetSession()
 					this.handleMessage( newMsg, true )
 				}
 			})
@@ -130,8 +136,10 @@ class MessageManager {
 
 		message.isCommand = false
 
-		if( ResponseWaiter.handleMessage( message ) )
-			return
+		const hasBeenHandledByWaiter = ResponseWaiter.handleMessage( message )
+
+		if( hasBeenHandledByWaiter )
+			return true
 
 		for( let i = 0; i < this.handlers.length; ++i ){
 			const handler = this.handlers[i]
@@ -140,9 +148,13 @@ class MessageManager {
 				if( handler.isCommandHandler )
 					message.isCommand = true
 
-				break
+				return true
 			}
 		}
+
+		message.deleteAnswers( true )
+
+		return false
 	}
 }
 
@@ -300,7 +312,7 @@ class ResponseWaiter {
 			const msg = this.displayMessage
 
 			if( msg instanceof discord.Message && !msg.deleted )
-				msg.edit({ content: '**Timed out**', embeds: [] })
+				msg.edit({ content: '**Timed out**' })
 					.then( m => m.delete( 1337 ) )
 		}
 	}
@@ -311,7 +323,7 @@ class ResponseWaiter {
 			const msg = this.displayMessage
 
 			if( msg instanceof discord.Message && !msg.deleted )
-				msg.edit({ content: '**Canceled**', embeds: [] })
+				msg.edit({ content: '**Canceled**' })
 					.then( m => m.delete( 1337 ) )
 		}
 	}

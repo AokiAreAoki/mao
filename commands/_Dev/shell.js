@@ -10,15 +10,15 @@ module.exports = {
 
 		const EXEC_TIMEOUT = 600e3
 
-		async function callback( msg, args ){
+		async function callback({ args, session }){
 			const string_command = args.getRaw()
 
 			if( !string_command )
-				return this.sendHelp( msg )
+				return session.update( this.help )
 
-			const message = await msg.send( processing() )
-			const ac = new AbortController()
+			session.update( processing() )
 			let timeout
+			const ac = new AbortController()
 			const cut = '\n...\n'
 
 			function cropOutput( output, limit = 1024 ){
@@ -67,11 +67,7 @@ module.exports = {
 				if( embeds.length !== 0 )
 					embeds.at(-1).setFooter({ text: footer })
 
-				if( message.deleted )
-					msg.send( options )
-						.then( m => m.delete( 8e3 ) )
-				else
-					message.edit( options )
+				session.update( options )
 			}
 
 			const command = cp.exec( args.getRaw(), {
@@ -101,7 +97,7 @@ module.exports = {
 			const deadline = Date.now() + EXEC_TIMEOUT
 
 			async function updateOutput(){
-				if( message.deleted )
+				if( session.isDeprecated )
 					return ac.abort()
 
 				if( stdChanged && nextMessageUpdate < Date.now() ){

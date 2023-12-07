@@ -31,11 +31,11 @@ module.exports = {
 					[`<...codes>`, `<--gi|--hsr>`, ``],
 				],
 			},
-			callback( msg, args ){
+			callback({ args, session }){
 				let codes = args.filter( s => /^\w{8,16}$/i.test(s) )
 
 				if( codes.length === 0 )
-					return msg.send( `Give me some codes` )
+					return session.update( `Give me some codes` )
 
 				const gi = args.flags.gi.specified
 				const hsr = args.flags.hsr.specified
@@ -43,7 +43,7 @@ module.exports = {
 
 				if( gi ){
 					if( hsr )
-						return msg.send( `You can't specify both flags` )
+						return session.update( `You can't specify both flags` )
 
 					redeemLink = GIRedeemLink
 					emojiID = primogemEmojiID
@@ -51,7 +51,7 @@ module.exports = {
 					redeemLink = HSRRedeemLink
 					emojiID = stellarJadeEmojiID
 				} else {
-					return msg.send( pleaseSpecifyFlag )
+					return session.update( pleaseSpecifyFlag )
 				}
 
 				const emoji = client.emojis.resolve( emojiID )
@@ -73,7 +73,7 @@ module.exports = {
 				const embed = Embed()
 					.setDescription( `Redeem codes:\n${codes}` )
 
-				return msg.send({
+				return session.update({
 					embeds: [embed],
 					components,
 				})

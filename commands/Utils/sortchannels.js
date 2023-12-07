@@ -44,22 +44,22 @@ module.exports = {
 					[`<category ID>`, 'sorts channels of $1 by alphabet'],
 				],
 			},
-			callback: async ( msg, args ) => {
+			async callback({ msg, args, session }){
 				if( !msg.member.permissions.has( discord.PermissionsBitField.Flags.ManageChannels ) )
-					return msg.send( `You don't have permission` )
+					return session.update( `You don't have permission` )
 
 				if( !/^\d+$/.test( args[0] ) )
-					return msg.send( `Please, provide category ID` )
+					return session.update( `Please, provide category ID` )
 
 				const category = client.channels.resolve( await client.channels.fetch( args[0] ) )
 
 				if( !category )
-					return msg.send( `Category with ID \`${args[0]}\` not found` )
+					return session.update( `Category with ID \`${args[0]}\` not found` )
 
 				if( category.type !== discord.ChannelType.GuildCategory )
-					return msg.send( `The ID you provided belongs to a non-category type channel` )
+					return session.update( `The ID you provided belongs to a non-category type channel` )
 
-				const messagePromise = msg.send( `Sorting \`#${category.name}\`...` )
+				const messagePromise = session.update( `Sorting \`#${category.name}\`...` )
 				await category.guild.channels.fetch( null, { force: true } )
 
 				const [channels, message] = await Promise.all([

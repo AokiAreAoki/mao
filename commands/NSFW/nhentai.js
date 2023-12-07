@@ -14,16 +14,16 @@ module.exports = {
 					['<doujinshi URL or ID>', 'downloads a doujinshi by $1 from nhentai.net'],
 				],
 			},
-			async callback( msg, args ){
+			async callback({ msg, args, session }){
 				if( !msg.channel.nsfw )
-					return msg.send( `This isn't an NSFW channel!` )
+					return session.update( `This isn't an NSFW channel!` )
 
 				const id = args[0]?.matchFirst( /(?:https?:\/\/nhentai\.net\/g\/)?(\d+)/ )
 
 				if( !id )
-					return msg.send( `Provide a doujinshi ID` )
+					return session.update( `Provide a doujinshi ID` )
 
-				const promise = msg.send( processing() )
+				const promise = session.update( processing() )
 				const book = await NH.getBook( id )
 				const pages = book.pages.map( page => NH.getImageURL( page ) )
 				const cover = pages.shift()
@@ -40,7 +40,7 @@ module.exports = {
 						title = 'no title :('
 				}
 
-				const embeds = [ Embed()
+				const embeds = [Embed()
 					.setTitle( title )
 					.setDescription( `Tags: \`${book.tags.join( "`, `" )}\`` )
 					.setImage( cover )
@@ -50,7 +50,7 @@ module.exports = {
 				const thread = await message.startThread({
 					name: title,
 				})
-				await message.edit({ embeds })
+				await session.update({ embeds })
 
 				for( let i in pages ){
 					await new Promise( resolve => setTimeout( resolve, 1337 ) )
@@ -64,10 +64,10 @@ module.exports = {
 
 					++i
 					if( i % 5 === 0 && i !== pages.length )
-						message.edit({ content: `${i}/${pages.length} ${processing()}` })
+						session.update({ content: `${i}/${pages.length} ${processing()}` })
 				}
 
-				message.edit({ embeds, content: null })
+				session.update({ embeds })
 			},
 		})
 	}

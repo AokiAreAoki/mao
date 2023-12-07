@@ -9,12 +9,12 @@ module.exports = {
 		addCommand({
 			aliases: 'update-slash',
 			description: 'updates remote slash commands',
-			callback: async msg => {
-				const m = msg.send( processing() )
+			callback: async ({ session }) => {
+				session.update( processing() )
 
 				updateRemote()
-					.then( async () => ( await m ).edit( `✅` ) )
-					.catch( async err => ( await m ).edit( cb( err ) ) )
+					.then( () => session.update( `✅` ) )
+					.catch( err => session.update( cb( err ) ) )
 			},
 		})
 	}

@@ -10,6 +10,8 @@ module.exports = {
 			if( msg.author.bot || msg.author.id === client.user.id )
 				return
 
+			const session = msg.response.session
+
 			const [
 				sed,
 				flags,
@@ -34,7 +36,7 @@ module.exports = {
 			try {
 				regexp = new RegExp( regexp, flags ?? '' )
 			} catch( err ){
-				return msg.send( cb( err ) )
+				return session.update( cb( err ) )
 			}
 
 			const messages = await msg.channel.messages.fetch({
@@ -43,10 +45,11 @@ module.exports = {
 			})
 			const message = messages.find( m => !m.isCommand && !m.isSED && regexp.test( m.content ) )
 
-			return msg.send( message
-				? `${message.author}: ${message.content.replace( regexp, replacement )}`
-				: `Could not find any matches`
-			)
+			return session
+				.update( message
+					? `${message.author}: ${message.content.replace( regexp, replacement )}`
+					: `Could not find any matches`
+				)
 				.then( m => {
 					m.isSED = true
 					return m

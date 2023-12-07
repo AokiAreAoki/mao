@@ -13,9 +13,9 @@ module.exports = {
 			flags: [
 				['capp', '<CAs per page>', 'how many CAs should be displayed per page`'],
 			],
-			callback( msg, args ){
+			callback({ msg, args, session }){
 				if( !db.customActivities || db.customActivities.length === 0 )
-					return msg.send( `There's no custom activities` )
+					return session.update( `There's no custom activities` )
 
 				const CAPP = ( args.flags.capp.specified && args.flags.capp[0] ) || 5 // CAs per page
 				const pages = Math.ceil( db.customActivities.length / CAPP )
@@ -48,12 +48,12 @@ module.exports = {
 				})
 
 				if( pages === 1 )
-					return msg.send( pageHandler() )
+					return session.update( pageHandler() )
 
 				msg.author.createPaginator()
 					.setPages( pages )
 					.onPageChanged( pageHandler )
-					.createMessage( msg )
+					.createMessage( session )
 			}
 		})
 	}

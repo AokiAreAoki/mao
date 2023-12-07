@@ -5,7 +5,7 @@ module.exports = {
 		const discord = require( 'discord.js' )
 		const Embed = require( '@/functions/Embed' )
 
-		async function sendPFP( messageOrChannel, target, banner ){
+		async function sendPFP( session, target, banner ){
 			const embed = Embed()
 			const isGuild = target instanceof discord.Guild
 			const whose = isGuild ? 'Guild' : target.toString() + `'s`
@@ -16,7 +16,7 @@ module.exports = {
 
 				// le discord le didn't implemented an API endpoint for guild banners
 				if( typeof target.bannerURL !== 'function' )
-					return messageOrChannel.send(
+					return session.update(
 						`ahahahaha...... oopsie, looks like le discord le didn't implemented an API endpoint for guild banners! ahaha... who could've guess lol`
 					)
 
@@ -40,7 +40,7 @@ module.exports = {
 					: `${target.toString()} does not have a banner nor an accent color`
 				)
 
-			return messageOrChannel.send( embed )
+			return session.update( embed )
 		}
 
 		addCommand({
@@ -62,7 +62,7 @@ module.exports = {
 					[`<username>`, `searches for a user and gets their avatar/banner`],
 				],
 			},
-			async callback( msg, args ){
+			async callback({ msg, args, session }){
 				const banner = args[-1] === 'banner'
 
 				// Author's avatar
@@ -71,7 +71,7 @@ module.exports = {
 
 				// Exclusion: everyone/here
 				if( msg.mentions.everyone )
-					return msg.send( "Are You Baka?" )
+					return session.update( "Are You Baka?" )
 
 				const member = await msg.guild.members.find( args.getRaw() )
 
@@ -84,7 +84,7 @@ module.exports = {
 					return sendPFP( msg, msg.guild, banner )
 
 				// 404
-				return msg.send( 'User not found :(' )
+				return session.update( 'User not found :(' )
 			},
 		})
 	}

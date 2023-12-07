@@ -9,14 +9,14 @@ module.exports = {
 		addCommand({
 			aliases: 'ship',
 			description: 'combines names of 2 users',
-			async callback( msg, args ){
+			async callback({ msg, args, session }){
 				const user1 = await msg.guild.members.find( args[0] )
 				const user2 = await msg.guild.members.find( args[1] )
 
 				if( !user1 )
-					return msg.send( `Gimme 2 users` )
+					return session.update( `Gimme 2 users` )
 				else if( !user2 )
-					return msg.send( `Gimme 2nd user` )
+					return session.update( `Gimme 2nd user` )
 
 				const name1 = user1.user.username
 				const firstPart = name1.substring( 0, randomPos( name1 ) )
@@ -24,7 +24,7 @@ module.exports = {
 				const name2 = user2.user.username
 				const secondPart = name2.substring( randomPos( name2 ) )
 
-				msg.send( `${user1} + ${user2} = ${firstPart + secondPart}` )
+				session.update( `${user1} + ${user2} = ${firstPart + secondPart}` )
 			},
 		})
 	}

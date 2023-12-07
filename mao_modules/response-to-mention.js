@@ -51,8 +51,10 @@ module.exports = {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
 
+			const session = msg.response.session
+
 			if( msg.content.matchFirst( /(thanks?|thx)\s+([you]+\s+)?mao/i ) )
-				return msg.send( 'no problem', 0 )
+				return session.update( 'no problem', 0 )
 
 			if( msg.content.matchFirst( /^(who|hu)\??$/i ) ){
 				if( msg.author.huCD && msg.author.huCD > Date.now() )
@@ -63,19 +65,19 @@ module.exports = {
 					? 'tao'
 					: 'tao, yeah'
 
-				return msg.send( text, 0 )
+				return session.update( text, 0 )
 			}
 
 			const mention = msg.content.matchFirst( mentionRE )
 
 			if( mention ){
 				if( mention === client.user.id )
-					return msg.send( msg.author.toString(), 0 )
+					return session.update( msg.author.toString(), 0 )
 
 				const text = msg.content.substr( mention.length )
 
 				if( /^('?s|\s*is)?\s*((stupid|shit|dumb)\s*bot|baka|бака|дура|дурында|тупая|глупая)\s*~?[!.]?/i.test( text ) )
-					return msg.send( 'no u' )
+					return session.update( 'no u' )
 
 				let postfix = text.matchFirst( /\W*$/i ) ?? ''
 
@@ -86,7 +88,7 @@ module.exports = {
 					? msg.member.displayName.replace( /@/g, '#' ) + postfix
 					: getRandomResponse( msg.member )
 
-				return msg.send( response, 0 )
+				return session.update( response, 0 )
 			}
 		})
 	}

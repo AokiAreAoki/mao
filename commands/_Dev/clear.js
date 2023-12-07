@@ -21,18 +21,18 @@ module.exports = {
 					[`<number>`, '[@@]', `deletes $1 messages that belong to @@ (max. ${MAX}; fetches only last 100 messages)`],
 				],
 			},
-			callback: async ( msg, args ) => {
+			callback: async ({ msg, args, session }) => {
 				const amount = args[0] ? Math.min( parseInt( args[0] ), MAX ) : 1
 
 				if( isNaN( amount ) || amount <= 0 )
-					return msg.send( 'You entered invalid number or number is ≤ 0' )
+					return session.update( 'You entered invalid number or number is ≤ 0' )
 
 				const fetchOptions = { limit: 100 }
 				const { after, before } = args.flags
 
 				if( after.specified && isIDLike( after[0] ) ){
 					if( before.specified && isIDLike( before[0] ) )
-						return msg.send( "You can't use the `after` and the `before` flags together" )
+						return session.update( "You can't use the `after` and the `before` flags together" )
 
 					fetchOptions.after = after[0]
 				} else {
@@ -62,7 +62,7 @@ module.exports = {
 				else
 					messages.forEach( m => m.delete() )
 
-				const reply = await msg.send( `${actualAmount} message${amount !== 1 ? 's have' : ' has'} been deleted` )
+				const reply = await session.update( `${actualAmount} message${amount !== 1 ? 's have' : ' has'} been deleted` )
 				msg.channel.purge( [msg, reply], messageDisplayTime )
 			},
 		})

@@ -37,7 +37,7 @@ module.exports = {
 		addCommand({
 			aliases: 'currencies crns',
 			description: 'returns list of all available currencies',
-			callback: async msg => msg.send( Embed()
+			callback: async ({ session }) => session.update( Embed()
 				.setTitle( "Available currencies" )
 				.setDescription( Object.keys( await getCurrencies() )
 					.map( c => `\`${c}\`` )
@@ -51,6 +51,7 @@ module.exports = {
 		})
 
 		MM.pushHandler( 'currency-converter', false, async msg => {
+			const session = msg.response.session
 			const expressions = Array.from( msg.content.matchAll( convertRE ) )
 
 			if( expressions.length === 0 )
@@ -59,7 +60,7 @@ module.exports = {
 			const filter = {}
 			const currencies = await getCurrencies()
 				.catch( err => {
-					msg.send( `Something went wrong :(\nI can't convert currency right now` )
+					session.update( `Something went wrong :(\nI can't convert currency right now` )
 					throw err
 				})
 
@@ -90,7 +91,7 @@ module.exports = {
 				})
 
 			if( exchangeRates.length !== 0 ){
-				msg.send( exchangeRates.join( '\n' ) )
+				session.update( exchangeRates.join( '\n' ) )
 				return true
 			}
 		})

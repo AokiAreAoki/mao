@@ -8,18 +8,18 @@ module.exports = {
 		addCommand({
 			aliases: 'emoji e',
 			description: 'Sends random emoji that matches the keyword',
-			callback: ( msg, args ) => {
+			callback({ args, session }){
 				let match = args[0]?.match( /<a?:[\w_-]+:(\d+)>/ )
 
 				if( !match )
-					return msg.send( `Please provide an emoji` )
+					return session.update( `Please provide an emoji` )
 
 				const emoji = client.emojis.resolve( match[1], match[0] )
 
 				if( !emoji )
-					return msg.send( `Could not retrieve emoji` )
+					return session.update( `Could not retrieve emoji` )
 
-				return msg.send( Embed()
+				return session.update( Embed()
 					.setDescription( `[${emoji.name}](${emoji.url})` )
 					.setImage( emoji.url )
 				)

@@ -8,7 +8,7 @@ module.exports = {
 
 		const HI_LIFETIME = 600e3
 		const COOLDOWN = 900e3
-		const states = [
+		const STATES = [
 			"normal",
 			"lgbt",
 			"a femboy",
@@ -62,7 +62,7 @@ module.exports = {
 			)
 
 			if( sumLvl + streak.entries.length * 2 > 10 ){
-				msg.send([
+				msg.response.session.update([
 					msg.author.toString(),
 					'is having a ketamine overdose',
 				].join( ' ' ) )
@@ -74,26 +74,27 @@ module.exports = {
 		addCommand({
 			aliases: 'hi-check check-hi',
 			description: 'determines a state of a person by their `hi`',
-			callback: async msg => {
-				const msgs = await msg.channel.messages.fetch({
-					limit: 100,
-					before: msg.id,
-				}).catch( () => [] )
+			async callback({ msg, session }){
+				const msgs = await msg.channel.messages
+					.fetch({
+						limit: 100,
+						before: msg.id,
+					})
+					.catch( () => [] )
 
 				await msg.getReferencedMessage()
 					.then( ref => ref && msgs.unshift( ref ) )
 
-				const hiMsg = msgs.find(
-					m => m.id !== msg.id && !m.isCommand && hasHi( m.content )
-				)
+				const hiMsg = msgs.find( m => m.id !== msg.id && !m.isCommand && hasHi( m.content ) )
 
-				return hiMsg
-					? msg.send([
+				return session.update( hiMsg
+					? [
 						hiMsg.author.toString(),
 						'is',
-						states.at( hiLvl( hiMsg.content ) ) || states.at(-1),
-					].join( ' ' ) )
-					: msg.send( "No `hi`s found" )
+						STATES.at( hiLvl( hiMsg.content ) ) || STATES.at(-1),
+					].join( ' ' )
+					: "No `hi`s found"
+				)
 			}
 		})
 	}

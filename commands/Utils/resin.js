@@ -23,7 +23,7 @@ module.exports = {
 					['123', 'max/full', 'calcs time required for resin to regenerate from 123 to max (160)'],
 				],
 			},
-			callback: ( msg, args ) => {
+			callback({ args, session }){
 				let [from, to] = args
 				let oneArg = false
 
@@ -35,21 +35,21 @@ module.exports = {
 				}
 
 				if( isNaN( from = parseInt( from ) ) )
-					return msg.send( 'Usage: `-help resin`' )
+					return session.update( 'Usage: `-help resin`' )
 
 				if( to === 'max' || to === 'full' )
 					to = maxResin
 				else if( isNaN( to = parseInt( to ) ) )
-					return msg.send( 'Provide a valid number' )
+					return session.update( 'Provide a valid number' )
 
 				if( from < 0 )
-					return msg.send( "start value can't be lower than zero" )
+					return session.update( "start value can't be lower than zero" )
 
 				if( from > to )
-					return msg.send( "How is your start value bigger than end value?" )
+					return session.update( "How is your start value bigger than end value?" )
 
 				if( from === to )
-					return msg.send( '<:suspicious:597568055199137802>' )
+					return session.update( '<:suspicious:597568055199137802>' )
 
 				let ts = new TimeSplitter({
 					minutes: ( to - from ) * minutesPerResin - minutesPerResin / 2
@@ -62,9 +62,9 @@ module.exports = {
 				})
 
 				if( oneArg )
-					msg.send( `\`${to}\` resin will be regenerated in ${timeleft} ± \`${minutesPerResin / 2} minutes\`` )
+					session.update( `\`${to}\` resin will be regenerated in ${timeleft} ± \`${minutesPerResin / 2} minutes\`` )
 				else
-					msg.send( `Resin will regenerate from \`${from}\` to \`${to}\` in ${timeleft} ± \`${minutesPerResin / 2} minutes\`` )
+					session.update( `Resin will regenerate from \`${from}\` to \`${to}\` in ${timeleft} ± \`${minutesPerResin / 2} minutes\`` )
 			}
 		})
 	}

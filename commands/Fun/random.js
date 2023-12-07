@@ -3,9 +3,13 @@ require = global.alias
 module.exports = {
 	init({ addCommand }){
 		const clamp = require( '@/functions/clamp' )
+		const MAX_ROLLS = 50
 
 		addCommand({
 			aliases: 'roll',
+			flags: [
+				['x', `<amount>`, `$1 of numbers to roll (max: ${MAX_ROLLS})`],
+			],
 			description: {
 				single: 'rolls a dice',
 				usages: [
@@ -14,18 +18,9 @@ module.exports = {
 					['<min>', '<max>', 'rolls random number from $1 to $2'],
 				],
 			},
-			callback: ( msg, args ) => {
-				let x = 1
-
-				for( let i = 0; i < args.length; ++i ){
-					let xx = args[i].matchFirst( /^x(\d{1,3})/i )
-
-					if( xx ){
-						x = clamp( Number( xx ), 1, 50 )
-						args.splice( i, 1 )
-						break
-					}
-				}
+			callback({ msg, args, session }){
+				let rolls = args.flags.x.specified && parseInt( args.flags.x[0] )
+				rolls = clamp( rolls || 1, 1, 50 )
 
 				let min = parseInt( args[0] )
 				let max = parseInt( args[1] )
@@ -38,24 +33,24 @@ module.exports = {
 					min = 0
 				}
 
-				let numbers = []
+				const numbers = Array( rolls )
+					.fill()
+					.map( () => `**${min + Math.floor( Math.random() * ( max + 1 - min ) )}**` )
+					.join( ', ' )
 
-				for( let i = 0; i < x; ++i )
-					numbers.push( min + Math.floor( Math.random() * ( max + 1 - min ) ) )
-
-				msg.send( `**${msg.member.displayName}** rolled **${numbers.join( '**, **' )}**` )
+				session.update( `**${msg.member.displayName}** rolled ${numbers}` )
 			},
 		})
 
 		addCommand({
 			aliases: 'select choose',
 			description: 'Selects one of the given variants',
-			callback: ( msg, args ) => {
+			callback({ args, session }){
 				if( args.length === 0 )
-					return msg.send( 'Gimme something to choose, baka' )
+					return session.update( 'Gimme something to choose, baka' )
 
-				let r = Math.floor( Math.random() * args.length )
-				msg.send( `I ${args[-1]} **${args[r].replace( /\\*@/g, '\\@' )}**` )
+				const r = Math.floor( Math.random() * args.length )
+				session.update( `I ${args[-1]} **${args[r].replace( /\\*@/g, '\\@' )}**` )
 			},
 		})
 
@@ -64,15 +59,15 @@ module.exports = {
 		addCommand({
 			aliases: 'rps',
 			description: 'rock paper scissors',
-			callback: ( msg, args ) => {
-				let mao = Math.floor( Math.random() * 3 )
-				let user = args[0]
+			callback({ args, session }){
+				const mao = Math.floor( Math.random() * 3 )
+				const user = args[0]
 					? rps.findIndex( v => v.startsWith( args[0].toLowerCase() ) )
 					: Math.floor( Math.random() * 3 )
 
 				let result = ( mao - user + 4 ) % 3 - 1
 
-				msg.send(
+				session.update(
 					`**You**: ${rps[user]}!\n**Mao**: ${rps[mao]}!\n` +
 					( result === 0 ? 'DRAW' : ( result === 1 ? 'You lose 😭' : '**You WON! 😎**' ) )
 				)

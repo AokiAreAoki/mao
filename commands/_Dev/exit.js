@@ -21,7 +21,7 @@ module.exports = {
 				const channel = await client.channels.fetch( db.restart.channel )
 
 				if( channel && timeleft < 600e3 ){
-					channel.send( Embed()
+					const embed = Embed()
 						.setTitle( "🚀 Yay, I'm back again!" )
 						.addFields(
 							{
@@ -41,11 +41,14 @@ module.exports = {
 							},
 						)
 						.setTimestamp( Date.now() )
-					).then( async m => {
-						m.purge( 5e3 )
-						delete db.restart
-						bakadb.save()
-					}).catch( () => {} )
+
+					channel.send( embed )
+						.then( async m => {
+							m.purge( 5e3 )
+							delete db.restart
+							bakadb.save()
+						})
+						.catch( () => {} )
 
 					channel.messages.fetch( db.restart.message )
 						.then( m => m.purge( 1337 ) )
@@ -61,7 +64,7 @@ module.exports = {
 			description: {
 				single: 'guess what'
 			},
-			callback: async ( msg, args ) => {
+			callback: async ({ msg, args }) => {
 				db.restart = {
 					message: msg.id,
 					channel: msg.channel.id,

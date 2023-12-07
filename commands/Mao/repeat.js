@@ -8,18 +8,20 @@ module.exports = {
 		addCommand({
 			aliases: 'repeat',
 			description: 'repeats last command',
-			callback: async msg => {
+			async callback({ msg, session }){
 				msg.isCommand = false
 				let commandMessage = await msg.getReferencedMessage()
 
 				if( commandMessage ){
 					if( commandMessage.author.id !== msg.author.id && !msg.author.isMaster() )
-						return msg.send( `That's not yours` )
+						return session.update( `That's not yours` )
 				} else {
-					const messages = await msg.channel.messages.fetch({
-						before: msg.id,
-						limit: 100,
-					}).catch( () => null )
+					const messages = await msg.channel.messages
+						.fetch({
+							before: msg.id,
+							limit: 100,
+						})
+						.catch( () => null )
 
 					commandMessage = messages?.find( m => m.author.id === msg.author.id && m.isCommand )
 				}
@@ -35,7 +37,7 @@ module.exports = {
 
 				msg.channel.purge([
 					msg,
-					await msg.send( 'No commands found' ),
+					await session.update( 'No commands found' ),
 				], 3e3 )
 			},
 		})

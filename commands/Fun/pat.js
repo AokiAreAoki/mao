@@ -16,21 +16,20 @@ module.exports = {
 					['<url>', 'pats $1'],
 				],
 			},
-			async callback( msg, args ){
+			async callback({ msg, args, session }){
 				let url = args[0] || await msg.findLastPic()
 
 				if( !url )
-					return msg.send( `No media found or provided` )
+					return session.update( `No media found or provided` )
 
-				const message = msg.send( processing() )
-				const embed = Embed()
-					.setImage( 'attachment://pat.gif' )
+				session.update( processing() )
+				const embed = Embed().setImage( 'attachment://pat.gif' )
 
 				if( !url.matchFirst( /^https?:\/\// ) ){
 					const member = await msg.guild.members.find( url )
 
 					if( !member )
-						return ( await message ).edit( 'User not found' )
+						return session.update( 'User not found' )
 
 					url = member.user.avatarURL({ extension: 'jpg' })
 					embed.setDescription( `You are patting ${member}\nThey must be really happy rn` )
@@ -38,16 +37,13 @@ module.exports = {
 
 				const gif = await pet( url )
 					.catch( async err => {
-						( await message ).edit( `Something went wrong :(` )
+						session.update( `Something went wrong :(` )
 						throw err
 					})
 
-				return ( await message ).edit({
-					content: null,
+				return session.update({
 					embeds: [embed],
-					files: [
-						new discord.AttachmentBuilder( gif, { name: 'pat.gif' } )
-					],
+					files: [new discord.AttachmentBuilder( gif, { name: 'pat.gif' } )],
 				})
 			},
 		})

@@ -9,9 +9,10 @@ module.exports = {
 		addCommand({
 			aliases: 'invite',
 			description: 'sends an invite link',
-			callback: msg => msg.send( Embed().setDescription(
-				`Here's your [invite link](https://discord.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=${PERMS_INT})`
-			)),
+			callback: ({ session }) => {
+				const inviteLink = `https://discord.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=${PERMS_INT}`
+				session.update( Embed().setDescription( `Here's your [invite link](${inviteLink})` ) )
+			},
 		})
 	}
 }

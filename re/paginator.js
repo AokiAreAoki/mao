@@ -1,4 +1,5 @@
 const discord = require( 'discord.js' )
+const Response = require( './message-manager/response' )
 const clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
 
 class Paginator {
@@ -101,14 +102,18 @@ class Paginator {
 		return this
 	}
 
-	async createMessage( channel ){
+	async createMessage( destination ){
 		if( this.pageAmount == null )
 			throw Error( `The page amount is not set` )
 
 		if( typeof this.pageChangeHandler !== 'function' )
 			throw Error( `The page change handler is not set` )
 
-		this.setMessage( await channel.send( this.getPageContent() ), false )
+		const message = destination instanceof Response
+			? await destination.update( this.getPageContent() )
+			: await destination.send( this.getPageContent() )
+
+		this.setMessage( message, false )
 		return this
 	}
 

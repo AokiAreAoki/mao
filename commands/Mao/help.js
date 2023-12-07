@@ -23,20 +23,20 @@ module.exports = {
 					['mao', 'sends list of commands of `Mao` module with short descriptions'],
 				],
 			},
-			callback: ( msg, args ) => {
+			callback({ msg, args, session }){
 				if( args[0] ){
 					const command = CM.findCommand( args.getRaw() )
 
 					if( command )
-						return command.sendHelp( msg )
+						return session.update( command.help )
 
 					const module = CM.modules.get( args[0].toLowerCase() )
 
 					if( module && module.isAccessibleFor( msg.author ) )
-						//return msg.send( `${module.printname}:${cb( module.listCommands(), 'asciidoc' )}` )
-						return msg.send( cb( `== ${module.printname} ==\n${module.listCommands()}`, 'asciidoc' ) )
+						//return session.update( `${module.printname}:${cb( module.listCommands(), 'asciidoc' )}` )
+						return session.update( cb( `== ${module.printname} ==\n${module.listCommands()}`, 'asciidoc' ) )
 
-					return msg.send( `No module or command named \`${args[0]}\` has been found.` )
+					return session.update( `No module or command named \`${args[0]}\` has been found.` )
 				}
 
 				const emb = Embed().setDescription([
@@ -62,7 +62,7 @@ module.exports = {
 					}
 				})
 
-				msg.send( emb )
+				session.update( emb )
 			},
 		})
 
@@ -71,8 +71,8 @@ module.exports = {
 			return
 
 		const description = 'test command'
-		const callback = ( msg, args ) => {
-			msg.send([
+		const callback = ({ args, session }) => {
+			session.update([
 				'```',
 				'    -3 :: ' + args[-3],
 				'    -2 :: ' + args[-2],

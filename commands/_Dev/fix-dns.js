@@ -11,9 +11,9 @@ module.exports = {
 		addCommand({
 			aliases: 'fix-dns',
 			description: `remove \`${ip}\` from \`${path}\``,
-			async callback( msg ){
+			async callback({ session }){
 				if( !fs.existsSync( path ) )
-					return msg.send( `The \`${path}\` does not exist` )
+					return session.update( `The \`${path}\` does not exist` )
 
 				try {
 					const content = fs
@@ -24,9 +24,9 @@ module.exports = {
 						.join( '\n' )
 
 					fs.writeFileSync( path, content )
-					return await msg.send( cb( content ) )
+					return session.update( cb( content ) )
 				} catch( error ){
-					return msg.send( cb( error ) )
+					return session.update( cb( error ) )
 				}
 			}
 		})

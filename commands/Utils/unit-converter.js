@@ -23,8 +23,8 @@ module.exports = {
 					value: 1e6,
 				},
 				{
-					single: "Milisecond",
-					plural: "Miliseconds",
+					single: "Millisecond",
+					plural: "Milliseconds",
 					short: "ms",
 					value: 1e3,
 				},
@@ -280,7 +280,7 @@ module.exports = {
 		addCommand({
 			aliases: 'units',
 			description: 'returns list of all available units for converter',
-			callback: msg => msg.send( Embed()
+			callback: ({ session }) => session.update( Embed()
 				.setTitle( "Available units" )
 				.addFields( systems
 					.map( ( units, system ) => ({
@@ -297,7 +297,8 @@ module.exports = {
 			),
 		})
 
-		MM.pushHandler( 'unit_converter', false, msg => {
+		MM.pushHandler( 'unit-converter', false, msg => {
+			const session = msg.response.session
 			const iter = msg.content.matchAll( RE )
 
 			const convertedValues = Array
@@ -331,7 +332,7 @@ module.exports = {
 				.join( '\n' )
 
 			if( convertedValues )
-				msg.send( convertedValues )
+				session.update( convertedValues )
 		})
 	}
 }

@@ -41,9 +41,9 @@ module.exports = {
 					],
 				]
 			},
-			callback: async ( msg, args ) => {
+			async callback({ msg, args, session }){
 				if( args.length === 0 )
-					return msg.send( 'Usage: `-help vote`' )
+					return session.update( 'Usage: `-help vote`' )
 
 				const options = args.getRaw().split( /\n+/ )
 				let query = options.shift()
@@ -56,7 +56,7 @@ module.exports = {
 						query += `\n${numbers[i]} ${options[i]}`
 				}
 
-				let m = await msg.send( Embed()
+				const message = await session.update( Embed()
 					.addFields({ name: 'Vote:', value: query })
 					.setAuthor({
 						name: msg.author.tag,
@@ -65,11 +65,12 @@ module.exports = {
 				)
 
 				if( options_amount === 0 ){
-					await m.react( '✅' )
-					await m.react( '❌' )
-				} else
+					await message.react( '✅' )
+					await message.react( '❌' )
+				} else {
 					for( let i = 0; i < options_amount; ++i )
-						await m.react( `${numbers[i]}` )
+						await message.react( `${numbers[i]}` )
+				}
 			},
 		})
 	}

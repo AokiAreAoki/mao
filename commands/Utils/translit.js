@@ -35,11 +35,11 @@ module.exports = {
 					[`<lang>`, `<message ID>`, 'fetches a message by $2 and transliterates it to $1'],
 				],
 			},
-			callback: async ( msg, args ) => {
+			async callback({ msg, args, session }){
 				let lang = args[0].toLowerCase()
 
 				if( lang != 'ru' && lang != 'en' )
-					return msg.send( 'Invalid language! Use `EN` or `RU`' )
+					return session.update( 'Invalid language! Use `EN` or `RU`' )
 
 				lang = lang == 'en'
 
@@ -53,7 +53,7 @@ module.exports = {
 							const transliteratedText = transliterate( lang, message.content )
 
 							if( transliteratedText )
-								msg.send( Embed()
+								session.update( Embed()
 									.setAuthor({
 										name: message.author.tag,
 										iconURL: message.author.avatarURL(),
@@ -61,14 +61,14 @@ module.exports = {
 									.setDescription( transliteratedText )
 								)
 							else
-								msg.send( 'Failed to transliterate the message.' )
+								session.update( 'Failed to transliterate the message.' )
 						} else
-							msg.send( 'Failed to fetch the message! The message doesn\'t exist, or is in another channel.' )
+							session.update( 'Failed to fetch the message! The message doesn\'t exist, or is in another channel.' )
 					} else { // Text provided
 						const transliteratedText = transliterate( lang, text )
 
 						if( transliteratedText )
-							msg.send( Embed()
+							session.update( Embed()
 								.setAuthor({
 									name: msg.author.tag,
 									iconURL: msg.author.avatarURL(),
@@ -76,7 +76,7 @@ module.exports = {
 								.setDescription( transliteratedText )
 							)
 						else
-							msg.send( 'Failed to transliterate the message.' )
+							session.update( 'Failed to transliterate the message.' )
 					}
 				} else { // Nothing provided
 					let message = null
@@ -89,12 +89,12 @@ module.exports = {
 						message = mm.first()
 
 					if( !message )
-						msg.send( 'Previous message not found.' )
+						session.update( 'Previous message not found.' )
 
 					const transliteratedText = transliterate( lang, message.content )
 
 					if( transliteratedText )
-						msg.send( Embed()
+						session.update( Embed()
 							.setAuthor({
 								name: message.author.tag,
 								iconURL: message.author.avatarURL(),
@@ -102,7 +102,7 @@ module.exports = {
 							.setDescription( transliteratedText )
 						)
 					else
-						msg.send( 'Failed to transliterate the message.' )
+						session.update( 'Failed to transliterate the message.' )
 				}
 			},
 		})

@@ -3,6 +3,8 @@ require = global.alias
 module.exports = {
 	init({ addCommand }){
 		const Embed = require( '@/functions/Embed' )
+		const wait = require( '@/functions/wait' )
+		const urlBase = 'https://lmgtfy.com/?q='
 
 		addCommand({
 			aliases: 'lmgtfy lmg whatis whats',
@@ -16,36 +18,32 @@ module.exports = {
 					[`<search request>`, 'googles $1'],
 				],
 			},
-			callback: ( msg, args ) => {
-				let url = 'https://lmgtfy.com/?q=',
-					q = args.getRaw(),
-					iie = args.flags.iie.specified ? '&iie=1' : '',
-					whatis = args[-1].toLowerCase().startsWith( 'what' ) ? 'What is ' : '',
-					timeout = 1337 + Math.random() * 3e3
+			async callback({ session, args }){
+				const q = args.getRaw()
+				const iie = args.flags.iie.specified ? '&iie=1' : ''
+				const whatIs = args[-1].toLowerCase().startsWith( 'what' ) ? 'What is ' : ''
+				const timeout = 1337 + Math.random() * 3e3
 
 				if( !q )
-					return msg.send( 'Usage: `-help lmgtfy`' )
+					return session.update( 'Usage: `-help lmgtfy`' )
 
-				url += encodeURI( ( whatis + q ).replace( /\s+/g, '+' ) ) + iie
+				const url = urlBase + encodeURI( ( whatIs + q ).replace( /\s+/g, '+' ) ) + iie
 
-				return new Promise( resolve => {
-					msg.send( Embed()
-						.addFields({
-							name: `OK 👌. Googling \`${whatis + q}\`...`,
-							value: 'Please wait a bit :^)'
-						})
-					)
-						.then( m => {
-							setTimeout( () => {
-								resolve( m.edit( Embed()
-									.addFields({
-										name: 'Found!',
-										value: `Click here to find out ${whatis.toLowerCase()}[${q}](${url})`,
-									})
-								))
-							}, timeout )
-						})
-				})
+				session.update( Embed()
+					.addFields({
+						name: `OK 👌. Googling \`${whatIs + q}\`...`,
+						value: 'Please wait a bit :^)'
+					})
+				)
+
+				await wait( timeout )
+
+				session.update( Embed()
+					.addFields({
+						name: 'Found!',
+						value: `Click here to find out ${whatIs.toLowerCase()}[${q}](${url})`,
+					})
+				)
 			},
 		})
 	}

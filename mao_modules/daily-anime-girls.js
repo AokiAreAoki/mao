@@ -230,10 +230,7 @@ module.exports = {
 									daily.history = []
 
 								const content = {
-									content: null,
-									embeds: [
-										post.embed({ linkTitle: `Daily ${daily.title}` }),
-									],
+									embeds: [post.embed({ linkTitle: `Daily ${daily.title}` })],
 								}
 
 								return content

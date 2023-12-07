@@ -2,9 +2,10 @@
 require = global.alias
 module.exports = {
 	init({ addCommand }){
-		const vec = require( '@/re/vector' )
 		const Jimp = require( 'jimp' )
 		const config = require( '@/config.yml' )
+		const cb = require( '@/functions/cb' )
+		const vec = require( '@/re/vector' )
 
 		function toByte( string_int ){
 			let int = parseInt( string_int )
@@ -64,9 +65,9 @@ module.exports = {
 					['hsl', '30', '1', '0.5', `same as previous but there's coefficients(\`[0; 1]\`) instead of percentages`],
 				],
 			},
-			callback: ( msg, args ) => {
+			callback({ args, session }){
 				if( !args[0] )
-					return msg.send( 'Usage: `-help color`' )
+					return session.update( 'Usage: `-help color`' )
 
 				let system = args[0].toLowerCase()
 
@@ -78,7 +79,7 @@ module.exports = {
 					else if( /^(#|0x)[\da-f]{3,6}$/i.test( system ) )
 						system = 'hex'
 					else
-						return msg.send( 'Invalid color specifying' )
+						return session.update( 'Invalid color specifying' )
 				}
 
 				if( typeof colorSystems[system] === 'string' )
@@ -88,19 +89,20 @@ module.exports = {
 				if( typeof color == 'number' ){
 					new Jimp( 64, 64, color * 0x100 + 0xFF, ( err, img ) => {
 						if( err )
-							return msg.sendcb( err )
+							return session.update( cb( err ) )
 
 						img.rgba( false )
-						msg.send( img )
+						session.update( img )
+
 						/*img.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
 							delete img
-							if( err ) msg.sendcb( err )
-							else msg.send({ files: [buffer] })
-								.catch( err => msg.sendcb( err ) )
+							if( err ) session.update( cb( err ) )
+							else session.update({ files: [buffer] })
+								.catch( err => session.update( cb( err ) ) )
 						})*/
 					})
 				} else
-					msg.send( 'Woops... Failed to parse the color :(((' )
+					session.update( 'Woops... Failed to parse the color :(((' )
 			}
 		})
 	}

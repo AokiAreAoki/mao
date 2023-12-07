@@ -10,7 +10,7 @@ module.exports = {
 		addCommand({
 			aliases: 'get-backup backup',
 			description: 'saves and send a copy of the DB in PMs',
-			async callback( msg ){
+			async callback({ msg, session }){
 				bakadb.save( true )
 
 				try {
@@ -20,8 +20,8 @@ module.exports = {
 						.reduce( ( a, b ) => Math.max( a, b ), 0 )
 						.toString()
 
-					if( lastSave == '0' )
-						return await msg.send( 'No saves found' )
+					if( lastSave === 0 )
+						return session.update( 'No saves found' )
 
 					await msg.author.send({
 						files: [join( bakadb.path, lastSave )]
@@ -29,7 +29,7 @@ module.exports = {
 
 					await msg.react( '✅' )
 				} catch( err ){
-					msg.send( cb( err ) )
+					session.update( cb( err ) )
 				}
 			},
 		})

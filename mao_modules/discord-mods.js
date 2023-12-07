@@ -1,3 +1,4 @@
+
 // eslint-disable-next-line no-global-assign
 require = global.alias
 module.exports = {
@@ -9,6 +10,7 @@ module.exports = {
 		const cb = require( '@/functions/cb' )
 		const clamp = require( '@/functions/clamp' )
 		const Embed = require( '@/functions/Embed' )
+		const Response = require( '@/re/message-manager/response' )
 
 		const ending = '\n...'
 
@@ -23,6 +25,7 @@ module.exports = {
 		}
 
 		function handleArgs( content, options = {} ){
+			options.content ??= null
 			options.embeds ??= []
 			options.files ??= []
 			options.allowedMentions ??= {}
@@ -104,6 +107,7 @@ module.exports = {
 
 			for( const msg of messages ){
 				const ref = await msg.getReferencedMessage()
+				msg.response ??= new Response( msg )
 
 				if( !ref )
 					continue
@@ -133,8 +137,8 @@ module.exports = {
 				.then( () => this.original_send( handleArgs( content, options ) ) )
 		}
 
-		// TextChannel.sendcb
-		discord.TextChannel.prototype.sendcb = function( content, options ){
+		// TextChannel.sendCB
+		discord.TextChannel.prototype.sendCB = function( content, options ){
 			options = handleArgs( content, options )
 			options.content = cutIfLimit( cb( options.content ) )
 			return this.original_send( options )
@@ -195,8 +199,8 @@ module.exports = {
 				})
 		}
 
-		// Message.sendcb
-		discord.Message.prototype.sendcb = function( content, options, replyLvl ){
+		// Message.sendCB
+		discord.Message.prototype.sendCB = function( content, options, replyLvl ){
 			return this.send( content, options, replyLvl, true )
 		}
 

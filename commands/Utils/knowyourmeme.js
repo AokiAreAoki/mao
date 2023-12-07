@@ -23,19 +23,19 @@ module.exports = {
 					['<meme>', 'looks for a meaning of the $1'],
 				],
 			},
-			callback: ( msg, args ) => {
+			callback({ args, session }){
 				const meme = args.getRaw()
 
 				return meme
 					? kym.search( meme )
-						.then( meaning => msg.send( Embed()
+						.then( meaning => session.update( Embed()
 							.setDescription( `**${meaning.name}** - ${cut( meaning.about )}` )
 						))
-						.catch( () => msg.send( Embed()
+						.catch( () => session.update( Embed()
 							.setColor( 0xFF0000 )
 							.setDescription( `The \`${meme}\` meme is not found :c` )
 						))
-					: msg.send( 'gimme a meme baka' )
+					: session.update( 'gimme a meme baka' )
 			},
 		})
 	}

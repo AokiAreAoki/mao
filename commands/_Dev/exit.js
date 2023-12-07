@@ -64,14 +64,18 @@ module.exports = {
 			description: {
 				single: 'guess what'
 			},
-			callback: async ({ msg, args }) => {
+			async callback({ msg, args }){
 				db.restart = {
 					message: msg.id,
 					channel: msg.channel.id,
 					timestamp: Date.now(),
 				}
 
-				await msg.react( '717396565114880020' )
+				await Promise.all([
+					msg.react( '717396565114880020' ),
+					msg.deleteAnswers( true ),
+				])
+
 				shutdown( parseInt( args[0] ) )
 			},
 		})

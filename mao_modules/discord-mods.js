@@ -31,7 +31,7 @@ module.exports = {
 			options.allowedMentions ??= {}
 			options.allowedMentions.repliedUser ??= false
 
-			if( content === null )
+			if( content == null )
 				throw new Error( 'content can not be ' + String( content ) )
 
 			if( typeof content === 'object' ){

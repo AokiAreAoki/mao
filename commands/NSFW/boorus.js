@@ -67,18 +67,16 @@ module.exports = {
 		const spamRestrictions = new WeakMap()
 
 		function setCoolDown( user, power ){
-			const id = user.id || user
-
-			if( typeof id !== 'string' )
+			if( typeof user !== 'string' )
 				return
 
 			const nextRequest = Math.max( getCoolDown( user ), Date.now() ) + Math.sin( power * Math.PI / maxPicsPerCommand / 2 ) * 5e3
-			cooldown.set( id, nextRequest )
+			cooldown.set( user, nextRequest )
 			return nextRequest
 		}
 
 		function getCoolDown( user ){
-			return cooldown.get( user.id || user ) ?? 0
+			return cooldown.get( user ) ?? 0
 		}
 
 		async function getNewPics( booruResponse, amount, msg ){
@@ -175,14 +173,9 @@ module.exports = {
 			if( args.flags.pager.specified ){
 				msg.author.createPaginator()
 					.setPages( pics.length )
-					.onPageChanged( ( page, pages ) => ({
-						embeds: [pics[page]
-							.embed()
-							.setFooter({
-								text: `Page: ${page + 1}/${pages}`
-							})
-						]
-					}))
+					.onPageChanged( ( page, pages ) => pics[page].embed()
+						.setFooter({ text: `Page: ${page + 1}/${pages}` })
+					)
 					.setMessage( await session.response.message )
 			} else {
 				pics = pics.length === 1

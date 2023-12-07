@@ -67,7 +67,7 @@ module.exports = {
 
 				// Author's avatar
 				if( !args[0] && !args.flags.guild.specified )
-					return sendPFP( msg, args.flags.server.specified ? msg.member : msg.author, banner )
+					return sendPFP( session, args.flags.server.specified ? msg.member : msg.author, banner )
 
 				// Exclusion: everyone/here
 				if( msg.mentions.everyone )
@@ -77,11 +77,11 @@ module.exports = {
 
 				// User avatar/banner
 				if( member )
-					return sendPFP( msg, args.flags.server.specified ? member : member.user, banner )
+					return sendPFP( session, args.flags.server.specified ? member : member.user, banner )
 
 				// Guild icon/banner
 				if( args.flags.guild.specified )
-					return sendPFP( msg, msg.guild, banner )
+					return sendPFP( session, msg.guild, banner )
 
 				// 404
 				return session.update( 'User not found :(' )

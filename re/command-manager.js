@@ -176,7 +176,7 @@ class CommandManager extends require( 'events' ) {
 				await command.callback.call( command, { msg, args, session } )
 			} catch( error ){
 				session.update( cb( error ) )
-				console.error( `[CommandManager] Error executing callback of "${command.name}" command: ${error}` )
+				console.error( `[CommandManager] Error executing callback of "${command.name}" command: ${error.stack}` )
 			}
 
 			return true

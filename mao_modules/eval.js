@@ -71,6 +71,7 @@ module.exports = {
 			'whats',
 			'keys',
 			'dontawait',
+			'file',
 		])
 
 		function findInclude( pathToFind ){
@@ -317,17 +318,29 @@ module.exports = {
 				if( autoIncludedFiles.length !== 0 )
 					__output = `Included files:\n${autoIncludedFiles.join( '\n' )}\n${__output}`
 
+				// eslint-disable-next-line no-inner-declarations
+				function fileify( text ){
+					if( !evalFlags.file )
+						return text
+
+					const attachment = new discord.AttachmentBuilder()
+						.setName('output.txt')
+						.setFile(Buffer.from(text))
+
+					return { files: [attachment] }
+				}
+
 				if( __output && !evalFlags.silent ){
 					if( doPrint )
 						print( evaled )
 
-					await session.update( cb( __output ) )
+					await session.update( fileify( cb( __output ) ) )
 					msg.isCommand = true
 				} else if( doPrint ){
 					if( !evalFlags.cb && !msg.member.permissions.has( discord.PermissionsBitField.Flags.EmbedLinks ) )
 						evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
 
-					await session.update( evalFlags.cb ? cb( evaled, evalFlags.cb.value ) : evaled )
+					await session.update( fileify( evalFlags.cb ? cb( evaled, evalFlags.cb.value ) : evaled ) )
 					msg.isCommand = true
 				}
 

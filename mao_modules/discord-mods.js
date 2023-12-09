@@ -55,9 +55,12 @@ module.exports = {
 				options.content = String( content )
 			}
 
-			options.content ??= null
-			options.embeds ??= []
-			options.files ??= []
+			if( options.content || options.embeds || options.files ){
+				options.content ??= null
+				options.embeds ??= []
+				options.files ??= []
+			}
+
 			options.allowedMentions ??= {}
 			options.allowedMentions.repliedUser ??= false
 
@@ -118,15 +121,16 @@ module.exports = {
 		}
 
 		// TextChannel.sendTyping
+		/** @type {WeakMap<discord.TextChannel, number} */
+		const typingCoolDown = new WeakMap()
 		discord.TextChannel.prototype.original_sendTyping = discord.TextChannel.prototype.sendTyping
-		discord.TextChannel.prototype.sendTyping = function(){
-			if( !this.typing_cd || this.typing_cd < Date.now() ){
-				this.typing_cd = Date.now() + 1337
-				return this.original_sendTyping()
-					.catch( () => {} )
-			}
+		discord.TextChannel.prototype.sendTyping = async function(){
+			const nextTyping = typingCoolDown.get(this)
 
-			return Promise.resolve()
+			if( !nextTyping || nextTyping < Date.now() ){
+				typingCoolDown.set( this, Date.now() + 1337 )
+				return this.original_sendTyping().catch( () => {} )
+			}
 		}
 
 		// TextChannel.send
@@ -187,8 +191,9 @@ module.exports = {
 				options = {}
 			}
 
+			mention = Boolean(mention)
 			options = handleArgs( content, options )
-			options.allowedMentions.repliedUser = !!mention
+			options.allowedMentions.repliedUser = mention
 
 			return this.original_reply( options )
 				.then( m => {

@@ -95,11 +95,11 @@ class MessageManager {
 			this.client.on( discord.Events.MessageUpdate, ( oldMsg, newMsg ) => {
 				if( oldMsg.content !== newMsg.content ){
 					oldMsg.waiter?.cancel()
+					oldMsg.response.resetSession()
 					oldMsg.deleteAnswers()
 
 					newMsg.hasBeenEdited = true
 
-					newMsg.response.resetSession()
 					this.handleMessage( newMsg, true )
 				}
 			})
@@ -107,6 +107,7 @@ class MessageManager {
 		if( this.handleDeletion )
 			this.client.on( discord.Events.MessageDelete, msg => {
 				msg.waiter?.cancel()
+				msg.response.resetSession()
 				msg.deleteAnswers( true )
 				msg.deleted = true
 			})

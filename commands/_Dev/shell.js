@@ -9,6 +9,17 @@ module.exports = {
 		const cb = require( '@/functions/cb' )
 
 		const EXEC_TIMEOUT = 600e3
+		const ELLIPSIS = '\n...\n'
+
+		function cropOutput( output, limit = 1024 ){
+			if( output.length > limit ){
+				const cb = output.matchFirst( /^```\n?/ ) || ''
+				output = output.substring( output.length - limit + cb.length + ELLIPSIS.length + 1 )
+				output = cb.replace( /\n/g, '' ) + ELLIPSIS + output.substring( output.indexOf( '\n' ) + 1 )
+			}
+
+			return output
+		}
 
 		async function callback({ args, session }){
 			const string_command = args.getRaw()
@@ -19,17 +30,6 @@ module.exports = {
 			session.update( processing() )
 			let timeout
 			const ac = new AbortController()
-			const cut = '\n...\n'
-
-			function cropOutput( output, limit = 1024 ){
-				if( output.length > limit ){
-					const cb = output.matchFirst( /^```\n?/ ) || ''
-					output = output.substring( output.length - limit + cb.length + cut.length + 1 )
-					output = cb.replace( /\n/g, '' ) + cut + output.substring( output.indexOf( '\n' ) + 1 )
-				}
-
-				return output
-			}
 
 			function editMessage( error, stdout, stderr, finished = false ){
 				const embeds = []

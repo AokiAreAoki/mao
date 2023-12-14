@@ -80,6 +80,7 @@ module.exports = {
 						limit: 100,
 						before: msg.id,
 					})
+					.then( c => c.toArray() )
 					.catch( () => [] )
 
 				await msg.getReferencedMessage()

@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 const bakadb = require( '@/re/bakadb' )
 const List = require( '@/re/list' )
 const { flags } = require( '@/index' )

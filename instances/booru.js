@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 const bakadb = require( '@/instances/bakadb' )
 const Booru = require( '@/re/booru-wrapper' )
 const TagCacher = require( '@/re/tag-cacher' )

@@ -1,6 +1,6 @@
 /* eslint-disable no-control-regex */
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const cp = require( 'child_process' )

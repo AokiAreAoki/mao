@@ -1,10 +1,8 @@
-// eslint-disable-next-line no-global-assign
-require = global.alias
 const fs = require( 'fs' )
 const pathLib = require( 'path' )
 
 function iterate({
-	path = '.',
+	path = process.cwd(),
 	entities = [],
 	query,
 	callback,
@@ -56,30 +54,30 @@ module.exports = function includeFiles({ text, query, callback }){
 
 	query = query
 		.split( /[/\\]+/ )
-		.map( ( e, i, array ) => {
-			if( e === '**' )
+		.map( ( entity, index, array ) => {
+			if( entity === '**' )
 				return {
 					re: /.+/,
 					ignoreFiles: true,
 				}
 
-			if( e.indexOf( '**' ) !== -1 ){
+			if( entity.indexOf( '**' ) !== -1 ){
 				let query = array
-					.slice( 0, i )
+					.slice( 0, index )
 					.map( e => e + '/' )
 					.join( '' )
 
-				query += `${e}\n${' '.repeat( "SyntaxError: ".length + query.length )}^^`
+				query += `${entity}\n${' '.repeat( "SyntaxError: ".length + query.length )}^^`
 					+ `\nthis token can't be used like that`
-					+ `\ndid you mean: \`${query + e.replace( /\*\*/, '**/*' )}\`?`
+					+ `\ndid you mean: \`${query + entity.replace( /\*\*/, '**/*' )}\`?`
 					+ `\n`
 
 				throw SyntaxError( `${query}` )
 			}
 
 			return {
-				re: new RegExp( e.replace( /\*/g, '.*' ) ),
-				ignoreFiles: false,
+				re: new RegExp( entity.replace( /\*/g, '.*' ) ),
+				ignoreFiles: index === 0,
 			}
 		})
 
@@ -87,7 +85,7 @@ module.exports = function includeFiles({ text, query, callback }){
 		query,
 		callback: ({ path, entities }) => {
 			try {
-				const mod = require( './' + path )
+				const mod = require( path )
 				callback( mod, entities )
 			} catch( err ){
 				process.stdout.write( '\n' )

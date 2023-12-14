@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const { currency_converter: token } = require( '@/tokens.yml' )

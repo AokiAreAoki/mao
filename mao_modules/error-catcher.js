@@ -7,7 +7,7 @@
  */
 
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 module.exports = {
 	init(){
 		const { Events } = require( 'discord.js' )

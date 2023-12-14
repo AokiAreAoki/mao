@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 const { flags } = require( '@/index' )
 const tokens = require( '@/tokens.yml' )
 const discord = require( 'discord.js' )

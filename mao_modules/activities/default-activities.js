@@ -1,7 +1,7 @@
 const ActivityManager  = require( '.' )
 
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 const { Events } = require( 'discord.js' )
 const client = require( '@/instances/client' )
 const TimeSplitter = require( '@/re/time-splitter' )

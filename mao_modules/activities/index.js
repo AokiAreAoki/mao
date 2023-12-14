@@ -1,10 +1,12 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias(require)
 module.exports = {
 	init(){
 		const { Events, ActivityType } = require( 'discord.js' )
-		const client = global.alias( '@/instances/client' )
-		const bakadb = global.alias( '@/instances/bakadb' )
-		const timer = global.alias( '@/re/timer' )
-		const checkTypes = global.alias( '@/functions/checkTypes' )
+		const client = require( '@/instances/client' )
+		const bakadb = require( '@/instances/bakadb' )
+		const timer = require( '@/re/timer' )
+		const checkTypes = require( '@/functions/checkTypes' )
 
 		const activityTypes = {
 			playing: ActivityType.Playing,

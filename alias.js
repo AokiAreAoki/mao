@@ -1,23 +1,24 @@
 const fs = require( 'fs' )
 const YAML = require( 'yaml' )
-const _require = require
 
-global.alias = function( path ){
-	path = path.startsWith( '@/' )
-		? __dirname + path.substring(1)
-		: path
+global.alias = function( original_require ){
+	return path => {
+		path = path.startsWith( '@/' )
+			? __dirname + path.substring(1)
+			: path
 
-	if( path.endsWith( '.yml' ) || path.endsWith( '.yaml' ) ){
-		path = _require.resolve( path )
+		if( path.endsWith( '.yml' ) || path.endsWith( '.yaml' ) ){
+			path = original_require.resolve( path )
 
-		_require.cache[path] ??= {
-			exports: YAML.parse( fs.readFileSync( path, 'utf8' ) )
+			original_require.cache[path] ??= {
+				exports: YAML.parse( fs.readFileSync( path, 'utf8' ) )
+			}
+
+			return original_require.cache[path].exports
 		}
 
-		return _require.cache[path].exports
+		return original_require( path )
 	}
-
-	return _require( path )
 }
 
 for( const k in require )

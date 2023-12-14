@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 const { Events } = require( 'discord.js' )
 const CommandManager = require( '@/re/command-manager' )
 const MM = require( '@/instances/message-manager' )

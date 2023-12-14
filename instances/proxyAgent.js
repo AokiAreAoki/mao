@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 const { SocksProxyAgent } = require( 'socks-proxy-agent' )
 const config = require( '@/config.yml' )
 

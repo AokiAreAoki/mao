@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 const shutdown = require( '@/functions/shutdown' )
 const killSignals = require( '@/kill-signals' )
 

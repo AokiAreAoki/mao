@@ -24,7 +24,7 @@ if( module.exports.flags.dev )
 
 require( './alias' )
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 require( '@/graceful-shutdown' )
 const { Events } = require( 'discord.js' )
 const numsplit = require( '@/functions/numsplit' )

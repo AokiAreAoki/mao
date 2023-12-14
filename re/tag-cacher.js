@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 const fs = require( 'fs' )
 const axios = require( 'axios' )
 const axiosRetry = require( 'axios-retry' )

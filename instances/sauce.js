@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 const SauceNAO = require( '@/re/saucenao-wrapper' )
 const { saucenao: token } = require( '@/tokens.yml' )
 

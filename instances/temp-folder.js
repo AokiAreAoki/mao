@@ -1,3 +1,3 @@
 module.exports = process.platform === 'win32'
-	? `%TEMP%`
+	? `./temp` // %TEMP% sucks balls; god bless windows
 	: `/tmp`

@@ -4,6 +4,7 @@
 /bdb
 /re/MyLang.js
 /test
+/temp
 tokens*
 package-lock.json
 *.sh

@@ -290,23 +290,48 @@ module.exports = {
 
 		// Message.findLastPic
 		discord.Message.prototype.findLastPic = async function(){
-			const msgs = await this.channel.messages.fetch({ limit: 100 })
+			const messages = await this.channel.messages.fetch({ limit: 100 })
 				.then( c => c.toArray() )
 				.catch( () => [] )
 
-			msgs.unshift( this )
+			messages.unshift( this )
 			await this.getReferencedMessage()
-				.then( ref => ref && msgs.unshift( ref ) )
+				.then( ref => ref && messages.unshift( ref ) )
 
 			let url
-			for( const msg of msgs ){
-				if( url = msg.content.matchFirst( /(https?:\/\/\S+\.(jpe?g|png|webm|gif|bmp))/i ) )
+			for( const msg of messages ){
+				if( url = msg.content.matchFirst( /(https?:\/\/\S+\.(jpe?g|png|webp|gif|bmp))/i ) )
 					return url
 
 				if( url = msg.attachments.find( a => a.contentType.indexOf( 'image' ) !== -1 )?.url )
 					return url
 
 				if( url = msg.embeds.find( e => !!e.image )?.image.url )
+					return url
+			}
+
+			return null
+		}
+
+		// Message.findLastVideo
+		discord.Message.prototype.findLastVideo = async function(){
+			const messages = await this.channel.messages.fetch({ limit: 100 })
+				.then( c => c.toArray() )
+				.catch( () => [] )
+
+			messages.unshift( this )
+			await this.getReferencedMessage()
+				.then( ref => ref && messages.unshift( ref ) )
+
+			let url
+			for( const msg of messages ){
+				if( url = msg.content.matchFirst( /(https?:\/\/\S+\.(webm|mp4|mkv))/i ) )
+					return url
+
+				if( url = msg.attachments.find( a => a.contentType.indexOf( 'video' ) !== -1 )?.url )
+					return url
+
+				if( url = msg.embeds.find( e => !!e.video )?.video.url )
 					return url
 			}
 

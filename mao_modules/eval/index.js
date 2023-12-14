@@ -1,66 +1,29 @@
 /* eslint-disable no-unused-vars */
 // eslint-disable-next-line no-global-assign
-require = global.alias
+require = global.alias(require)
 module.exports = {
 	init(){
 		const fs = require( 'fs' )
-		const pathlib = require( 'path' )
+		const pathLib = require( 'path' )
 		const discord = require( 'discord.js' )
+
+		const client = require( '@/instances/client' )
 		const bakadb = require( '@/instances/bakadb' )
 		const { db } = bakadb
 		const { iom, flags } = require( '@/index' )
 		const MM = require( '@/instances/message-manager' )
+
 		const cb = require( '@/functions/cb' )
 		const numsplit = require( '@/functions/numsplit' )
 		const processing = require( '@/functions/processing' )
-		const printify = require( '@/re/printifier' )
+		const printify = require( '@/re/printify' )
 
-		let evalPrefix = /^>>+\s*/i
+		const EvalFlagParser = require( './eval-flags-parser' )
+		const formatEvaled = require( './format-evaled' )
 
-		class EvalFlagsParser {
-			constructor( flags ){
-				this.flags = new Set( flags )
-			}
+		const EVAL_PREFIX = /^>>+\s*/i
 
-			parseAndCutFirstFlag( code ){
-				let flag = null, value = null
-
-				code.matchFirst( /^\s*([A-Za-z]+)(?:[\s:])/, matched => {
-					matched = matched.toLowerCase()
-
-					if( this.flags.has( matched ) ){
-						flag = matched
-						code = code.trimLeft().substring( flag.length )
-
-						if( code[0] === ':' ){
-							value = code.matchFirst( /^.([\w*]+)/ ) ?? ''
-							code = code.substring( value.length + 1 )
-						}
-					}
-				})
-
-				return [code, flag, value]
-			}
-
-			parseAndCut( code ){
-				let flag, value,
-					flags = {}
-
-				// eslint-disable-next-line no-constant-condition
-				while( true ){
-					[code, flag, value] = this.parseAndCutFirstFlag( code )
-
-					if( !flag )
-						break
-
-					flags[flag] = { value }
-				}
-
-				return [code, flags]
-			}
-		}
-
-		const evalFlagsParser = new EvalFlagsParser([
+		const evalFlagParser = new EvalFlagParser([
 			'cb',
 			'prt',
 			'del',
@@ -76,12 +39,12 @@ module.exports = {
 
 		function findInclude( pathToFind ){
 			const entities = pathToFind.split( /[/\\]+/ ).filter( e => !!e )
-			const root = pathlib.dirname( require.main.filename )
+			const root = pathLib.dirname( require.main.filename )
 
 			let path = entities.reduce( ( path, nextEntity, i ) => {
 				if( i < entities.length - 1 && !fs.statSync( path ).isDirectory() )
 					throw Error(
-						`"@/${pathlib.relative( root, path )}" is not a folder`
+						`"@/${pathLib.relative( root, path )}" is not a folder`
 						+ `\n  available folders:\n` + fs.readdirSync( path )
 							.filter( f => fs.statSync(f).isDirectory() )
 							.map( f => '  - ' + f )
@@ -97,24 +60,24 @@ module.exports = {
 						if( e.replace( /\W/g, '' ).toLowerCase().search( next ) === -1 )
 							return false
 
-						if( i < entities.length - 1 && !fs.statSync( pathlib.join( path, e ) ).isDirectory() )
+						if( i < entities.length - 1 && !fs.statSync( pathLib.join( path, e ) ).isDirectory() )
 							return false
 
 						return true
 					})
 
 				if( entity )
-					return pathlib.join( path, entity )
+					return pathLib.join( path, entity )
 				else
 					throw Error(
-						`nothing found at "@/${pathlib.relative( root, path )}/${nextEntity}"`
+						`nothing found at "@/${pathLib.relative( root, path )}/${nextEntity}"`
 						+ `\n  ls:\n` + fs.readdirSync( path )
 							.map( f => '  - ' + f )
 							.join( '\n' )
 					)
 			}, root )
 
-			return pathlib.relative( root, path ).replace( /\\/g, '/' )
+			return pathLib.relative( root, path ).replace( /\\/g, '/' )
 		}
 
 		MM.unshiftHandler( 'eval', true, async msg => {
@@ -122,20 +85,20 @@ module.exports = {
 				return
 
 			const session = msg.response.session
-			let said = msg.content
-			let here = msg.channel
-			let guild = here.guild
-			let mem = msg.member
-			let me = msg.author
-			let prefix = said.matchFirst( evalPrefix )
-			let ref = await msg.getReferencedMessage()
+			const prefix = msg.content.matchFirst( EVAL_PREFIX )
 
-			if( prefix )
-				said = said.substring( prefix.length )
-			else if( !db.evalall?.[msg.author.id] )
+			if( !prefix && !db.evalall?.[msg.author.id] )
 				return
 
-			let [code, evalFlags] = evalFlagsParser.parseAndCut( said )
+			const said = prefix ? msg.content.substring( prefix.length ) : msg.content
+			const here = msg.channel
+			const guild = here.guild
+			const mem = msg.member
+			const me = msg.author
+			const ref = await msg.getReferencedMessage()
+			const isOutputRequired = !!prefix
+
+			const [rest, evalFlags] = evalFlagParser.parseAndCut( said )
 
 			if( evalFlags.dev )
 				evalFlags.iom = { value: 'dev' }
@@ -149,19 +112,18 @@ module.exports = {
 			if( evalFlags.del )
 				await msg.delete()
 
-			code.matchFirst( /```(?:[\w+]+\s+)?(.+)```/s, it => code = it )
+			// Extract the code from a code block
+			let code = rest.matchFirst( /```(?:[\w+]+\s+)?(.+)```/s ) || rest
 
-			let __printerr = !!prefix
 			let shouldHandlerQueueBeAborted = false
 			const abortHandlerQueue = () => shouldHandlerQueueBeAborted = true
 
 			try {
-				if( __printerr && !code.match( /\S/ ) )
+				if( isOutputRequired && !code.match( /\S/ ) )
 					return
 
-				let evaled
+				const autoIncludedFiles = new Set()
 				let __output = ''
-				let autoIncludedFiles = []
 
 				// eslint-disable-next-line no-inner-declarations
 				function print( ...args ){
@@ -182,141 +144,57 @@ module.exports = {
 						.replace( /<@&(\d+)>/gi, `here.guild.roles.cache.get('$1')` ) // Role
 						.replace( /@@((?:\/[\w-]+)+)/gi, ( match, path ) => {
 							path = findInclude( path )
-							autoIncludedFiles.push( '@/' + path )
+							autoIncludedFiles.add( '@/' + path )
 							return `require("@/${path}")`
 						})
 						.replace( /@@([\w-]+)/gi, ( match, path ) => {
 							path = findInclude( `node_modules/${path}` )
-							autoIncludedFiles.push( '@/' + path )
+							autoIncludedFiles.add( '@/' + path )
 							return `require("@/${path}")`
 						})
 				}
 
-				evaled = eval( code )
+				let value = eval( code )
 
-				if( !evalFlags.dontawait && evaled instanceof Promise ){
-					await session.update( processing( `Pending promise...` ) )
-					evaled = await evaled
+				if( !evalFlags.dontawait && value instanceof Promise ){
+					session.update( processing( `Pending promise...` ) )
+					value = await value
 				}
 
-				const doPrint = !!( () => {
-					if( evalFlags.whats ){
-						let type = typeof evaled
+				/** @type {string | null} */
+				const response = formatEvaled({
+					code,
+					value,
+					evalFlags,
+					isOutputRequired,
+					handleObject( value ){
+						switch( value.constructor?.name ){
+							case 'Embed':
+							case 'EmbedBuilder':
+							case 'Jimp':
+								session.update( value )
+								return null
 
-						if( type === 'object' ){
-							if( evaled == null )
-								type = 'a null'
-							else
-								type = `an ${type}, instance of ${evaled.constructor.name}`
-						} else if( type !== 'undefined' )
-							type = 'a ' + type
+							case 'Array':
+								value = printify( value, 1 )
+								break
 
-						evaled = type
-						return true
-					}
-
-					if( evalFlags.keys ){
-						if( evaled == null ){
-							evaled = `\`${String( evaled )}\` has no keys`
-							return true
+							default:
+								value = String( value )
+								break
 						}
 
-						evaled = Object.keys( evaled ).join( '` `' )
-						evaled = evaled ? `keys: \`${evaled}\`` : 'no keys'
-						evalFlags.prt = false
-						return true
+						return value
 					}
+				})
 
-					if( evalFlags.prt ){
-						evaled = `.: ${printify( evaled, evalFlags.prt.value || 3 )}`
-						return true
-					}
+				if( response && !evalFlags.cb && response.indexOf( '\n' ) !== -1 )
+					evalFlags.cb = true
 
-					if( evalFlags.silent )
-						return false
-
-					switch( typeof evaled ){
-						case 'undefined':
-							evaled = 'undefined'
-							return __printerr
-
-						case 'boolean':
-						case 'bigint':
-						case 'symbol':
-							evaled = String( evaled )
-							if( !__printerr && !evalFlags.cb && code === evaled )
-								return
-							break
-
-						case 'number':
-							if( !__printerr && !evalFlags.cb && /^[+-]?([\w_]+|(\d+)?(\.\d+)?(e\d+)?)$/i.test( code ) )
-								return
-							evaled = numsplit( evaled )
-							break
-
-						case 'string':
-							if( !__printerr && !evalFlags.cb && code[0] === code[code.length - 1] && '"\'`'.search( code[0] ) + 1 )
-								if( code.substring( 1, code.length - 1 ) === evaled )
-									return
-							break
-
-						case 'object':
-							if( !__printerr )
-								return
-
-							if( evaled === null ){
-								evaled = 'null'
-								return true
-							}
-
-							switch( evaled.constructor?.name ){
-								case 'Embed':
-								case 'EmbedBuilder':
-								case 'Jimp':
-									session.update( evaled )
-									return
-
-								case 'Array':
-									evaled = printify( evaled, 1 )
-									break
-
-								default:
-									evaled = String( evaled )
-									break
-							}
-							break
-
-						case 'function': {
-							let funcBody = String( evaled )
-							let indent = funcBody.matchFirst( /\n(\s+)[^\n]+$/ )
-
-							if( indent ){
-								indent = ( indent.match( /\t/g )?.length ?? 0 ) + ( indent.match( /\s{4}/g )?.length ?? 0 )
-								funcBody = funcBody.replace( new RegExp( `^(\\t|[^\\t\\S]{4}){${indent}}`, 'gm' ), '' )
-							}
-
-							evaled = funcBody
-							evalFlags.cb = { value: 'js' }
-							break
-						}
-
-						default:
-							evaled = `Result parse error: unknown type "${typeof evaled}" of evaled`
-							break
-					}
-
-					return true
-				})()
-
-				if( doPrint ){
-					if( typeof evaled !== 'string' )
-						return
-					else if( !evalFlags.cb && evaled.indexOf( '\n' ) !== -1 )
-						evalFlags.cb = true
+				if( autoIncludedFiles.size !== 0 ){
+					const includedFiles = Array.from( autoIncludedFiles ).join( '\n' )
+					__output = `Included files:\n${includedFiles}\n${__output}`
 				}
-
-				if( autoIncludedFiles.length !== 0 )
-					__output = `Included files:\n${autoIncludedFiles.join( '\n' )}\n${__output}`
 
 				// eslint-disable-next-line no-inner-declarations
 				function fileify( text ){
@@ -324,29 +202,32 @@ module.exports = {
 						return text
 
 					const attachment = new discord.AttachmentBuilder()
-						.setName('output.txt')
-						.setFile(Buffer.from(text))
+						.setName( 'output.txt' )
+						.setFile( Buffer.from( text ) )
 
 					return { files: [attachment] }
 				}
 
-				if( __output && !evalFlags.silent ){
-					if( doPrint )
-						print( evaled )
+				if( __output ){
+					if( response && !evalFlags.silent ){
+						print()
+						print( response )
+					}
 
 					await session.update( fileify( cb( __output ) ) )
 					msg.isCommand = true
-				} else if( doPrint ){
-					if( !evalFlags.cb && !msg.member.permissions.has( discord.PermissionsBitField.Flags.EmbedLinks ) )
-						evaled = evaled.replace( /(https?:\/\/\S+)/g, '<$1>' )
+				} else if( response ){
+					const content = evalFlags.cb
+						? cb( response, evalFlags.cb.value )
+						: response
 
-					await session.update( fileify( evalFlags.cb ? cb( evaled, evalFlags.cb.value ) : evaled ) )
+					await session.update( fileify( content ) )
 					msg.isCommand = true
 				}
 
 				return abortHandlerQueue()
 			} catch( err ){
-				if( __printerr ){
+				if( isOutputRequired ){
 					if( err?.stack )
 						session.update( cb( err?.stack ) )
 					else

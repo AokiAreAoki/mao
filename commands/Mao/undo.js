@@ -2,6 +2,7 @@
 require = global.alias
 module.exports = {
 	init({ addCommand }){
+		const MM = require( '@/instances/message-manager' )
 		const processing = require( '@/functions/processing' )
 
 		addCommand({
@@ -12,7 +13,7 @@ module.exports = {
 
 				if( msg.hasBeenEdited ){
 					await msg.react( processing( '👌' ) )
-					await msg.deleteAnswers( true )
+					await MM.handleMessageDeletion( msg )
 					await msg.delete()
 					return
 				}
@@ -27,8 +28,9 @@ module.exports = {
 
 				if( commandMessage ){
 					commandMessage.isCommand = false
-					commandMessage.deleteAnswers( true )
-					msg.channel.purge( [msg, commandMessage], 1337 )
+					await MM.handleMessageDeletion( commandMessage )
+					await msg.channel.purge([msg, commandMessage])
+
 					return
 				}
 

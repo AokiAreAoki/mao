@@ -87,7 +87,7 @@ class MessageManager {
 
 	setupEventHandlers(){
 		this.client.on( discord.Events.MessageCreate, msg => {
-			msg.response = new Response( msg )
+			msg.response ??= new Response( msg )
 			this.handleMessage( msg, false )
 		})
 
@@ -95,22 +95,18 @@ class MessageManager {
 			this.client.on( discord.Events.MessageUpdate, ( oldMsg, newMsg ) => {
 				if( oldMsg.content !== newMsg.content ){
 					oldMsg.waiter?.cancel()
-					oldMsg.response.resetSession()
+					oldMsg.response?.resetSession()
 					oldMsg.deleteAnswers()
 
 					newMsg.hasBeenEdited = true
+					newMsg.response ??= new Response( newMsg )
 
 					this.handleMessage( newMsg, true )
 				}
 			})
 
 		if( this.handleDeletion )
-			this.client.on( discord.Events.MessageDelete, msg => {
-				msg.waiter?.cancel()
-				msg.response.resetSession()
-				msg.deleteAnswers( true )
-				msg.deleted = true
-			})
+			this.client.on( discord.Events.MessageDelete, msg => this.handleMessageDeletion( msg ) )
 	}
 
 	pushHandler( name, markMessagesAsCommand, callback ){
@@ -156,6 +152,13 @@ class MessageManager {
 		message.deleteAnswers( true )
 
 		return false
+	}
+
+	async handleMessageDeletion( msg ){
+		msg.waiter?.cancel()
+		msg.response?.resetSession()
+		await msg.deleteAnswers( true )
+		msg.deleted = true
 	}
 }
 

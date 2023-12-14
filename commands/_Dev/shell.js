@@ -6,20 +6,9 @@ module.exports = {
 		const cp = require( 'child_process' )
 		const Embed = require( '@/functions/Embed' )
 		const processing = require( '@/functions/processing' )
-		const cb = require( '@/functions/cb' )
+		const OutputBuffer = require( '@/re/output-buffer' )
 
 		const EXEC_TIMEOUT = 600e3
-		const ELLIPSIS = '\n...\n'
-
-		function cropOutput( output, limit = 1024 ){
-			if( output.length > limit ){
-				const cb = output.matchFirst( /^```\n?/ ) || ''
-				output = output.substring( output.length - limit + cb.length + ELLIPSIS.length + 1 )
-				output = cb.replace( /\n/g, '' ) + ELLIPSIS + output.substring( output.indexOf( '\n' ) + 1 )
-			}
-
-			return output
-		}
 
 		async function callback({ args, session }){
 			const string_command = args.getRaw()
@@ -28,26 +17,30 @@ module.exports = {
 				return session.update( this.help )
 
 			session.update( processing() )
-			let timeout
+
+			let timeout = null
+			let stdChanged = false
+			const stdout = new OutputBuffer()
+			const stderr = new OutputBuffer()
 			const ac = new AbortController()
 
-			function editMessage( error, stdout, stderr, finished = false ){
+			function editMessage( error, finished = false ){
 				const embeds = []
 
-				if( stdout )
+				if( stdout.output )
 					embeds.push( Embed()
 						.addFields({
 							name: 'stdout:',
-							value: cropOutput( cb( stdout.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) )
+							value: stdout.getPretty(),
 						})
 						.setColor( 0x80FF00 )
 					)
 
-				if( stderr )
+				if( stderr.output )
 					embeds.push( Embed()
 						.addFields({
 							name: 'stderr:',
-							value: cropOutput( cb( stderr.replace( /\u001b\[\??[\d+;]*\w/gi, '' ) ) ),
+							value: stderr.getPretty(),
 						})
 						.setColor( 0xFF8000 )
 					)
@@ -73,23 +66,18 @@ module.exports = {
 			const command = cp.exec( args.getRaw(), {
 				timeout: EXEC_TIMEOUT,
 				signal: ac.signal,
-				detached: true,
-			}, async ( err, stdout, stderr ) => {
+			}, error => {
 				clearTimeout( timeout )
-				editMessage( err, stdout, stderr, true )
+				editMessage( error, true )
 			})
 
-			let stdout = '',
-				stderr = '',
-				stdChanged = false
-
 			command.stdout.on( 'data', chunk => {
-				stdout += chunk
+				stdout.pushChunk( chunk )
 				stdChanged = true
 			})
 
 			command.stderr.on( 'data', chunk => {
-				stderr += chunk
+				stderr.pushChunk( chunk )
 				stdChanged = true
 			})
 
@@ -103,12 +91,13 @@ module.exports = {
 				if( stdChanged && nextMessageUpdate < Date.now() ){
 					stdChanged = false
 					nextMessageUpdate = Date.now() + 1.5e3
-					editMessage( null, stdout, stderr )
+					editMessage()
 				}
 
 				if( deadline > Date.now() )
 					timeout = setTimeout( updateOutput, 50 )
 			}
+
 			updateOutput()
 		}
 

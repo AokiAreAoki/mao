@@ -87,7 +87,6 @@ class MessageManager {
 
 	setupEventHandlers(){
 		this.client.on( discord.Events.MessageCreate, msg => {
-			msg.response ??= new Response( msg )
 			this.handleMessage( msg, false )
 		})
 
@@ -99,8 +98,6 @@ class MessageManager {
 					oldMsg.deleteAnswers()
 
 					newMsg.hasBeenEdited = true
-					newMsg.response ??= new Response( newMsg )
-
 					this.handleMessage( newMsg, true )
 				}
 			})
@@ -131,6 +128,7 @@ class MessageManager {
 		if( !hasBeenEdited )
 			message._answers = new Collection()
 
+		message.response ??= new Response( message )
 		message.isCommand = false
 
 		const hasBeenHandledByWaiter = ResponseWaiter.handleMessage( message )

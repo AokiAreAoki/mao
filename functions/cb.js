@@ -1,2 +1,2 @@
 const quotes = '```'
-module.exports = ( text, lang = '' ) => `${quotes}${lang}\n${text}\n${quotes}`
+module.exports = ( text, lang = '' ) => `${quotes}${typeof lang === 'string' ? lang : ''}\n${text}\n${quotes}`

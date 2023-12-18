@@ -2,7 +2,7 @@ const fs = require( 'fs' )
 const YAML = require( 'yaml' )
 
 global.alias = function( original_require ){
-	return path => {
+	function aliasedRequire( path ){
 		path = path.startsWith( '@/' )
 			? __dirname + path.substring(1)
 			: path
@@ -19,7 +19,9 @@ global.alias = function( original_require ){
 
 		return original_require( path )
 	}
-}
 
-for( const k in require )
-	global.alias[k] = require[k]
+	for( const k in require )
+		aliasedRequire[k] = require[k]
+
+	return aliasedRequire
+}

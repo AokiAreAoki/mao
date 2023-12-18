@@ -10,7 +10,7 @@ module.exports = {
 
 		addCommand({
 			aliases: 'fix-dns',
-			description: `remove \`${ip}\` from \`${path}\``,
+			description: `removes \`${ip}\` from \`${path}\``,
 			async callback({ session }){
 				if( !fs.existsSync( path ) )
 					return session.update( `The \`${path}\` does not exist` )

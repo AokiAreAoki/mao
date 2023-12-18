@@ -1,76 +1,14 @@
-
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 module.exports = {
 	init(){
 		const discord = require( 'discord.js' )
 		const { Collection } = discord
-		const Jimp = require( 'jimp' )
 		const client = require( '@/instances/client' )
-		const cb = require( '@/functions/cb' )
 		const clamp = require( '@/functions/clamp' )
-		const Embed = require( '@/functions/Embed' )
 		const Response = require( '@/re/message-manager/response' )
-
-		const ending = '\n...'
-
-		function cutIfLimit( message, limit = 2000 ){
-			if( typeof message === 'string' && message.length > limit ){
-				const cb = message.matchFirst( /```$/ ) || ''
-				message = message.substring( 0, limit - ending.length - cb.length ) + ending + cb
-			} else if( typeof message === 'object' && message !== null )
-				message.content = cutIfLimit( message.content )
-
-			return message
-		}
-
-		function handleArgs( content, options = {} ){
-			if( content == null )
-				throw new Error( 'content can not be ' + String( content ) )
-
-			if( typeof content === 'object' ){
-				switch( content?.constructor ){
-					case discord.EmbedBuilder:
-						options.embeds = [content]
-						break
-
-					case Jimp:
-						content.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
-							if( err )
-								options.embeds.push( Embed()
-									.setColor( 0xFF0000 )
-									.setDescription( 'Looks like i got to send a picture but something went wrong' )
-									.addFields({ name: 'Error:', value: cb( err ) })
-								)
-							else
-								options.files.push( buffer )
-						})
-						break
-
-					default:
-						options = content
-						break
-				}
-			} else {
-				options.content = String( content )
-			}
-
-			if( options.content || options.embeds || options.files ){
-				options.content ??= null
-				options.embeds ??= []
-				options.files ??= []
-			}
-
-			options.allowedMentions ??= {}
-			options.allowedMentions.repliedUser ??= false
-
-			if( options.cb ){
-				options.content = cb( options.content )
-				delete options.cb
-			}
-
-			return cutIfLimit( options )
-		}
+		const cutIfLimit = require( '@/functions/cutIfLimit' )
+		const handleMessageArgs = require( '@/functions/handleMessageArgs' )
 
 		/// Collection ///
 
@@ -135,16 +73,14 @@ module.exports = {
 
 		// TextChannel.send
 		discord.TextChannel.prototype.original_send = discord.TextChannel.prototype.send
-		discord.TextChannel.prototype.send = function( content, options ){
-			return this.sendTyping()
-				.then( () => this.original_send( handleArgs( content, options ) ) )
+		discord.TextChannel.prototype.send = async function( content, options ){
+			await this.sendTyping()
+			return this.original_send( handleMessageArgs( content, options ) )
 		}
 
 		// TextChannel.sendCB
 		discord.TextChannel.prototype.sendCB = function( content, options ){
-			options = handleArgs( content, options )
-			options.content = cutIfLimit( cb( options.content ) )
-			return this.original_send( options )
+			return this.send( content, { ...options, cb: true } )
 		}
 
 		// TextChannel.bulkDelete
@@ -192,7 +128,7 @@ module.exports = {
 			}
 
 			mention = Boolean(mention)
-			options = handleArgs( content, options )
+			options = handleMessageArgs( content, options )
 			options.allowedMentions.repliedUser = mention
 
 			return this.original_reply( options )
@@ -221,7 +157,7 @@ module.exports = {
 			if( replyLvl > 0 && !this.deleted )
 				return this.reply( content, options, replyLvl !== 1 )
 
-			return this.channel.send( handleArgs( content, options ) )
+			return this.channel.send( handleMessageArgs( content, options ) )
 				.then( m => {
 					this.addAnswer(m)
 					return m
@@ -231,7 +167,7 @@ module.exports = {
 		// Message.edit
 		discord.Message.prototype.original_edit = discord.Message.prototype.edit
 		discord.Message.prototype.edit = function( content, options = {} ){
-			options = handleArgs( content, options )
+			options = handleMessageArgs( content, options )
 			options.allowedMentions.repliedUser = !!this.mentionRepliedUser
 			return this.original_edit( options )
 		}

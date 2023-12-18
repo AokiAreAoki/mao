@@ -13,8 +13,9 @@ module.exports = {
 
 				if( msg.hasBeenEdited ){
 					await msg.react( processing( '👌' ) )
-					await MM.handleMessageDeletion( msg )
+					await msg.deleteAnswers( true )
 					await msg.delete()
+					await MM.handleMessageDeletion( msg )
 					return
 				}
 
@@ -28,8 +29,10 @@ module.exports = {
 
 				if( commandMessage ){
 					commandMessage.isCommand = false
-					await MM.handleMessageDeletion( commandMessage )
+
+					await commandMessage.deleteAnswers( true )
 					await msg.channel.purge([msg, commandMessage])
+					await MM.handleMessageDeletion( commandMessage )
 
 					return
 				}

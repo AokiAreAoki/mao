@@ -14,7 +14,8 @@ module.exports = {
 		const MM = require( '@/instances/message-manager' )
 
 		const cb = require( '@/functions/cb' )
-		const numsplit = require( '@/functions/numsplit' )
+		const Embed = require( '@/functions/Embed' )
+		const handleMessageArgs = require( '@/functions/handleMessageArgs' )
 		const processing = require( '@/functions/processing' )
 		const printify = require( '@/re/printify' )
 
@@ -115,25 +116,24 @@ module.exports = {
 			// Extract the code from a code block
 			let code = rest.matchFirst( /```(?:[\w+]+\s+)?(.+)```/s ) || rest
 
-			let shouldHandlerQueueBeAborted = false
-			const abortHandlerQueue = () => shouldHandlerQueueBeAborted = true
-
 			try {
 				if( isOutputRequired && !code.match( /\S/ ) )
 					return
 
 				const autoIncludedFiles = new Set()
-				let __output = ''
+				let __output = []
+				let messageOptions = {
+					content: null,
+					embeds: [],
+					files: [],
+				}
 
 				// eslint-disable-next-line no-inner-declarations
 				function print( ...args ){
-					if( __output )
-						__output += '\n'
-
-					args.forEach( ( v, k ) => {
-						if( k > 0 ) __output += '\t'
-						__output += String( v )
-					})
+					__output.push( args
+						.map( arg => String( arg ) )
+						.join( '\t' )
+					)
 				}
 
 				if( !evalFlags.noparse ){
@@ -161,7 +161,7 @@ module.exports = {
 					value = await value
 				}
 
-				/** @type {string | null} */
+				/** @type {string | object | null} */
 				const response = formatEvaled({
 					code,
 					value,
@@ -171,9 +171,24 @@ module.exports = {
 						switch( value.constructor?.name ){
 							case 'Embed':
 							case 'EmbedBuilder':
-							case 'Jimp':
-								session.update( value )
+							case 'Jimp': {
+								const newOptions = handleMessageArgs( value )
+
+								messageOptions = {
+									...messageOptions,
+									...newOptions,
+									embeds: [
+										...messageOptions.embeds,
+										...newOptions.embeds,
+									],
+									files: [
+										...messageOptions.files,
+										...newOptions.files,
+									],
+								}
+
 								return null
+							}
 
 							case 'Array':
 								value = printify( value, 1 )
@@ -191,53 +206,52 @@ module.exports = {
 				if( response && !evalFlags.cb && response.indexOf( '\n' ) !== -1 )
 					evalFlags.cb = true
 
-				if( autoIncludedFiles.size !== 0 ){
-					const includedFiles = Array.from( autoIncludedFiles ).join( '\n' )
-					__output = `Included files:\n${includedFiles}\n${__output}`
+				if( autoIncludedFiles.size !== 0 )
+					__output.unshift(
+						'Included files:',
+						...Array.from( autoIncludedFiles ),
+						'',
+					)
+
+				const output = [...__output]
+
+				if( !evalFlags.silent && response )
+					output.push( response )
+
+				messageOptions = {
+					...messageOptions,
+					content: output.join( '\n' ),
+					cb: evalFlags.cb?.value || evalFlags.cb || __output.length !== 0,
 				}
 
-				// eslint-disable-next-line no-inner-declarations
-				function fileify( text ){
-					if( !evalFlags.file )
-						return text
-
+				if( evalFlags.file ){
 					const attachment = new discord.AttachmentBuilder()
 						.setName( 'output.txt' )
-						.setFile( Buffer.from( text ) )
+						.setFile( Buffer.from( messageOptions.content ) )
 
-					return { files: [attachment] }
-				}
-
-				if( __output ){
-					if( response && !evalFlags.silent ){
-						print()
-						print( response )
+					messageOptions = {
+						...messageOptions,
+						content: null,
+						files: [...messageOptions.files, attachment],
 					}
-
-					await session.update( fileify( cb( __output ) ) )
-					msg.isCommand = true
-				} else if( response ){
-					const content = evalFlags.cb
-						? cb( response, evalFlags.cb.value )
-						: response
-
-					await session.update( fileify( content ) )
-					msg.isCommand = true
 				}
 
-				return abortHandlerQueue()
-			} catch( err ){
-				if( isOutputRequired ){
-					if( err?.stack )
-						session.update( cb( err?.stack ) )
-					else
-						session.update( `OK, i caught the error but somewhat i've got ${err} instead of an actual error...` )
+				if( messageOptions.content || messageOptions.embeds.length !== 0 || messageOptions.files.length !== 0 ){
+					msg.isCommand = true
+					await session.update( messageOptions )
 
-					return abortHandlerQueue()
+					return true
+				}
+			} catch( error ){
+				if( isOutputRequired ){
+					if( error )
+						session.update( cb( error?.stack || error ) )
+					else
+						session.update( `OK, i caught the error but somewhat i've got ${error} instead of an actual error...` )
+
+					return true
 				}
 			}
-
-			return shouldHandlerQueueBeAborted
 		})
 	}
 }

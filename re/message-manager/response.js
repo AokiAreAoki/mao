@@ -1,3 +1,4 @@
+const handleMessageArgs = require("../../functions/handleMessageArgs")
 
 class ResponseSession {
 	response = null
@@ -39,10 +40,24 @@ class Response {
 		this.#session = new ResponseSession( this )
 	}
 
-	async update( content ){
+	async update( content, options = {} ){
+		content = handleMessageArgs( content, options )
+
 		if( this.message instanceof Promise ){
 			this.#pendingContent = content
-			return
+
+			return this.message
+				.then( async message => {
+					this.message = message
+
+					if( this.#pendingContent === content ){
+						const pendingContent = this.#pendingContent
+						this.#pendingContent = null
+						this.message = await this.update( pendingContent )
+					}
+
+					return this.message
+				})
 		}
 
 		this.message = this.message && !this.message.deleted
@@ -50,16 +65,7 @@ class Response {
 			: this.destination.send( content )
 
 		return this.message
-			.then( message => {
-				this.message = message
-
-				if( this.#pendingContent ){
-					this.update( this.#pendingContent )
-					this.#pendingContent = null
-				}
-
-				return message
-			})
+			.then( async message => this.message = message )
 	}
 }
 

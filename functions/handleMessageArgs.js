@@ -47,10 +47,10 @@ module.exports = function handleMessageArgs( content, options = {} ){
 	options.allowedMentions ??= {}
 	options.allowedMentions.repliedUser ??= false
 
-	if( options.cb ){
+	if( options.cb )
 		options.content = cb( options.content, options.cb )
-		delete options.cb
-	}
+
+	delete options.cb
 
 	return cutIfLimit( options )
 }

@@ -12,27 +12,23 @@ module.exports = function handleMessageArgs( content, options = {} ){
 		throw new Error( 'content can not be ' + String( content ) )
 
 	if( typeof content === 'object' ){
-		switch( content?.constructor ){
-			case discord.EmbedBuilder:
-				options.embeds = [content]
-				break
-
-			case Jimp:
-				content.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
-					if( err )
-						options.embeds.push( Embed()
-							.setColor( 0xFF0000 )
-							.setDescription( 'Looks like i had to send a picture but something went wrong' )
-							.addFields({ name: 'Error:', value: cb( err ) })
-						)
-					else
-						options.files.push( buffer )
-				})
-				break
-
-			default:
-				options = content
-				break
+		if( content instanceof discord.GuildEmoji ){
+			options.content = content.toString()
+		} else if( content instanceof discord.EmbedBuilder ){
+			options.embeds = [content]
+		} else if( content instanceof Jimp ){
+			content.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
+				if( err )
+					options.embeds.push( Embed()
+						.setColor( 0xFF0000 )
+						.setDescription( 'Looks like i had to send a picture but something went wrong' )
+						.addFields({ name: 'Error:', value: cb( err ) })
+					)
+				else
+					options.files.push( buffer )
+			})
+		} else {
+			options = content
 		}
 	} else {
 		options.content = String( content )

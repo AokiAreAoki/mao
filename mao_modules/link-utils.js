@@ -108,43 +108,43 @@ module.exports = {
 			// },
 
 			// Twitter direct links provider
-			async ( msg, cache, react ) => {
-				let links = [
-					/https?:\/\/(?:\w+\.)?(?:vx)?twitter\.com\/([^/\s]+)\/status\/(\d+)/gmi,
-				]
-					.map( re => Array.from( msg.content.matchAll( re ) ) )
-					.flat(1)
+			// async ( msg, cache, react ) => {
+			// 	let links = [
+			// 		/https?:\/\/(?:\w+\.)?(?:vx)?twitter\.com\/([^/\s]+)\/status\/(\d+)/gmi,
+			// 	]
+			// 		.map( re => Array.from( msg.content.matchAll( re ) ) )
+			// 		.flat(1)
 
-				if( links.length === 0 )
-					return
+			// 	if( links.length === 0 )
+			// 		return
 
-				react()
+			// 	react()
 
-				links = await Promise.all( links.map( async url => {
-					const key = url[1] + '/' + url[2]
+			// 	links = await Promise.all( links.map( async url => {
+			// 		const key = url[1] + '/' + url[2]
 
-					if( cache.get( key ) )
-						return cache.get( key ).value
+			// 		if( cache.get( key ) )
+			// 			return cache.get( key ).value
 
-					const directLinkPromise = ytdl( url[0], {
-						getUrl: true,
-						proxy,
-					})
-						.then( directLink => {
-							cache.set( key, directLink )
-							return directLink
-						})
-						.catch( () => {
-							cache.set( key, null )
-						})
+			// 		const directLinkPromise = ytdl( url[0], {
+			// 			getUrl: true,
+			// 			proxy,
+			// 		})
+			// 			.then( directLink => {
+			// 				cache.set( key, directLink )
+			// 				return directLink
+			// 			})
+			// 			.catch( () => {
+			// 				cache.set( key, null )
+			// 			})
 
-					cache.set( key, directLinkPromise )
-					return directLinkPromise
-				}))
+			// 		cache.set( key, directLinkPromise )
+			// 		return directLinkPromise
+			// 	}))
 
-				return links
-					.map( url => url?.matchFirst( /https?\S+/ ) )
-			},
+			// 	return links
+			// 		.map( url => url?.matchFirst( /https?\S+/ ) )
+			// },
 
 			// Reddit/TikTok files provider
 			async ( msg, cache, react ) => {

@@ -24,9 +24,7 @@ module.exports = {
 				if( !url )
 					return session.update( 'No videos were found' )
 
-				session.update( Embed()
-					.setDescription( processing( 'Encoding...' ) )
-				)
+				session.update( processing( 'Encoding...' ) )
 
 				const outputFolderPath = join( resolve( tempPath ) )
 				const outputPath = join( outputFolderPath, Date.now().toString(36) + '.mp4' )

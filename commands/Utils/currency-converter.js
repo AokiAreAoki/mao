@@ -1,19 +1,30 @@
-const TimeSplitter = require('../../re/time-splitter')
-
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const { currency_converter: token } = require( '@/tokens.yml' )
 		const axios = require( 'axios' )
+		const client = require( '@/instances/client' )
 		const MM = require( '@/instances/message-manager' )
 		const Embed = require( '@/functions/Embed' )
 		const numsplit = require( '@/functions/numsplit' )
 		const prettyRound = require( '@/functions/prettyRound' )
+		const TimeSplitter = require( '@/re/time-splitter' )
 
 		const MINIMAL_REFRESH_INTERVAL = 3600e3
 		const CONVERSION_RE = /\b(\d[\d\s_,]*(?:\.[\d\s_,]+)?(?:e-?\d+)?)?\s*(\w{3})\s*to\s*(\w{3})\b/gi
 		const NUMBER_SPLITTER_RE = /[\s_,]+/g
+
+		const QUESTIONS = [
+			`Are you silly?`,
+			`Try different currency`,
+			`You will not believe the result...`,
+			`Shit, I don't know`,
+		]
+
+		client.once( 'ready', () => {
+			QUESTIONS.push( client.emojis.resolve( `717358214185746543` ) )
+		})
 
 		let nextRefresh = -1
 		let rates = null
@@ -93,15 +104,24 @@ module.exports = {
 						return
 
 					const value2 = value * rate
-					return `${numsplit( value )} ${a} is ${numsplit( prettyRound( value2 ) )} ${b}`
+
+					return {
+						value: `${numsplit( value )} ${a} is ${numsplit( prettyRound( value2 ) )} ${b}`,
+						isDumb: a === b || value === 0,
+					}
 				})
 				.filter( Boolean )
 
 			if( exchangeRates.length !== 0 ){
-				session.update( Array
-					.from( new Set( exchangeRates ) )
-					.join( '\n' )
-				)
+				if( exchangeRates.every( rate => rate.isDumb ) ){
+					const index = Math.floor( Math.random() * QUESTIONS.length )
+					session.update( QUESTIONS[index] )
+				} else {
+					session.update( Array
+						.from( new Set( exchangeRates.map( rate => rate.value ) ) )
+						.join( '\n' )
+					)
+				}
 
 				return true
 			}

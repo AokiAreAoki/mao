@@ -18,14 +18,15 @@ module.exports = function handleMessageArgs( content, options = {} ){
 			options.embeds = [content]
 		} else if( content instanceof Jimp ){
 			content.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
-				if( err )
-					options.embeds.push( Embed()
+				if( err ){
+					const embed = Embed()
 						.setColor( 0xFF0000 )
 						.setDescription( 'Looks like i had to send a picture but something went wrong' )
 						.addFields({ name: 'Error:', value: cb( err ) })
-					)
-				else
-					options.files.push( buffer )
+
+					options.embeds = [embed]
+				} else
+					options.files = [buffer]
 			})
 		} else {
 			options = content

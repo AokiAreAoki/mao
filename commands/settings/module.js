@@ -34,7 +34,7 @@ module.exports = {
 				if( globalSettings.enabled && guildSettings.enabled )
 					return true
 
-				if( !globalSettings.enabled )
+				if( !globalSettings.enabled && guildId !== GLOBAL_KEYWORD )
 					globallyDisabledModules.push( module )
 				else
 					disabledModules.push( module )
@@ -58,6 +58,10 @@ module.exports = {
 			].filter( Boolean )
 		}
 
+		function hasPermission( member ){
+			return member && ( member.permissions.has( PermissionFlagsBits.ManageGuild, true ) || member.user.isMaster() )
+		}
+
 		const root = addCommand({
 			aliases: 'modules module',
 			description: {
@@ -67,14 +71,16 @@ module.exports = {
 				['global', 'lists global settings'],
 			],
 			callback({ msg, args, session }){
-				if( !msg.member?.permissions.has( PermissionFlagsBits.ManageGuild, true ) && !msg.author.isMaster() )
-					return session.update( `You can not manage this guild` )
-
-				const guildId = args.flags.global.specified
+				const isGlobal = args.flags.global.specified
+				const guildId = isGlobal
 					? GLOBAL_KEYWORD
 					: msg.guild.id
 
 				return session.update( Embed()
+					.setTitle( isGlobal
+						? 'Global settings'
+						: 'Guild settings'
+					)
 					.addFields( listModules( CM.modules, guildId ) )
 				)
 			},
@@ -92,8 +98,10 @@ module.exports = {
 				['global', 'changes global settings'],
 			],
 			callback({ msg, args, session }){
-				const [moduleName, state] = args
+				if( !hasPermission( msg.member ) )
+					return session.update( `You can not manage this guild` )
 
+				const [moduleName, state] = args
 				const module = CM.modules.get( moduleName.toLowerCase() )
 
 				if( !module )
@@ -106,8 +114,8 @@ module.exports = {
 					return session.update( `Please specify a state: \`ON\` or \`OFF\`` )
 
 				const upperCasedState = state.toUpperCase()
-				const global = args.flags.global.specified
-				const guildId = global
+				const isGlobal = args.flags.global.specified
+				const guildId = isGlobal
 					? GLOBAL_KEYWORD
 					: msg.guild.id
 
@@ -117,7 +125,7 @@ module.exports = {
 						modifyModuleSettings( { enabled: upperCasedState === 'ON' }, module, guildId )
 						bakadb.save()
 
-						const globally = global ? ' globally' : ''
+						const globally = isGlobal ? ' globally' : ''
 						return session.update( `Module \`${module.printname}\` has been turned \`${upperCasedState}\`${globally}` )
 					}
 

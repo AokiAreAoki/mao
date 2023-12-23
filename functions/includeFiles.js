@@ -86,7 +86,7 @@ module.exports = function includeFiles({ text, query, callback }){
 		callback: ({ path, entities }) => {
 			try {
 				const mod = require( path )
-				callback( mod, entities )
+				callback( mod, Array.from( entities ) )
 			} catch( err ){
 				process.stdout.write( '\n' )
 				throw err

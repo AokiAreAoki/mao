@@ -15,35 +15,39 @@ String.prototype.matchFirst = function( re, cb ){
 const quotes = '```'
 const cb = ( text, lang = '' ) => `${quotes}${lang}\n${text}\n${quotes}`
 
-class CommandManager extends require( 'events' ) {
+/**
+ * @function ModuleAccessor
+ * @param {import('discord.js').Message} message
+ * @param {Module} module
+ * @returns {boolean}
+ */
+
+class CommandManager {
 	client
 	prefix
 	considerMentionAsPrefix
 	mentionRE
+	/** @type {Collection<string, Module>} */
 	modules = new Collection()
+	/** @type {Collection<string, Command>} */
 	commands = new Collection()
 	listCommands = []
 	deleteAfterDelay = 8e3
+	/** @type {ModuleAccessor} */
+	moduleAccessor = () => true
 
 	constructor( client, prefix, considerMentionAsPrefix = false ){
-		super()
 		this.client = client
 		this.prefix = prefix
 		this.considerMentionAsPrefix = !!considerMentionAsPrefix
 	}
 
-	addModule( modulePrintname, isHidden = false ){
-		let module = this.modules.get( Module.unprintname( modulePrintname ) )
-
-		if( module )
-			return module
-
-		module = new Module( modulePrintname, this )
+	/**
+	 * @param {ModuleSettings} settings
+	 */
+	addModule( settings ){
+		const module = new Module( settings, this )
 		this.modules.set( module.name, module )
-
-		if( isHidden )
-			module.isHidden = true
-
 		return module
 	}
 
@@ -151,8 +155,8 @@ class CommandManager extends require( 'events' ) {
 		if( command ){
 			msg.isCommand = true
 
-			if( !this.canAccessModule( msg.author, command.module ) )
-				return this.emit( 'cant-access', msg, command )
+			if( !this.canAccessModule( msg, command.module ) )
+				return
 
 			const session = msg.response.session
 
@@ -183,15 +187,16 @@ class CommandManager extends require( 'events' ) {
 		}
 	}
 
+	/** @param {ModuleAccessor} accessor */
 	setModuleAccessor( accessor ){
 		this.moduleAccessor = accessor
 	}
 
-	canAccessModule( user, module ){
+	canAccessModule( message, module ){
 		if( !( module instanceof Module ) )
 			module = this.modules.get( module )
 
-		return !!this.moduleAccessor( user, module )
+		return !!this.moduleAccessor( message, module )
 	}
 }
 
@@ -237,7 +242,6 @@ class ExpandableDelay {
 		delete this.callbacks
 	}
 }
-CommandManager.ExpandableDelay = ExpandableDelay
 
 class Command {
 	static recursiveSubcommandsList = false
@@ -346,7 +350,6 @@ class Command {
 		return `[object Command(\`${this.name}\`)]`
 	}
 }
-CommandManager.Command = Command
 
 function CommandFlag( ...args ){
 	this.name = args.shift().toLowerCase()
@@ -509,7 +512,6 @@ class ArgumentParser extends Array {
 		return `${path.join( '::' )}( \`${this.join( '`, `' )}\` )`
 	}
 }
-CommandManager.ArgumentParser = ArgumentParser
 
 class SubcommandsArray extends Array {
 	lookupMap = new Collection()
@@ -543,7 +545,6 @@ class SubcommandsArray extends Array {
 		}).join( '\n' )
 	}
 }
-CommandManager.SubcommandsArray = SubcommandsArray
 
 class CommandDescription {
 	static capitalize( text ){
@@ -671,7 +672,6 @@ class CommandDescription {
 		return this._cache = lines.join( '\n\n' ) || 'no description :('
 	}
 }
-CommandManager.CommandDescription = CommandDescription
 
 function Usage( args ){
 	const description = args.pop()
@@ -697,7 +697,6 @@ function Usage( args ){
 		return matched
 	})
 }
-CommandManager.Usage = Usage
 
 function Example( args ){
 	const description = args.pop()
@@ -723,7 +722,14 @@ function Example( args ){
 		return matched
 	})
 }
-CommandManager.Example = Example
+
+/**
+ * @typedef {Object} ModuleSettings
+ * @property {string} printname
+ * @property {boolean} isEnabledByDefault
+ * @property {boolean} [isDev]
+ * @property {boolean} [isAlwaysEnabled]
+ */
 
 class Module {
 	static unprintname( module_printname ){
@@ -731,16 +737,29 @@ class Module {
 	}
 
 	commands = []
-	isHidden = false
 
-	constructor( printname, cm ){
-		this.printname = printname
+	/**
+	 * @param {ModuleSettings} settings
+	 * @param {CommandManager} cm
+	 */
+	constructor( settings, cm ){
+		const {
+			printname,
+			isEnabledByDefault,
+			isDev,
+			isAlwaysEnabled,
+		} = settings
+
 		this.name = Module.unprintname( printname )
+		this.printname = printname
+		this.enabledByDefault = isEnabledByDefault
+		this.isAlwaysEnabled = isAlwaysEnabled
+		this.isDev = isDev
 		this.cm = cm
 	}
 
-	isAccessibleFor( user ){
-		return this.cm?.canAccessModule( user, this )
+	isAccessibleFor( message ){
+		return this.cm?.canAccessModule( message, this )
 	}
 
 	// spec. chars:
@@ -762,6 +781,15 @@ class Module {
 		}).join( '\n' )
 	}
 }
-CommandManager.Module = Module
 
-module.exports = CommandManager
+module.exports = {
+	CommandManager,
+	ExpandableDelay,
+	Command,
+	ArgumentParser,
+	SubcommandsArray,
+	CommandDescription,
+	Usage,
+	Example,
+	Module,
+}

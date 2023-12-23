@@ -100,7 +100,7 @@ module.exports = {
 
 				const dailies = bakadb.fallback({
 					path: 'dag/dailies',
-					defaultValue: [],
+					defaultValue: () => [],
 				})
 
 				if( filter === null )
@@ -138,7 +138,7 @@ module.exports = {
 
 				const dailies = bakadb.fallback({
 					path: 'dag/dailies',
-					defaultValue: [],
+					defaultValue: () => [],
 				})
 
 				dailies.push({
@@ -212,7 +212,7 @@ module.exports = {
 
 						const delay = bakadb.fallback({
 							path: 'dag/delay',
-							defaultValue: 0,
+							defaultValue: () => 0,
 						})
 
 						const postDaily = async daily => {

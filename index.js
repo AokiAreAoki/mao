@@ -30,7 +30,7 @@ const { Events } = require( 'discord.js' )
 const numsplit = require( '@/functions/numsplit' )
 const includeFiles = require( '@/functions/includeFiles' )
 
-// Including methods
+// Including methods //
 includeFiles({
 	text: 'Including methods',
 	query: 'methods/*.js',
@@ -51,38 +51,65 @@ client.once( Events.ClientReady, () => {
 	})
 })
 
-// Initializing instances
+// Initializing instances //
 includeFiles({
 	text: 'Initializing instances',
 	query: 'instances/*.js',
 	callback: () => {},
 })
 
-// Including modules
+// Including modules //
 includeFiles({
 	text: 'Including modules',
 	query: 'mao_modules/*(.js)?/index.js',
 	callback: inclusion => inclusion.init({}),
 })
 
-// Including commands
+// Including command modules //
+// Modules
 const CM = require( '@/instances/command-manager' )
+const folderLookup = new Map()
 
+includeFiles({
+	text: 'Including modules',
+	query: 'commands/**/index.js',
+	callback: ( settings, [, folder] ) => {
+		const module = CM.addModule( settings )
+		folderLookup.set( folder, module )
+	},
+})
+
+// Commands
 includeFiles({
 	text: 'Including commands',
 	query: 'commands/**/*(.js)?/index.js',
-	callback( inclusion, [, moduleFolder] ){
-		const moduleIsHidden = moduleFolder[0] === '_'
-		const moduleName = moduleIsHidden
-			? moduleFolder.substring(1)
-			: moduleFolder
+	callback( inclusion, path ){
+		const [, folder, file] = path
 
-		const module = CM.addModule( moduleName, moduleIsHidden )
+		if( file === 'index.js' )
+			return
+
+		if( typeof inclusion?.init !== 'function' ){
+			setTimeout( () => {
+				console.warn( `[Warning] "${path.join( '/' )}" command does not have the init function` )
+			}, 1 )
+
+			return
+		}
+
+		const module = folderLookup.get( folder )
+
+		if( !module ){
+			setTimeout( () => {
+				console.warn( `[Warning] "${folder}" module was not initiated` )
+			}, 1 )
+
+			return
+		}
 
 		inclusion.init({
 			addCommand: options => {
-				options.module = module
-				return CM.addCommand( options )
+				return CM.addCommand({ ...options, module })
 			},
 		})
 	}

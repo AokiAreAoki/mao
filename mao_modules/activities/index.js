@@ -70,7 +70,7 @@ module.exports = {
 
 				const customActivities = bakadb.fallback({
 					path: 'customActivities',
-					defaultValue: [],
+					defaultValue: () => [],
 				})
 
 				let ca
@@ -89,7 +89,7 @@ module.exports = {
 				bakadb
 					.fallback({
 						path: 'customActivities',
-						defaultValue: [],
+						defaultValue: () => [],
 					})
 					.sort( ( a, b ) => a.deadline - b.deadline )
 
@@ -139,7 +139,7 @@ module.exports = {
 
 				const customActivities = bakadb.fallback({
 					path: 'customActivities',
-					defaultValue: [],
+					defaultValue: () => [],
 				})
 				const activity = Activity({ name, deadline, type, callback })
 				const index = customActivities.findIndex( a => a.name === name )

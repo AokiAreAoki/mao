@@ -125,8 +125,9 @@ class BakaDB extends events {
 		const value = this.get( ...path )
 
 		if( value === undefined ){
-			this.set( ...path, defaultValue )
-			return defaultValue
+			const value = defaultValue()
+			this.set( ...path, value )
+			return value
 		}
 
 		return value

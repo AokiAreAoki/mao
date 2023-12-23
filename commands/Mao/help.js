@@ -2,10 +2,13 @@
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
+		const { ArgumentParser } = require( '@/re/command-manager' )
 		const CM = require( '@/instances/command-manager' )
 		const Embed = require( '@/functions/Embed' )
 		const cb = require( '@/functions/cb' )
 		const { flags } = require( '@/index' )
+
+		const IS_INACCESSIBLE = "is either disabled in this guild or inaccessible to you."
 
 		const help = addCommand({
 			aliases: 'help h',
@@ -27,26 +30,33 @@ module.exports = {
 				if( args[0] ){
 					const command = CM.findCommand( args.getRaw() )
 
-					if( command )
+					if( command ){
+						if( !command.module.isAccessibleFor( msg ) )
+							return session.update( `Command \`${args[0]}\` ${IS_INACCESSIBLE}` )
+
 						return session.update( command.help )
+					}
 
 					const module = CM.modules.get( args[0].toLowerCase() )
 
-					if( module && module.isAccessibleFor( msg.author ) )
-						//return session.update( `${module.printname}:${cb( module.listCommands(), 'asciidoc' )}` )
-						return session.update( cb( `== ${module.printname} ==\n${module.listCommands()}`, 'asciidoc' ) )
+					if( !module )
+						return session.update( `No module or command named \`${args[0]}\` has been found.` )
 
-					return session.update( `No module or command named \`${args[0]}\` has been found.` )
+					if( !module.isAccessibleFor( msg ) )
+						return session.update( `Module \`${args[0]}\` ${IS_INACCESSIBLE}` )
+
+					//return session.update( `${module.printname}:${cb( module.listCommands(), 'asciidoc' )}` )
+					return session.update( cb( `== ${module.printname} ==\n${module.listCommands()}`, 'asciidoc' ) )
 				}
 
 				const emb = Embed().setDescription([
 					`Prefix: \`${CM.prefix}\``,
-					`Flag prefix: \`${CM.constructor.ArgumentParser.flagPrefix}\``,
+					`Flag prefix: \`${ArgumentParser.flagPrefix}\``,
 					`For more information use \`help <command/module>\``,
 				].join( '\n' ) )
 
 				CM.modules.forEach( module => {
-					if( module.commands.length !== 0 && !module.isHidden ){
+					if( module.commands.length !== 0 && CM.canAccessModule( msg, module ) ){
 						const commands = module.commands
 							.map( command => {
 								let string = `\`${command.name}\``

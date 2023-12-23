@@ -1,30 +1,37 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 const { Events } = require( 'discord.js' )
-const CommandManager = require( '@/re/command-manager' )
+const { CommandManager } = require( '@/re/command-manager' )
 const MM = require( '@/instances/message-manager' )
 const client = require( '@/instances/client' )
 const { flags } = require( '@/index' )
+const { getModuleSettings } = require( '@/functions/getModuleSettings' )
 
 const prefix = flags.dev
 	? /^(--\s*)/i
 	: /^(-|(mao|мао)\s+)/i
 
 const CM = new CommandManager( client, prefix, true )
-CM.setModuleAccessor( ( user, module ) => !module.isHidden || user.isMaster() )
 MM.unshiftHandler( 'commands', true, ( ...args ) => CM.handleMessage( ...args ) )
 
-const nextReaction = new WeakMap()
+CM.setModuleAccessor( /**
+ * @param {import('discord.js').Message} message
+ * @param {import('../re/command-manager').Module} module
+ * @returns {boolean}
+ */ ( message, module ) => {
+	if( !message.guild )
+		return false
 
-CM.on( 'cant-access', ( msg, command ) => {
-	const session = msg.response.session
+	if( module.isDev )
+		return message.author.isMaster()
 
-	console.log( `[CM] User "${msg.author.username}" (${msg.author.id}) tried to access "${command.name}" command` )
+	if( module.isAlwaysEnabled )
+		return true
 
-	if( nextReaction.get( msg.author ) && nextReaction.get( msg.author ) < Date.now() ){
-		nextReaction.set( msg.author, Date.now() + 13370 )
-		session.update( ':/' )
-	}
+	const globalSettings = getModuleSettings( module )
+	const guildSettings = getModuleSettings( module, message.guild.id )
+
+	return globalSettings.enabled && guildSettings.enabled
 })
 
 module.exports = CM

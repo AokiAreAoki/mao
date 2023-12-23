@@ -77,7 +77,7 @@ const tagCacher = new TagCacher({
 
 tagCacher.tags = bakadb.fallback({
 	path: 'tags/gelbooru',
-	defaultValue: {},
+	defaultValue: () => ({}),
 })
 
 const Gelbooru = new Booru({

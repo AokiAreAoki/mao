@@ -19,7 +19,7 @@ module.exports = {
 
 				const evalall = bakadb.fallback({
 					path: 'evalall',
-					defaultValue: new List(),
+					defaultValue: () => new List(),
 				})
 
 				switch( arg ){

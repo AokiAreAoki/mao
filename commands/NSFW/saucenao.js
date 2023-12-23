@@ -26,7 +26,7 @@ module.exports = {
 				if( !url )
 					return session.update( `No media found or provided` )
 
-				session.update( Embed().setTitle( processing() ) )
+				session.update( Embed().setDescription( processing() ) )
 
 				const sauces = await sauce.find( url, false )
 					.catch( () => null )

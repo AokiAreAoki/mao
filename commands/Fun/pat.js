@@ -22,7 +22,7 @@ module.exports = {
 				if( !url )
 					return session.update( `No media found or provided` )
 
-				session.update( processing() )
+				session.update( Embed().setDescription( processing() ) )
 				const embed = Embed().setImage( 'attachment://pat.gif' )
 
 				if( !url.matchFirst( /^https?:\/\// ) ){

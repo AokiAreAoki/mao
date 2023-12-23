@@ -97,7 +97,10 @@ module.exports = {
 				],
 			},
 			async callback({ args, session }){
-				session.update( processing( '👌' ) )
+				session.update( Embed()
+					.setDescription( processing( '👌' ) )
+				)
+
 				let tags = ''
 
 				if( !args[0] )

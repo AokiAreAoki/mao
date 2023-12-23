@@ -22,6 +22,9 @@ module.exports = {
 		// EmbedBuilder.setDescription
 		discord.EmbedBuilder.prototype.original_setDescription = discord.EmbedBuilder.prototype.setDescription
 		discord.EmbedBuilder.prototype.setDescription = function( description ){
+			if( description instanceof discord.GuildEmoji )
+				return this.original_setDescription( description.toString() )
+
 			return this.original_setDescription( cutIfLimit( description, 4096 ) )
 		}
 

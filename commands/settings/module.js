@@ -4,8 +4,8 @@ module.exports = {
 	init({ addCommand }){
 		const { PermissionFlagsBits } = require( 'discord.js' )
 		const Embed = require( '@/functions/Embed' )
+		const bakadb = require( '@/instances/bakadb' )
 		const CM = require( '@/instances/command-manager' )
-		const bakadb = require( '@/re/bakadb' )
 		const {
 			GLOBAL_KEYWORD,
 			getModuleSettings,

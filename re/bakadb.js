@@ -281,21 +281,14 @@ class BakaDB extends events {
 			this.emit( 'error-saving', error )
 		}
 
-		let saves = fs.readdirSync( this.path )
-
-		saves.forEach( ( file, k ) => {
-			if( file.match( /\D/ ) )
-				delete saves[k]
-			else
-				saves[k] = Number( file )
-		})
-
-		saves.sort( ( a, b ) => b - a )
-		let counter = 0
-
-		for( let k in saves )
-			if( ++counter > this.backups_limit )
-				fs.unlinkSync( join( this.path, String( saves[k] ) ) )
+		fs.readdirSync( this.path )
+			.filter( file => /^\d+$/.test( file ) )
+			.map( file => parseInt( file ) )
+			.sort( ( a, b ) => b - a )
+			.slice( this.backups_limit )
+			.forEach( timestamp => {
+				fs.unlinkSync( join( this.path, timestamp.toString() ) )
+			})
 	}
 
 	_getConstructorName( constructor ){
@@ -347,4 +340,4 @@ class BakaDB extends events {
 	}
 }
 
-module.exports = new BakaDB()
+module.exports = BakaDB

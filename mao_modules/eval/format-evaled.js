@@ -40,7 +40,7 @@ function formatEvaled({
 			if( value == null )
 				type = 'a null'
 			else
-				type = `an ${type}, instance of ${value.constructor.name}`
+				type = `an ${type}, instance of ${value.constructor?.name}`
 		} else if( type !== 'undefined' )
 			type = 'a ' + type
 

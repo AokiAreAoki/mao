@@ -9,43 +9,46 @@ function* iterateAny( object ) {
 		yield [ key, object[key] ]
 }
 
-function _printify( v, depth = 0, path = '.' ){
-	if( v == null )
-		return String(v)
+function _printify( value, depth = 0, path = '.' ){
+	if( value == null )
+		return String(value)
 
-	if( typeof v !== 'object' ){
-		if( typeof v === 'string' )
-			return v.indexOf( '\n' ) !== - 1
-				? '|' + ( '\n' + v ).replace( /\n/g, '\n' + INDENTATION.repeat( depth + 1 ) )
-				: `"${v}"`
+	if( typeof value !== 'object' ){
+		if( typeof value === 'string' )
+			return value.indexOf( '\n' ) !== -1
+				? '|' + ( '\n' + value ).replace( /\n/g, '\n' + INDENTATION.repeat( depth + 1 ) )
+				: `"${value}"`
 
-		if( typeof v === 'number' || typeof v === 'boolean' )
-			return String(v)
+		if( typeof value === 'function' )
+			return `<function>`
 
-		return `${v.constructor.name}(${String(v)})`
+		if( typeof value === 'number' || typeof value === 'boolean' )
+			return String(value)
+
+		return `${value.constructor.name}(${String(value)})`
 	}
 
-	if( v instanceof RegExp )
-		return v.toString()
+	if( value instanceof RegExp )
+		return value.toString()
 
-	const dupLocation = __duplicates.get(v)
+	const dupLocation = __duplicates.get(value)
 
 	if( dupLocation )
-		return `Duplicate of ${v.constructor.name} at "${dupLocation}"`
+		return `Duplicate of ${value.constructor?.name} at "${dupLocation}"`
 
-	__duplicates.set( v, path )
+	__duplicates.set( value, path )
 	++depth
 
-	const isArray = v instanceof Array
-	const isIterable = typeof v[Symbol.iterator] === 'function'
+	const isArray = value instanceof Array
+	const isIterable = typeof value[Symbol.iterator] === 'function'
 
 	const iter = isArray || !isIterable
-		? iterateAny(v)
-		: v[Symbol.iterator]()
+		? iterateAny(value)
+		: value[Symbol.iterator]()
 
 	const size = isIterable && !isArray
-		? v.size ?? 'unknown amount of'
-		: Object.keys(v).length
+		? value.size ?? 'unknown amount of'
+		: Object.keys(value).length
 
 	let content
 
@@ -57,15 +60,15 @@ function _printify( v, depth = 0, path = '.' ){
 			: 'member'
 		) + ( size === 1 ? '' : 's' )
 
-		if( isArray && v.length !== size ){
-			const items = v.length === 1 ? 'member' : 'members'
-			members = `${items}; ${v.length} ${members}`
+		if( isArray && value.length !== size ){
+			const items = value.length === 1 ? 'member' : 'members'
+			members = `${items}; ${value.length} ${members}`
 		}
 
 		members = size + ' ' + members
 		content = `<${members}>`
 	} else {
-		const lines = v instanceof Set
+		const lines = value instanceof Set
 			? Array.from( iter, v => {
 				v = _printify( v, depth, path + '/<Set>' )
 				return `${INDENTATION.repeat( depth )}${v}`
@@ -78,7 +81,7 @@ function _printify( v, depth = 0, path = '.' ){
 		content = `\n${lines.join( '\n' )}\n${INDENTATION.repeat( --depth )}`
 	}
 
-	return `${v.constructor.name} ${isArray || isIterable ? `[${content}]` : `{${content}}`}`
+	return `${value.constructor?.name} ${isArray || isIterable ? `[${content}]` : `{${content}}`}`
 }
 
 function printify( value, maxDepth = 4 ){

@@ -37,7 +37,7 @@ module.exports = {
 
 				const gif = await pet( url )
 					.catch( async err => {
-						session.update( `Something went wrong :(` )
+						await session.update( `Something went wrong :(` )
 						throw err
 					})
 

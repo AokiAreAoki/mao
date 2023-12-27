@@ -98,8 +98,18 @@ module.exports = {
 				['global', 'changes global settings'],
 			],
 			callback({ msg, args, session }){
-				if( !hasPermission( msg.member ) )
-					return session.update( `You can not manage this guild` )
+				const isGlobal = args.flags.global.specified
+				const guildId = isGlobal
+					? GLOBAL_KEYWORD
+					: msg.guild.id
+
+				if( isGlobal ){
+					if( !msg.author.isMaster() )
+						return session.update( `You can not manage global settings` )
+				} else {
+					if( !hasPermission( msg.member ) )
+						return session.update( `You can not manage this guild` )
+				}
 
 				const [moduleName, state] = args
 				const module = CM.modules.get( moduleName.toLowerCase() )
@@ -114,10 +124,6 @@ module.exports = {
 					return session.update( `Please specify a state: \`ON\` or \`OFF\`` )
 
 				const upperCasedState = state.toUpperCase()
-				const isGlobal = args.flags.global.specified
-				const guildId = isGlobal
-					? GLOBAL_KEYWORD
-					: msg.guild.id
 
 				switch( upperCasedState ){
 					case 'ON':

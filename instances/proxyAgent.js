@@ -1,11 +1,15 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 const { SocksProxyAgent } = require( 'socks-proxy-agent' )
-const config = require( '@/config.yml' )
+const bakadb = require( '@/instances/bakadb' )
 
-// Use proxy if launched on linux (usually means on the host)
-const proxyAgent = process.platform === 'linux'
-	? new SocksProxyAgent( config.socksProxy )
-	: undefined
+module.exports = function proxyAgent() {
+	const socksProxy = bakadb.fallback({
+		path: 'socksProxy',
+		defaultValue: () => null,
+	})
 
-module.exports = proxyAgent
+	return socksProxy
+		? new SocksProxyAgent( socksProxy )
+		: undefined
+}

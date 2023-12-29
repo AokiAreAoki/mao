@@ -2,10 +2,11 @@
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
-		const axios = require( '@/instances/axios' )
+		const axios = require( 'axios' )
 		const discord = require( 'discord.js' )
 		const Jimp = require( 'jimp' )
 		const { Gelbooru } = require( '@/instances/booru' )
+		const proxyAgent = require( '@/instances/proxyAgent' )
 		const clamp = require( '@/functions/clamp' )
 		const Embed = require( '@/functions/Embed' )
 		const processing = require( '@/functions/processing' )
@@ -19,7 +20,9 @@ module.exports = {
 					s: 'note',
 					q: 'index',
 					json: 1,
-				}
+				},
+				httpAgent: proxyAgent(),
+				httpsAgent: proxyAgent(),
 			})
 
 			const translations = Array.from( data.matchAll( /<note\b.+?\/>/gsi ), ([ note ]) => {

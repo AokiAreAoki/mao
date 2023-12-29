@@ -44,16 +44,9 @@ class TagCacher {
 		this.const_params = const_params
 		this.tagSplitter = tagSplitter
 		this.responsePath = responsePath
-
-		this.axios = axios.create({
-			httpAgent: proxyAgent,
-			httpsAgent: proxyAgent,
-		})
-
-		axiosRetry( this.axios, {
-			retries: 5,
-			retryDelay: axiosRetry.exponentialDelay,
-		})
+		this.proxyAgent = typeof proxyAgent === 'function'
+			? proxyAgent
+			: () => proxyAgent
 
 		if( this.path == null )
 			return
@@ -73,6 +66,20 @@ class TagCacher {
 		} catch(e){
 			console.error( 'Failed to parse JSON' )
 		}
+	}
+
+	get axios() {
+		const axiosInstance = axios.create({
+			httpAgent: this.proxyAgent(),
+			httpsAgent: this.proxyAgent(),
+		})
+
+		axiosRetry( axiosInstance, {
+			retries: 5,
+			retryDelay: axiosRetry.exponentialDelay,
+		})
+
+		return axiosInstance
 	}
 
 	async resolveTags( tagSet, noFetch = false ){

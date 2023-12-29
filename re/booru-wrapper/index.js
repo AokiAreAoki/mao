@@ -74,8 +74,14 @@ class Booru {
 		return this._splittedPathToPics.join( '/' )
 	}
 
-	constructor( options ){
-		resolveOptions( options.config, this.config )
+	constructor({
+		config,
+		tagFetcher,
+		removeOtherKeys,
+		retries,
+		proxyAgent,
+	}) {
+		resolveOptions( config, this.config )
 
 		if( this.config.url )
 			this.config.url = this.config.url.replace( /\/*$/, '' )
@@ -83,20 +89,26 @@ class Booru {
 			throw Error( 'No URL specified' )
 
 		this.pathToPics = this.config.pathToPics ?? ''
-		this.tagFetcher = options.tagFetcher ?? (v => v)
-		this.removeOtherKeys = options.removeOtherKeys ?? false
-		this.retries = options.retries ?? 5
-		this.proxyAgent = options.proxyAgent ?? undefined
+		this.tagFetcher = tagFetcher ?? (v => v)
+		this.removeOtherKeys = removeOtherKeys ?? false
+		this.retries = retries ?? 5
+		this.proxyAgent = typeof proxyAgent === 'function'
+			? proxyAgent
+			: () => proxyAgent
+	}
 
-		this.axios = axios.create({
-			httpAgent: this.proxyAgent,
-			httpsAgent: this.proxyAgent,
+	get axios() {
+		const axiosInstance = axios.create({
+			httpAgent: this.proxyAgent(),
+			httpsAgent: this.proxyAgent(),
 		})
 
-		axiosRetry( this.axios, {
+		axiosRetry( axiosInstance, {
 			retries: this.retries,
 			retryDelay: axiosRetry.exponentialDelay,
 		})
+
+		return axiosInstance
 	}
 
 	async posts( tags, page, limit ){

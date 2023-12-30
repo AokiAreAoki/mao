@@ -22,19 +22,21 @@ module.exports = {
 				.join( ', ' )
 		}
 
+		const single = 'converts currencies'
+
 		const root = addCommand({
-			aliases: 'currencies crns',
+			aliases: 'exchange-rate er',
 			description: {
-				short: 'returns list of all available currencies',
+				short: single,
 				full: [
-					`Converts currencies`,
-					``,
-					`Command-less shorthand for currency conversion`,
-					`• \`[<number>]\` \`<currency1>\` to \`<currency2>\``,
+					single,
+					'',
+					'Command-less shorthand for currency conversion:',
+					'• `[<amount>]` `<currency1>` to `<currency2>`',
 				],
 				usages: [
 					['[<amount>]', '<currency1>', '<currency2>', 'converts $1 of $2 to $3'],
-					['[<amount>]', '<currency>', 'converts $1 of $2 to all preset currencies'],
+					['[<amount>]', '<currency>', 'converts $1 of $2 to preset currencies'],
 				]
 			},
 			flags: [
@@ -103,7 +105,8 @@ module.exports = {
 			description: {
 				single: 'gets/sets preset currencies',
 				usages: [
-					['<...currencies>', ''],
+					['gets current preset'],
+					['<...currencies>', 'sets new preset'],
 				]
 			},
 			async callback({ msg, args, session }) {

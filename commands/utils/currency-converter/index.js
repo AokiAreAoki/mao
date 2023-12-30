@@ -13,7 +13,7 @@ module.exports = {
 
 		const NUMBER_RE = `(\\d[\\d\\s_,]*(?:\\.[\\d\\s_,]+)?(?:e-?\\d+)?|\\d+)`
 		const SINGLE_NUMBER_RE = new RegExp( `\\b${NUMBER_RE}\\b`, 'gi' )
-		const CONVERSION_RE = new RegExp( `/\\b${NUMBER_RE}?\\s*(\\w{3})\\s*to\\s*(\\w{3})\\b`, 'gi' )
+		const CONVERSION_RE = new RegExp( `\\b${NUMBER_RE}?\\s*(\\w{3})\\s*to\\s*(\\w{3})\\b`, 'gi' )
 		const MAX_PRESET_CURRENCIES_COUNT = 10
 
 		function formatCurrencies( currencies ){
@@ -38,7 +38,7 @@ module.exports = {
 				]
 			},
 			flags: [
-				['list', 'lists all available currencies']
+				['list', 'lists all available currencies'],
 			],
 			async callback({ msg, args, session }) {
 				if( args.flags.list.specified )
@@ -137,16 +137,19 @@ module.exports = {
 			if( expressions.length === 0 )
 				return
 
-			const promises = expressions.map( async ([, amount, from, to]) => convert( amount, from, to )
-				.catch( err => {
-					session.update( `Something went wrong :(\nI can't convert currency right now` )
-					throw err
-				})
-			)
+			const exchangeRates = await expressions
+				.reduce( async ( acc, [, amount, from, to] ) => {
+					const conversion = await convert( amount, from, to )
+						.catch( err => {
+							session.update( `Something went wrong :(\nI can't convert currency right now` )
+							throw err
+						})
 
-			const exchangeRates = Promise
-				.all( promises )
-				.filter( Boolean )
+					acc = await acc
+					acc.push( conversion )
+					return acc
+				}, [] )
+				.then( rates => rates.filter( Boolean ) )
 
 			if( exchangeRates.length !== 0 ){
 				session.update( formatRates( exchangeRates ) )

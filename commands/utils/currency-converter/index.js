@@ -113,7 +113,7 @@ module.exports = {
 				if( args.length === 0 ){
 					const currencies = bakadb.get( 'currencyPresets', msg.author.id )
 
-					return session.update( currencies.length === 0
+					return session.update( !currencies || currencies.length === 0
 						? `You have no preset currencies`
 						: `Preset currencies: ${formatCurrencies( currencies )}`
 					)

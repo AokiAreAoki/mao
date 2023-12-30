@@ -28,11 +28,15 @@ module.exports = {
 
 				if( commandMessage ){
 					commandMessage.deleteAnswers()
-					const message = await commandMessage.send( `Repeating the command... ${processing('')}` )
+
+					const processingReaction = processing( '👌' )
+					const doneReaction = '✅'
+
+					await msg.react( processingReaction )
 					await MM.handleMessage( commandMessage, true )
-					message.edit( `Repeating the command... ✅` )
-					msg.delete()
-					return
+
+					await msg.react( doneReaction )
+					return msg.delete( 1337 )
 				}
 
 				msg.channel.purge([

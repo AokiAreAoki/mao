@@ -79,7 +79,7 @@ module.exports = {
 						preset.aliases[0],
 					].join( ' ' )
 
-					return session.update( `You don't have any preset currencies. Use \`${command}\` to setup preset currencies.` )
+					return session.update( `You don't have any preset currencies. Use \`${command}\` to set them.` )
 				}
 
 				const rates = await Promise.all( currencyPresets
@@ -101,14 +101,20 @@ module.exports = {
 		const preset = root.addSubcommand({
 			aliases: 'preset',
 			description: {
-				single: 'presets currencies',
+				single: 'gets/sets preset currencies',
 				usages: [
 					['<...currencies>', ''],
 				]
 			},
 			async callback({ msg, args, session }) {
-				if( args.length === 0 )
-					return session.update( `Please provide some currencies` )
+				if( args.length === 0 ){
+					const currencies = bakadb.get( 'currencyPresets', msg.author.id )
+
+					return session.update( currencies.length === 0
+						? `You have no preset currencies`
+						: `Preset currencies: ${formatCurrencies( currencies )}`
+					)
+				}
 
 				const rates = await getCurrencyRates()
 				const currencies = Array
@@ -126,7 +132,7 @@ module.exports = {
 				bakadb.set( 'currencyPresets', msg.author.id, currencies )
 				bakadb.save()
 
-				return session.update( `Preset currencies: ${formatCurrencies( currencies )}` )
+				return session.update( `Preset currencies changed to: ${formatCurrencies( currencies )}` )
 			},
 		})
 

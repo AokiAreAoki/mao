@@ -148,7 +148,7 @@ module.exports = {
 
 			const exchangeRates = await expressions
 				.reduce( async ( acc, [, amount, from, to] ) => {
-					amount = amount.match( SINGLE_NUMBER_RE )
+					amount = amount?.match( SINGLE_NUMBER_RE )
 						? parsePrettyNumber( amount )
 						: 1
 

@@ -148,6 +148,10 @@ module.exports = {
 
 			const exchangeRates = await expressions
 				.reduce( async ( acc, [, amount, from, to] ) => {
+					amount = amount.match( SINGLE_NUMBER_RE )
+						? parsePrettyNumber( amount )
+						: 1
+
 					const conversion = await convert( amount, from, to )
 						.catch( err => {
 							session.update( `Something went wrong :(\nI can't convert currency right now` )

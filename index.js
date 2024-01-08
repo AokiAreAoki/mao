@@ -46,9 +46,30 @@ client.once( Events.ClientReady, () => {
 
 	console.log( 'Logged in as ' + client.user.tag )
 
-	client.on( Events.ShardReady, () => {
-		console.log( "I'm back" )
-	})
+	let online = true
+
+	function reconnecting() {
+		if( online ){
+			online = false
+			console.log( `[${new Date().toLocaleString( 'ru' )}] Reconnecting to discord...` )
+		}
+	}
+
+	function disconnected() {
+		console.log( `[${new Date().toLocaleString( 'ru' )}] Shard disconnected` )
+	}
+
+	function resume() {
+		if( !online ){
+			online = true
+			console.log( `[${new Date().toLocaleString( 'ru' )}] Connection to discord is back` )
+		}
+	}
+
+	client.on( Events.ShardReconnecting, reconnecting )
+	client.on( Events.ShardDisconnect, disconnected )
+	client.on( Events.ShardResume, resume )
+	client.on( Events.ShardReady, resume )
 })
 
 // Initializing instances //

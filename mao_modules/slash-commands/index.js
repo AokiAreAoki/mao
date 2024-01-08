@@ -7,13 +7,11 @@ module.exports = {
 		const discord = require( 'discord.js' )
 		const client = require( '@/instances/client' )
 
-		client.once( discord.Events.ClientReady, async () => {
-			client.on( discord.Events.InteractionCreate, async i => {
-				if( !i.isChatInputCommand() )
-					return
+		client.on( discord.Events.InteractionCreate, async i => {
+			if( !i.isChatInputCommand() )
+				return
 
-				await localCommands.get( i.commandName ).callback(i)
-			})
+			await localCommands.get( i.commandName ).callback(i)
 		})
 	}
 }

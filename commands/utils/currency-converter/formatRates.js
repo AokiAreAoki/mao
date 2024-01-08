@@ -2,6 +2,7 @@
 require = global.alias(require)
 
 const client = require( '@/instances/client' )
+const { Events } = require('discord.js')
 
 const QUESTIONS = [
 	`Are you silly?`,
@@ -9,7 +10,7 @@ const QUESTIONS = [
 	`Shit, I don't know`,
 ]
 
-client.once( 'ready', () => {
+client.once( Events.ClientReady, () => {
 	const emoji = client.emojis.resolve( `717358214185746543` )
 
 	if( emoji )

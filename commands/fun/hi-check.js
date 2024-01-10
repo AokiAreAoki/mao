@@ -19,8 +19,8 @@ module.exports = {
 			"having a ketamine overdose",
 		]
 
-		const hasHi = string => /(\bhi+|:3+)\b/i.test( string )
-		const hiLvl = string => Array.from( string.matchAll( /(?:\bh(i+)|:(3+))\b/gi ) )
+		const hasHi = string => /(\bh[ai]*i[ai]*|:3+)\b/i.test( string )
+		const hiLvl = string => Array.from( string.matchAll( /(?:\bh([ai]*i[ai]*)|:(3+))\b/gi ) )
 			.map( match => match
 				? ( match[1] || match[2] ).length - 1
 				: 0

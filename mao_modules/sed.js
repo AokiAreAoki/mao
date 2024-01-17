@@ -43,6 +43,10 @@ module.exports = {
 				before: msg.id,
 				limit: 100,
 			})
+
+			await msg.getReferencedMessage()
+				.then( ref => ref && messages.unshift( ref ) )
+
 			const message = messages.find( m => !m.isCommand && !m.isSED && regexp.test( m.content ) )
 
 			return session

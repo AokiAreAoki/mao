@@ -39,10 +39,13 @@ module.exports = {
 				return session.update( cb( err ) )
 			}
 
-			const messages = await msg.channel.messages.fetch({
-				before: msg.id,
-				limit: 100,
-			})
+			const messages = await msg.channel.messages
+				.fetch({
+					before: msg.id,
+					limit: 100,
+				})
+				.then( c => c.toArray() )
+				.catch( () => [] )
 
 			await msg.getReferencedMessage()
 				.then( ref => ref && messages.unshift( ref ) )

@@ -52,6 +52,15 @@ module.exports = {
 				return
 
 			const session = msg.response.session
+			const meow = msg.content.matchFirst( /m[re]+o+w+~*/i )
+
+			if( meow ){
+				if( msg.guild.meowCD && msg.guild.meowCD > Date.now() )
+					return
+
+				msg.author.meowCD = Date.now() + 30e3
+				return session.update( meow, 0 )
+			}
 
 			if( msg.content.matchFirst( /(thanks?|thx)\s+([you]+\s+)?mao/i ) )
 				return session.update( 'no problem', 0 )

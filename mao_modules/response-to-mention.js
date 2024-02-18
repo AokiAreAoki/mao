@@ -47,6 +47,9 @@ module.exports = {
 			})
 		})
 
+		const guildCoolDowns = new WeakMap()
+		const userCoolDowns = new WeakMap()
+
 		MM.pushHandler( 'mention_response', false, msg => {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
@@ -55,10 +58,12 @@ module.exports = {
 			const meow = msg.content.matchFirst( /m[re]+o+w+~*/i )
 
 			if( meow ){
-				if( msg.guild.meowCD && msg.guild.meowCD > Date.now() )
+				const cd = guildCoolDowns.get( msg.guild )
+
+				if( cd && cd > Date.now() )
 					return
 
-				msg.author.meowCD = Date.now() + 30e3
+				guildCoolDowns.set( msg.guild, Date.now() + 30e3 )
 				return session.update( meow, 0 )
 			}
 
@@ -66,15 +71,13 @@ module.exports = {
 				return session.update( 'no problem', 0 )
 
 			if( msg.content.matchFirst( /^(who|hu)\??$/i ) ){
-				if( msg.author.huCD && msg.author.huCD > Date.now() )
+				const cd = userCoolDowns.get( msg.author )
+
+				if( cd && cd > Date.now() )
 					return
 
-				msg.author.huCD = Date.now() + 10e3
-				const text = Math.random() < .75
-					? 'tao'
-					: 'tao, yeah'
-
-				return session.update( text, 0 )
+				userCoolDowns.set( msg.author, Date.now() + 30e3 )
+				return session.update( Math.random() < .75 ? 'tao' : 'tao, yeah', 0 )
 			}
 
 			const mention = msg.content.matchFirst( mentionRE )

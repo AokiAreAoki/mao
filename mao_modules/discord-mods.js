@@ -8,7 +8,7 @@ module.exports = {
 		const clamp = require( '@/functions/clamp' )
 		const Response = require( '@/re/message-manager/response' )
 		const cutIfLimit = require( '@/functions/cutIfLimit' )
-		const transformMessagePayload = require( '@/functions/handleMessageArgs' )
+		const transformMessagePayload = require( '@/functions/transformMessagePayload' )
 
 		/// Collection ///
 

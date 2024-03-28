@@ -15,7 +15,7 @@ module.exports = {
 
 		const cb = require( '@/functions/cb' )
 		const Embed = require( '@/functions/Embed' )
-		const transformMessagePayload = require( '@/functions/handleMessageArgs' )
+		const transformMessagePayload = require( '@/functions/transformMessagePayload' )
 		const processing = require( '@/functions/processing' )
 		const printify = require( '@/re/printify' )
 

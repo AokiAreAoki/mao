@@ -1,4 +1,4 @@
-const transformMessagePayload = require( "../../functions/handleMessageArgs" )
+const transformMessagePayload = require( "../../functions/transformMessagePayload" )
 
 class ResponseSession {
 	response = null

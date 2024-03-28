@@ -15,7 +15,7 @@ module.exports = {
 
 		const cb = require( '@/functions/cb' )
 		const Embed = require( '@/functions/Embed' )
-		const handleMessageArgs = require( '@/functions/handleMessageArgs' )
+		const transformMessagePayload = require( '@/functions/handleMessageArgs' )
 		const processing = require( '@/functions/processing' )
 		const printify = require( '@/re/printify' )
 
@@ -172,7 +172,7 @@ module.exports = {
 							case 'Embed':
 							case 'EmbedBuilder':
 							case 'Jimp': {
-								const newOptions = handleMessageArgs( value )
+								const newOptions = transformMessagePayload( value )
 
 								messageOptions = {
 									...messageOptions,

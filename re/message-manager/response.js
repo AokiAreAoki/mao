@@ -1,4 +1,4 @@
-const handleMessageArgs = require("../../functions/handleMessageArgs")
+const transformMessagePayload = require( "../../functions/handleMessageArgs" )
 
 class ResponseSession {
 	response = null
@@ -41,19 +41,17 @@ class Response {
 	}
 
 	async update( content, options = {} ){
-		content = handleMessageArgs( content, options )
+		content = transformMessagePayload( content, options )
 
 		if( this.message instanceof Promise ){
 			this.#pendingContent = content
 
 			return this.message
-				.then( async message => {
-					this.message = message
-
+				.then( () => {
 					if( this.#pendingContent === content ){
 						const pendingContent = this.#pendingContent
 						this.#pendingContent = null
-						this.message = await this.update( pendingContent )
+						return this.update( pendingContent )
 					}
 
 					return this.message
@@ -64,8 +62,8 @@ class Response {
 			? this.message.edit( content )
 			: this.destination.send( content )
 
-		return this.message
-			.then( async message => this.message = message )
+		return this.message = this.message
+			.then( message => this.message = message )
 	}
 }
 

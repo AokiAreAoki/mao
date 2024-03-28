@@ -174,7 +174,7 @@ class Paginator {
 
 				this.waiter = ref.awaitResponse({
 					user: interaction.member.user,
-					displayMessage: await ref.send( `Enter a page number:`, 0 ),
+					displayMessage: await ref.send( `Enter a page number:`, { reply: false } ),
 				})
 					.if( msg => /^\d+$/.test( msg.content ) )
 					.then( async ( msg, waiter ) => {

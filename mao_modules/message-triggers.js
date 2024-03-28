@@ -75,12 +75,12 @@ module.exports = {
 						return
 
 					guildCoolDowns.set( msg.guild, Date.now() + 30e3 )
-					return session.update( match, 0 )
+					return session.update( match, { reply: false } )
 				},
 			},
 			{
 				regexp: /(thanks?|thx)\s+([you]+\s+)?mao/i,
-				callback: ({ session }) => session.update( 'no problem', 0 ),
+				callback: ({ session }) => session.update( 'no problem', { reply: false } ),
 			},
 			{
 				regexp: /^(who|hu)\??$/i,
@@ -91,7 +91,7 @@ module.exports = {
 						return
 
 					userCoolDowns.set( msg.author, Date.now() + 30e3 )
-					return session.update( Math.random() < .75 ? 'tao' : 'tao, yeah', 0 )
+					return session.update( Math.random() < .75 ? 'tao' : 'tao, yeah', { reply: false } )
 				},
 			},
 		]
@@ -99,12 +99,12 @@ module.exports = {
 		/** @type {TriggerCallback} */
 		const mentionTrigger = ({ msg, session, match }) => {
 			if( match === client.user.id )
-				return session.update( msg.author.toString(), 0 )
+				return session.update( msg.author.toString(), { reply: false } )
 
 			const text = msg.content.substr( match.length )
 
 			if( /^('?s|\s*is)?\s*((stupid|shit|dumb)\s*bot|baka|бака|дура|дурында|тупая|глупая)\s*~?[!.]?/i.test( text ) )
-				return session.update( 'no u' )
+				return session.update( 'no u', { reply: false } )
 
 			let postfix = text.matchFirst( /\W*$/i ) ?? ''
 
@@ -115,7 +115,7 @@ module.exports = {
 				? msg.member.displayName.replace( /@/g, '#' ) + postfix
 				: getRandomResponse( msg.member )
 
-			return session.update( response, 0 )
+			return session.update( response, { reply: false } )
 		}
 
 		MM.pushHandler( 'message-triggers', false, msg => {

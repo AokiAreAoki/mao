@@ -3,33 +3,58 @@ require = global.alias(require)
 
 const discord = require( 'discord.js' )
 const Jimp = require( 'jimp' )
-const cb = require( '@/functions/cb' )
 const Embed = require( '@/functions/Embed' )
 const cutIfLimit = require( '@/functions/cutIfLimit' )
 
-module.exports = function handleMessageArgs( content, options = {} ){
+/**
+ * @typedef {Object} CustomMessageOptions
+ * @property {boolean} [mention]
+ * @property {boolean} [cb]
+ *
+ * @typedef {discord.MessageEditOptions & CustomMessageOptions} MessageOptions
+ */
+
+/**
+ * @param {boolean | number | string | MessageOptions | discord.GuildEmoji | discord.EmbedBuilder | Jimp} content
+ * @param {Omit<MessageOptions, 'content'>} options
+ * @returns {discord.MessageEditOptions}
+ */
+module.exports = function transformMessagePayload( content, options = {} ){
+	if ( content instanceof discord.MessagePayload ){
+		content.options = transformMessagePayload( content.options )
+		return content
+	}
+
 	if( content == null )
-		throw new Error( 'content can not be ' + String( content ) )
+		throw new Error( '`content` can not be ' + String( content ) )
 
 	if( typeof content === 'object' ){
-		if( content instanceof discord.GuildEmoji ){
-			options.content = content.toString()
-		} else if( content instanceof discord.EmbedBuilder ){
-			options.embeds = [content]
-		} else if( content instanceof Jimp ){
-			content.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
-				if( err ){
-					const embed = Embed()
-						.setColor( 0xFF0000 )
-						.setDescription( 'Looks like i had to send a picture but something went wrong' )
-						.addFields({ name: 'Error:', value: cb( err ) })
+		switch( content.constructor ){
+			default:
+				options = content
+				break
 
-					options.embeds = [embed]
-				} else
-					options.files = [buffer]
-			})
-		} else {
-			options = content
+			case discord.GuildEmoji:
+				options.content = content.toString()
+				break
+
+			case discord.EmbedBuilder:
+				options.embeds = [content]
+				break
+
+			case Jimp:
+				content.getBuffer( Jimp.MIME_JPEG, ( err, buffer ) => {
+					if( err ){
+						const embed = Embed()
+							.setColor( 0xFF0000 )
+							.setDescription( 'Looks like i had to send a picture but something went wrong' )
+							.addFields({ name: 'Error:', value: cb( err ) })
+
+						options.embeds = [embed]
+					} else
+						options.files = [buffer]
+				})
+				break
 		}
 	} else {
 		options.content = String( content )
@@ -41,13 +66,13 @@ module.exports = function handleMessageArgs( content, options = {} ){
 		options.files ??= []
 	}
 
+	const { cb, mention, ...restOptions } = options
+	options = restOptions
 	options.allowedMentions ??= {}
-	options.allowedMentions.repliedUser ??= false
+	options.allowedMentions.repliedUser = mention != null ? mention : false
 
-	if( options.cb )
-		options.content = cb( options.content, options.cb )
-
-	delete options.cb
+	if( cb )
+		options.content = cb( options.content, cb )
 
 	return cutIfLimit( options )
 }

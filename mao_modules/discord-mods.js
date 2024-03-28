@@ -8,7 +8,7 @@ module.exports = {
 		const clamp = require( '@/functions/clamp' )
 		const Response = require( '@/re/message-manager/response' )
 		const cutIfLimit = require( '@/functions/cutIfLimit' )
-		const handleMessageArgs = require( '@/functions/handleMessageArgs' )
+		const transformMessagePayload = require( '@/functions/handleMessageArgs' )
 
 		/// Collection ///
 
@@ -78,12 +78,7 @@ module.exports = {
 		discord.TextChannel.prototype.original_send = discord.TextChannel.prototype.send
 		discord.TextChannel.prototype.send = async function( content, options ){
 			await this.sendTyping()
-			return this.original_send( handleMessageArgs( content, options ) )
-		}
-
-		// TextChannel.sendCB
-		discord.TextChannel.prototype.sendCB = function( content, options ){
-			return this.send( content, { ...options, cb: true } )
+			return this.original_send( transformMessagePayload( content, options ) )
 		}
 
 		// TextChannel.bulkDelete
@@ -115,7 +110,6 @@ module.exports = {
 
 		/// Message ///
 
-		// Message.reply
 		discord.Message.prototype.addAnswer = function( message ){
 			if( !( this._answers instanceof Collection ) )
 				this._answers = new Collection()
@@ -123,44 +117,30 @@ module.exports = {
 			this._answers.set( message.id, message )
 		}
 
+		// Message.reply
 		discord.Message.prototype.original_reply = discord.Message.prototype.reply
-		discord.Message.prototype.reply = function( content, options, mention = false ){
-			if( typeof options === 'boolean' ){
-				mention = options
-				options = {}
-			}
+		discord.Message.prototype.reply = function( content, options ){
+			const handledContent = transformMessagePayload( content, options )
 
-			mention = Boolean(mention)
-			options = handleMessageArgs( content, options )
-			options.allowedMentions.repliedUser = mention
-
-			return this.original_reply( options )
+			return this.original_reply( handledContent )
 				.then( m => {
-					this.mentionRepliedUser = mention
+					this.mentionRepliedUser = !!handledContent.allowedMentions?.repliedUser
 					this.addAnswer(m)
 					return m
 				})
 		}
 
-		// Message.sendCB
-		discord.Message.prototype.sendCB = function( content, options, replyLvl ){
-			return this.send( content, options, replyLvl, true )
-		}
-
 		// Message.send
-		discord.Message.prototype.send = function( content, options = {}, replyLvl = 1, cb = false ){
-			if( typeof options === 'number' ){
-				replyLvl = options
-				options = {}
-			}
+		discord.Message.prototype.send = function( content, options = {} ){
+			const { reply = true, ...restOptions } = options
 
-			if( cb )
-				options.cb = true
+			if( reply && !this.deleted )
+				return this.reply( content, restOptions )
 
-			if( replyLvl > 0 && !this.deleted )
-				return this.reply( content, options, replyLvl !== 1 )
-
-			return this.channel.send( handleMessageArgs( content, options ) )
+			// i have overload with `transformMessagePayload` only on `TextChannel.send` method
+			// and the `this.channel` might be a thread, DM, etc which doesn't have this overload
+			// thus message content should be transformed here
+			return this.channel.send( transformMessagePayload( content, restOptions ) )
 				.then( m => {
 					this.addAnswer(m)
 					return m
@@ -170,9 +150,10 @@ module.exports = {
 		// Message.edit
 		discord.Message.prototype.original_edit = discord.Message.prototype.edit
 		discord.Message.prototype.edit = function( content, options = {} ){
-			options = handleMessageArgs( content, options )
-			options.allowedMentions.repliedUser = !!this.mentionRepliedUser
-			return this.original_edit( options )
+			return this.original_edit( transformMessagePayload( content, {
+				...options,
+				mention: this.mentionRepliedUser
+			}))
 		}
 
 		// Message.delete

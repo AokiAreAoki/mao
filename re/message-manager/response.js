@@ -8,7 +8,9 @@ class ResponseSession {
 		this.response = response
 	}
 
-	update( content ){
+	update( content, options = {} ){
+		content = transformMessagePayload( content, options )
+
 		if( this.isDeprecated )
 			return null
 

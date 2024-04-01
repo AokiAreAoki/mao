@@ -133,8 +133,9 @@ module.exports = {
 		// Message.send
 		discord.Message.prototype.send = function( content, options = {} ){
 			options = transformMessagePayload( content, options )
+			const reply = options.reply ?? true
 
-			if( options.reply && !this.deleted )
+			if( reply && !this.deleted )
 				return this.reply( content, options )
 
 			// i have overload with `transformMessagePayload` only on `TextChannel.send` method

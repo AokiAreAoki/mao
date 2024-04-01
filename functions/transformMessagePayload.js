@@ -67,8 +67,7 @@ module.exports = function transformMessagePayload( content, options = {} ){
 		options.files ??= []
 	}
 
-	const { cb, mention, ...restOptions } = options
-	options = restOptions
+	const { cb, mention } = options
 	options.allowedMentions ??= {}
 	options.allowedMentions.repliedUser = mention != null ? mention : false
 

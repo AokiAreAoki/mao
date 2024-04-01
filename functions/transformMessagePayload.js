@@ -3,6 +3,7 @@ require = global.alias(require)
 
 const discord = require( 'discord.js' )
 const Jimp = require( 'jimp' )
+const _cb = require( '@/functions/cb' )
 const Embed = require( '@/functions/Embed' )
 const cutIfLimit = require( '@/functions/cutIfLimit' )
 
@@ -72,7 +73,7 @@ module.exports = function transformMessagePayload( content, options = {} ){
 	options.allowedMentions.repliedUser = mention != null ? mention : false
 
 	if( cb )
-		options.content = cb( options.content, cb )
+		options.content = _cb( options.content, cb )
 
 	return cutIfLimit( options )
 }

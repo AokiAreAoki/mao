@@ -61,6 +61,8 @@ module.exports = function transformMessagePayload( content, options = {} ){
 		options.content = String( content )
 	}
 
+	options = { ...options }
+
 	if( options.content || options.embeds || options.files ){
 		options.content ??= null
 		options.embeds ??= []
@@ -69,10 +71,15 @@ module.exports = function transformMessagePayload( content, options = {} ){
 
 	const { cb, mention } = options
 	options.allowedMentions ??= {}
-	options.allowedMentions.repliedUser = mention != null ? mention : false
+	options.allowedMentions.repliedUser ??= false
 
-	if( cb )
+	if( mention != null )
+		options.allowedMentions.repliedUser = mention
+
+	if( cb ){
 		options.content = _cb( options.content, cb )
+		delete options.cb
+	}
 
 	return cutIfLimit( options )
 }

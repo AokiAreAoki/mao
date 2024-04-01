@@ -120,11 +120,11 @@ module.exports = {
 		// Message.reply
 		discord.Message.prototype.original_reply = discord.Message.prototype.reply
 		discord.Message.prototype.reply = function( content, options ){
-			options = transformMessagePayload( content, options )
+			const transformedOptions = transformMessagePayload( content, options )
 
-			return this.original_reply( options )
+			return this.original_reply( transformedOptions )
 				.then( m => {
-					this.mentionRepliedUser = !!options.allowedMentions?.repliedUser
+					this.mentionRepliedUser = !!transformedOptions.allowedMentions?.repliedUser
 					this.addAnswer(m)
 					return m
 				})
@@ -132,16 +132,13 @@ module.exports = {
 
 		// Message.send
 		discord.Message.prototype.send = function( content, options = {} ){
-			options = transformMessagePayload( content, options )
-			const reply = options.reply ?? true
+			const transformedOptions = transformMessagePayload( content, options )
+			const reply = transformedOptions.reply ?? true
 
 			if( reply && !this.deleted )
-				return this.reply( content, options )
+				return this.reply( transformedOptions )
 
-			// i have overload with `transformMessagePayload` only on `TextChannel.send` method
-			// and the `this.channel` might be a thread, DM, etc which doesn't have this overload
-			// thus message content should be transformed here
-			return this.channel.send( transformMessagePayload( content, options ) )
+			return this.channel.send( transformedOptions )
 				.then( m => {
 					this.addAnswer(m)
 					return m

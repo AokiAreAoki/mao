@@ -163,7 +163,7 @@ module.exports = {
 					embeds: [Embed()
 						.setDescription( `[Original](${pic.postURL})` )
 						.setImage( 'attachment://tr.jpg' )
-						.setFooter({ text: 'Powered by ' + Gelbooru.name })
+						.setFooter({ text: 'Powered by ' + Gelbooru.config.name })
 					],
 					files: [
 						new discord.AttachmentBuilder( await image.getBufferAsync( Jimp.MIME_JPEG ), {

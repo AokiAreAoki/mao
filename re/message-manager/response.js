@@ -2,7 +2,7 @@ const transformMessagePayload = require( "../../functions/transformMessagePayloa
 
 class ResponseSession {
 	response = null
-	isDeprecated = false
+	#isCanceled = false
 
 	constructor( response ){
 		this.response = response
@@ -11,14 +11,18 @@ class ResponseSession {
 	update( content, options = {} ){
 		content = transformMessagePayload( content, options )
 
-		if( this.isDeprecated )
+		if( this.isCanceled )
 			return null
 
 		return this.response.update( content )
 	}
 
-	deprecate(){
-		this.isDeprecated = true
+	cancel(){
+		this.#isCanceled = true
+	}
+
+	get isCanceled(){
+		return this.#isCanceled
 	}
 }
 
@@ -38,7 +42,7 @@ class Response {
 	}
 
 	resetSession(){
-		this.#session?.deprecate()
+		this.#session?.cancel()
 		this.#session = new ResponseSession( this )
 	}
 

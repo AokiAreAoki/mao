@@ -70,7 +70,7 @@ module.exports = {
 				}
 
 				interval = setInterval( () => {
-					if( session.isDeprecated ){
+					if( session.isCanceled ){
 						stop()
 						return
 					}

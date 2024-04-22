@@ -85,7 +85,7 @@ module.exports = {
 			const deadline = Date.now() + EXEC_TIMEOUT
 
 			async function updateOutput(){
-				if( session.isDeprecated )
+				if( session.isCanceled )
 					return ac.abort()
 
 				if( stdChanged && nextMessageUpdate < Date.now() ){

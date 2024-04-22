@@ -24,6 +24,30 @@ class ResponseSession {
 	get isCanceled(){
 		return this.#isCanceled
 	}
+
+	/** @typedef {'finished' | 'errored' | 'canceled'} ExitReason */
+
+	/** @param {AsyncGenerator} iter */
+	async runSessionCoroutine( iter ){
+		/** @type {ExitReason} */
+		let reason = 'finished'
+
+		function onError( error ){
+			console.error( error )
+			this.update( error.stack, { cb: 'js' } )
+			reason = 'errored'
+			return { done: true }
+		}
+
+		do {
+			if( this.isCanceled ){
+				reason = 'canceled'
+				break
+			}
+		} while( !( await iter.next().catch( onError ) ).done )
+
+		return reason
+	}
 }
 
 class Response {

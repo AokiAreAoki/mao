@@ -208,7 +208,10 @@ module.exports = {
 
 		// Message.findLastPic
 		discord.Message.prototype.findLastPic = async function(){
-			const messages = await this.channel.messages.fetch({ limit: 100 })
+			const messages = await this.channel.messages.fetch({
+				before: this.id,
+				limit: 100,
+			})
 				.then( c => c.toArray() )
 				.catch( () => [] )
 
@@ -216,19 +219,19 @@ module.exports = {
 			await this.getReferencedMessage()
 				.then( ref => ref && messages.unshift( ref ) )
 
-			let url
+			let url = null
+
 			for( const msg of messages ){
-				if( url = msg.content.matchFirst( /(https?:\/\/\S+\.(jpe?g|png|webp|gif|bmp))/i ) )
-					return url
+				url = msg.content.matchFirst( /(https?:\/\/\S+\.(jpe?g|png|webp|gif|bmp))/i )
+					|| msg.attachments.find( a => a.contentType.indexOf( 'image' ) !== -1 )?.url
+					|| msg.embeds.find( e => e.data.image )?.data.image.url
+					|| msg.embeds.find( e => e.data.thumbnail )?.data.thumbnail.url
+					|| null
 
-				if( url = msg.attachments.find( a => a.contentType.indexOf( 'image' ) !== -1 )?.url )
-					return url
-
-				if( url = msg.embeds.find( e => !!e.image )?.image.url )
-					return url
+				if( url ) break
 			}
 
-			return null
+			return url
 		}
 
 		// Message.findLastVideo

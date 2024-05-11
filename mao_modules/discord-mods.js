@@ -282,13 +282,13 @@ module.exports = {
 		/// GuildMemberManager ///
 
 		// GuildMemberManager.find: finds single member
-		discord.GuildMemberManager.prototype.find = async function( name ){
-			if( typeof name === 'number' )
-				name = String( name )
-			else if( typeof name !== 'string' )
+		discord.GuildMemberManager.prototype.find = async function( query ){
+			if( typeof query === 'number' )
+				query = String( query )
+			else if( typeof query !== 'string' )
 				return null
 
-			const id = name.matchFirst( /\d+/ )
+			const id = query.matchFirst( /\d+/ )
 
 			if( id ){
 				const memberFetchedByID = await this.fetch( id )
@@ -298,10 +298,54 @@ module.exports = {
 					return memberFetchedByID
 			}
 
-			return this.fetch({ query: name, limit: 1 })
-				.then( members => members.first() )
+			return this.fetch({ query: query, limit: 100 })
+				.then( members => findMostSuitableMember( members, query ) )
 				.catch( () => null )
 		}
+
+		function findMostSuitableMember( members, query ){
+			if( members.size <= 1 )
+				return members.first()
+
+			let member = null
+
+			const matched = matchers.find( matcher => {
+				if( member = members.find( matcher( query ) ) )
+					return true
+			})
+
+			return matched ? member : members.first()
+		}
+
+		const matchers = [
+			// Exact case sensitive match
+			query => ( m => m.user.username === query ),
+			query => ( m => m.nickname === query ),
+
+			// Exact case insensitive match
+			query => {
+				const lowerCaseQuery = query.toLowerCase()
+				return m => m.user.username.toLowerCase() === lowerCaseQuery
+			},
+			query => {
+				const lowerCaseQuery = query.toLowerCase()
+				return m => m.nickname?.toLowerCase() === lowerCaseQuery
+			},
+
+			// Partial case sensitive match
+			query => ( m => m.user.username.includes( query ) ),
+			query => ( m => m.nickname?.includes( query ) ),
+
+			// Partial case insensitive match
+			query => {
+				const lowerCaseQuery = query.toLowerCase()
+				return m => m.user.username.toLowerCase().includes( lowerCaseQuery )
+			},
+			query => {
+				const lowerCaseQuery = query.toLowerCase()
+				return m => m.nickname?.toLowerCase().includes( lowerCaseQuery )
+			},
+		]
 
 		/// Advanced setActivity
 		let repeat

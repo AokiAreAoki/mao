@@ -5,7 +5,7 @@ const axios = require( 'axios' )
 const fs = require( 'fs' )
 const { join } = require( 'path' )
 
-const proxyAgent = require( '@/instances/proxyAgent' )
+const { proxyAgent } = require( '@/instances/proxy' )
 
 /**
  * @param {Media} media

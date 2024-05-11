@@ -3,13 +3,22 @@ require = global.alias(require)
 const { SocksProxyAgent } = require( 'socks-proxy-agent' )
 const bakadb = require( '@/instances/bakadb' )
 
-module.exports = function proxyAgent() {
+function socksProxy(){
 	const socksProxy = bakadb.fallback({
 		path: 'socksProxy',
 		defaultValue: () => null,
 	})
 
 	return socksProxy
-		? new SocksProxyAgent( socksProxy )
+}
+
+function proxyAgent() {
+	return socksProxy
+		? new SocksProxyAgent( socksProxy() )
 		: undefined
+}
+
+module.exports = {
+	socksProxy,
+	proxyAgent,
 }

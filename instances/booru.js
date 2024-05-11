@@ -6,7 +6,7 @@ const TagCacher = require( '@/re/tag-cacher' )
 const Embed = require( '@/functions/Embed' )
 const tokens = require( '@/tokens.yml' )
 const config = require( '@/config.yml' )
-const proxyAgent = require( '@/instances/proxyAgent' )
+const { proxyAgent } = require( '@/instances/proxy' )
 
 const displayableTagTypes = [
 	'artist',

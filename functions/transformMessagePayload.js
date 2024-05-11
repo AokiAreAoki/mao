@@ -9,7 +9,7 @@ const cutIfLimit = require( '@/functions/cutIfLimit' )
 
 /**
  * @typedef {Object} CustomMessageOptions
- * @property {boolean} [mention]
+ * @property {boolean | discord.MessageMentionTypes[]} [mention]
  * @property {boolean} [cb]
  *
  * @typedef {discord.MessageEditOptions & CustomMessageOptions} MessageOptions
@@ -73,8 +73,12 @@ module.exports = function transformMessagePayload( content, options = {} ){
 	options.allowedMentions ??= {}
 	options.allowedMentions.repliedUser ??= false
 
-	if( mention != null )
-		options.allowedMentions.repliedUser = mention
+	if( mention != null ){
+		options.allowedMentions.repliedUser = !!mention
+		options.allowedMentions.parse = mention === true
+			? ['users']
+			: mention
+	}
 
 	if( cb ){
 		options.content = _cb( options.content, cb )

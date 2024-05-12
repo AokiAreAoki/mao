@@ -13,7 +13,7 @@ function socksProxy(){
 }
 
 function proxyAgent() {
-	return socksProxy
+	return socksProxy()
 		? new SocksProxyAgent( socksProxy() )
 		: undefined
 }

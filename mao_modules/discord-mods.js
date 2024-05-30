@@ -387,8 +387,10 @@ module.exports = {
 			if( emoji )
 				return emoji
 
-			const [, a, name, id] = data.match( /<(a)?:([\w_-]+):(\d+)>/ )
-			return new discord.Emoji( client, { animated: !!a, name, id } )
+			if( data ){
+				const [, a, name, id] = data.match( /<(a)?:([\w_-]+):(\d+)>/ )
+				return new discord.Emoji( client, { animated: !!a, name, id } )
+			}
 		}
 	}
 }

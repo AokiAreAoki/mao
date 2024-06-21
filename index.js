@@ -79,20 +79,20 @@ includeFiles({
 	callback: () => {},
 })
 
-// Including modules //
+// Initializing modules //
 includeFiles({
-	text: 'Including modules',
+	text: 'Initializing mao modules',
 	query: 'mao_modules/*(.js)?/index.js',
 	callback: inclusion => inclusion.init({}),
 })
 
-// Including command modules //
+// Initializing command modules //
 // Modules
 const CM = require( '@/instances/command-manager' )
 const folderLookup = new Map()
 
 includeFiles({
-	text: 'Including modules',
+	text: 'Initializing command modules',
 	query: 'commands/**/index.js',
 	callback: ( settings, [, folder] ) => {
 		const module = CM.addModule( settings )
@@ -102,7 +102,7 @@ includeFiles({
 
 // Commands
 includeFiles({
-	text: 'Including commands',
+	text: 'Initializing commands',
 	query: 'commands/**/*(.js)?/index.js',
 	callback( inclusion, path ){
 		const [, folder, file] = path

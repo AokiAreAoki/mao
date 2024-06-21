@@ -5,6 +5,9 @@ module.exports = {
 		const discord = require( 'discord.js' )
 		const Embed = require( '@/functions/Embed' )
 
+		const size = 2048
+		const extension = 'jpg'
+
 		async function sendPFP( session, target, banner ){
 			const embed = Embed()
 			const isGuild = target instanceof discord.Guild
@@ -14,17 +17,15 @@ module.exports = {
 			if( banner ){
 				target = await target.fetch()
 
-				// le discord le didn't implemented an API endpoint for guild banners
+				// Discord.js didn't implemented an API endpoint and/or method for guild banners
 				if( typeof target.bannerURL !== 'function' )
-					return session.update(
-						`ahahahaha...... oopsie, looks like le discord le didn't implemented an API endpoint for guild banners! ahaha... who could've guess lol`
-					)
+					return session.update( `Looks like discord.js didn't implement method for this one yet` )
 
-				url = target.bannerURL({ size: 2048, dynamic: true })
+				url = target.bannerURL({ size, extension })
 			} else
 				url = isGuild
-					? target.iconURL({ size: 1024, dynamic: true })
-					: target.displayAvatarURL({ size: 2048, dynamic: true })
+					? target.iconURL({ size, extension })
+					: target.displayAvatarURL({ size, extension })
 
 			if( url ){
 				const type = banner ? 'banner' : isGuild ? 'icon' : 'avatar'

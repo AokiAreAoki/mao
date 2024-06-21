@@ -17,7 +17,8 @@ module.exports = {
 				],
 			},
 			async callback({ msg, args, session }){
-				let url = args[0] || await msg.findLastPic()
+				let url = args[0]?.trim() || await msg.getReferencedMessage()
+					.then( ref => ref.findLastPic() )
 
 				if( !url )
 					return session.update( `No media found or provided` )

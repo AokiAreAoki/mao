@@ -19,9 +19,8 @@ module.exports = {
 			aliases: 'saucenao sauce',
 			description: '// TODO',
 			async callback({ msg, args, session }){
-				const url = args[0]
-					? args[0]
-					: await msg.findLastPic()
+				const url = args[0]?.trim() || await msg.getReferencedMessage()
+					.then( ref => ref.findLastPic() )
 
 				if( !url )
 					return session.update( `No media found or provided` )

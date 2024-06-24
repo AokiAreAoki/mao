@@ -11,15 +11,46 @@ module.exports = {
 		const formatRates = require( './formatRates' )
 		const getCurrencyRates = require( './getCurrencyRates' )
 
+		const DB_DIRECTORY = 'currencyPresets'
 		const NUMBER_RE = `(\\d[\\d\\s_,]*(?:\\.[\\d\\s_,]+)?(?:e-?\\d+)?|\\d+)`
 		const SINGLE_NUMBER_RE = new RegExp( `\\b${NUMBER_RE}\\b`, 'gi' )
 		const CONVERSION_RE = new RegExp( `\\b${NUMBER_RE}?\\s*(\\w{3})\\s*to\\s*(\\w{3})\\b`, 'gi' )
 		const MAX_PRESET_CURRENCIES_COUNT = 10
 
 		function formatCurrencies( currencies ){
+			if( currencies.length === 0 )
+				return 'none'
+
 			return currencies
 				.map( currency => `\`${currency}\`` )
 				.join( ', ' )
+		}
+
+		async function validateCurrencies( currencies ){
+			currencies = currencies.map( c => c.toUpperCase() )
+
+			const rates = await getCurrencyRates()
+			const unknownCurrencies = currencies.filter( currency => !rates[currency] )
+
+			if( unknownCurrencies.length !== 0 )
+				throw Error( `Unknown currencies: ${formatCurrencies( unknownCurrencies )}` )
+
+			if( unknownCurrencies.length > MAX_PRESET_CURRENCIES_COUNT )
+				throw Error( `Too many currencies! (Max: ${MAX_PRESET_CURRENCIES_COUNT})` )
+
+			return currencies
+		}
+
+		function getUserPreset( uid ){
+			return bakadb.fallback({
+				path: [DB_DIRECTORY, uid],
+				defaultValue: [],
+			})
+		}
+
+		function setUserPreset( uid, currencies ){
+			bakadb.set( DB_DIRECTORY, uid, currencies )
+			bakadb.save()
 		}
 
 		const single = 'converts currencies'
@@ -73,9 +104,9 @@ module.exports = {
 					)
 				}
 
-				const currencyPresets = bakadb.get( 'currencyPresets', msg.author.id )
+				const currencyPreset = getUserPreset( msg.author.id )
 
-				if( !currencyPresets || currencyPresets.length === 0 ){
+				if( !currencyPreset || currencyPreset.length === 0 ){
 					const command = [
 						this.aliases[0],
 						preset.aliases[0],
@@ -84,7 +115,7 @@ module.exports = {
 					return session.update( `You don't have any preset currencies. Use \`${command}\` to set them.` )
 				}
 
-				const rates = await Promise.all( currencyPresets
+				const rates = await Promise.all( currencyPreset
 					.map( async presetCurrency => {
 						const rate = await convert( amount, currencyFrom, presetCurrency )
 							.catch( wentWrong )
@@ -103,39 +134,99 @@ module.exports = {
 		const preset = root.addSubcommand({
 			aliases: 'preset',
 			description: {
-				single: 'gets/sets preset currencies',
+				single: 'gets preset currencies',
 				usages: [
 					['gets current preset'],
-					['<...currencies>', 'sets new preset'],
-				]
+				],
 			},
 			async callback({ msg, args, session }) {
-				if( args.length === 0 ){
-					const currencies = bakadb.get( 'currencyPresets', msg.author.id )
+				if( args.length !== 0 )
+					return session.update( this.help )
 
-					return session.update( !currencies || currencies.length === 0
-						? `You have no preset currencies`
-						: `Preset currencies: ${formatCurrencies( currencies )}`
-					)
-				}
+				const currencies = getUserPreset( msg.author.id )
 
-				const rates = await getCurrencyRates()
-				const currencies = Array
-					.from( args )
-					.map( arg => arg.toUpperCase() )
+				return session.update( currencies.length === 0
+					? `You have no preset currencies`
+					: `Your current preset currencies: ${formatCurrencies( currencies )}`
+				)
+			},
+		})
 
-				const unknownCurrencies = currencies.filter( currency => !rates[currency] )
+		preset.addSubcommand({
+			aliases: 'set',
+			description: {
+				single: 'sets preset currencies',
+				usages: [
+					['<...currencies>', 'sets new currency preset to $1'],
+				],
+			},
+			async callback({ msg, args, session }) {
+				if( args.length === 0 )
+					return session.update( `Please provide some currencies` )
 
-				if( unknownCurrencies.length !== 0 )
-					return session.update( `Unknown currencies: ${formatCurrencies( unknownCurrencies )}` )
+				return validateCurrencies( Array.from( args ) )
+					.then( currencies => {
+						setUserPreset( msg.author.id, currencies )
 
-				if( unknownCurrencies.length > MAX_PRESET_CURRENCIES_COUNT )
-					return session.update( `Too many currencies! (Max: ${MAX_PRESET_CURRENCIES_COUNT})` )
+						return session.update( `Currency preset changed to: ${formatCurrencies( currencies )}` )
+					})
+					.catch( error => session.update( error ) )
+			},
+		})
 
-				bakadb.set( 'currencyPresets', msg.author.id, currencies )
-				bakadb.save()
+		preset.addSubcommand({
+			aliases: 'add',
+			description: {
+				single: 'adds currencies to the preset',
+				usages: [
+					['<...currencies>', 'adds $1 to the current currency preset'],
+				],
+			},
+			async callback({ msg, args, session }) {
+				if( args.length === 0 )
+					return session.update( `Please provide some currencies` )
 
-				return session.update( `Preset currencies changed to: ${formatCurrencies( currencies )}` )
+				return validateCurrencies( Array.from( args ) )
+					.then( currenciesToAdd => {
+						const currenciesSet = new Set( getUserPreset( msg.author.id ) )
+
+						for( const currency of currenciesToAdd )
+							currenciesSet.add( currency )
+
+						const newCurrencies = Array.from( currenciesSet )
+						setUserPreset( msg.author.id, newCurrencies )
+
+						return session.update( `Added ${formatCurrencies( currenciesToAdd )} to the preset.\nCurrent preset: ${formatCurrencies( newCurrencies )}` )
+					})
+					.catch( error => session.update( error ) )
+			},
+		})
+
+		preset.addSubcommand({
+			aliases: 'remove delete',
+			description: {
+				single: 'removes currencies from the preset',
+				usages: [
+					['<...currencies>', 'removes $1 from the current currency preset'],
+				],
+			},
+			async callback({ msg, args, session }) {
+				if( args.length === 0 )
+					return session.update( `Please provide some currencies` )
+
+				return validateCurrencies( Array.from( args ) )
+					.then( currenciesToRemove => {
+						const currenciesSet = new Set( getUserPreset( msg.author.id ) )
+
+						for( const currency of currenciesToRemove )
+							currenciesSet.delete( currency )
+
+						const newCurrencies = Array.from( currenciesSet )
+						setUserPreset( msg.author.id, newCurrencies )
+
+						return session.update( `Removed ${formatCurrencies( currenciesToRemove )} from the preset.\nCurrent preset: ${formatCurrencies( newCurrencies )}` )
+					})
+					.catch( error => session.update( error ) )
 			},
 		})
 

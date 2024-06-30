@@ -4,7 +4,7 @@
 	"description": "yes",
 	"main": "mao.js",
 	"engines": {
-		"node": "^16.17.0"
+		"node": "^20.14.0"
 	},
 	"scripts": {
 		"start": "node .",

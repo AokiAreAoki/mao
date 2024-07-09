@@ -74,6 +74,9 @@ module.exports = {
 					if( cd && cd > Date.now() )
 						return
 
+					if( Math.random() < .20 )
+						return
+
 					guildCoolDowns.set( msg.guild, Date.now() + 30e3 )
 					return session.update( match, { reply: false } )
 				},

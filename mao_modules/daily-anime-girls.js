@@ -14,11 +14,6 @@ module.exports = {
 			postAt: 21,
 		}
 
-		const sources = {
-			gelbooru: Gelbooru,
-			yandere: Yandere,
-		}
-
 		//// db schema ////
 		// eslint-disable-next-line no-unused-vars
 		const schema = {
@@ -53,6 +48,11 @@ module.exports = {
 		//// //// ////
 
 		const DAG = {
+			sources: {
+				gelbooru: Gelbooru,
+				yandere: Yandere,
+			},
+
 			// settings
 			setPostAt( timeH ){
 				bakadb.set( 'dag/postAt', timeH )
@@ -132,8 +132,8 @@ module.exports = {
 				checkTypes( { title }, 'string' )
 				checkTypes( { tags }, 'string' )
 				checkTypes( { source }, 'string' )
-				checkTypes( { guild }, discord.Guild )
-				checkTypes( { channel }, discord.TextChannel )
+				checkTypes( { guild }, 'string' )
+				checkTypes( { channel }, 'string' )
 				checkTypes( { thread }, 'boolean' )
 
 				const dailies = bakadb.fallback({
@@ -333,7 +333,7 @@ module.exports = {
 
 			// fetch
 			async fetch( { tags, source }, today ){
-				const booru = sources[source]
+				const booru = DAG.sources[source]
 
 				if( !booru )
 					throw Error( `Unknown source \`${source}\`` )

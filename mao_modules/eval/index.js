@@ -26,6 +26,7 @@ module.exports = {
 
 		const evalFlagParser = new EvalFlagParser([
 			'cb',
+			'json',
 			'prt',
 			'del',
 			'silent',

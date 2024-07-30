@@ -52,12 +52,16 @@ function formatEvaled({
 			return `\`${String( value )}\` has no keys`
 
 		evalFlags.prt = false
+		evalFlags.json = false
 		const keys = Object.keys( value ).join( '` `' )
 		return keys ? `keys: \`${keys}\`` : 'no keys'
 	}
 
+	if( evalFlags.json )
+		return JSON.stringify( value, null, Number( evalFlags.json.value ) || 0 )
+
 	if( evalFlags.prt )
-		return `.: ${printify( value, evalFlags.prt.value || 3 )}`
+		return `.: ${printify( value, Number( evalFlags.prt.value ) || 3 )}`
 
 	if( evalFlags.silent )
 		return null

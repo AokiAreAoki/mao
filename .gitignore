@@ -8,3 +8,4 @@
 tokens*
 package-lock.json
 *.sh
+*.bat

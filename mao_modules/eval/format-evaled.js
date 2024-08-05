@@ -85,6 +85,12 @@ function formatEvaled({
 			if( !isOutputRequired && !evalFlags.cb && isNumberPrimitive( code ) )
 				return null
 
+			if( evalFlags.bin )
+				return value.toString(2)
+
+			if( evalFlags.hex )
+				return value.toString(16)
+
 			return numsplit( value )
 
 		case 'string':

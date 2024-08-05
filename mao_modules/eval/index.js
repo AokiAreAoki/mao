@@ -37,6 +37,8 @@ module.exports = {
 			'keys',
 			'dontawait',
 			'file',
+			'bin',
+			'hex',
 		])
 
 		function findInclude( pathToFind ){

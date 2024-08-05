@@ -1,5 +1,5 @@
 function isDigit( char ){
-  return '0' <= char && char <= '9'
+	return '0' <= char && char <= '9'
 }
 
 module.exports = function numsplit( number ){

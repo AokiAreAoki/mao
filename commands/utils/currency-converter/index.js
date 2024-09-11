@@ -86,48 +86,68 @@ module.exports = {
 				const amount = args[0].match( SINGLE_NUMBER_RE )
 					? parsePrettyNumber( args.shift() )
 					: 1
+
 				const currencyFrom = args[0]?.toUpperCase()
 				const currencyTo = args[1]?.toUpperCase()
 
+				if( currencyFrom ){
+					const currencyRates = await getCurrencyRates()
+
+					if( !currencyRates[currencyFrom] ){
+						return session.update( 'Invalid input currency' )
+					}
+				} else {
+					return session.update( 'Please specify a currency' )
+				}
+
 				const wentWrong = err => {
+					console.error( err )
 					session.update( `Something went wrong :(\nI can't convert currency right now` )
-					throw err
+					return null
 				}
 
 				if( currencyTo ){
+					const currencyRates = await getCurrencyRates()
+
+					if( !currencyRates[currencyTo] ){
+						return session.update( 'Invalid output currency' )
+					}
+
 					const rate = await convert( amount, currencyFrom, currencyTo )
 						.catch( wentWrong )
 
-					return session.update( rate
-						? formatRates( [rate] )
-						: 'Invalid currency'
-					)
-				}
+					if( rate ){
+						return session.update( formatRates( [rate] ) )
+					}
+				} else {
+					const currencyPreset = getUserPreset( msg.author.id )
 
-				const currencyPreset = getUserPreset( msg.author.id )
+					if( !currencyPreset || currencyPreset.length === 0 ){
+						const command = [
+							this.aliases[0],
+							preset.aliases[0],
+						].join( ' ' )
 
-				if( !currencyPreset || currencyPreset.length === 0 ){
-					const command = [
-						this.aliases[0],
-						preset.aliases[0],
-					].join( ' ' )
+						return session.update( `You don't have any preset currencies. Use \`${command}\` to set them.` )
+					}
 
-					return session.update( `You don't have any preset currencies. Use \`${command}\` to set them.` )
-				}
-
-				const rates = await Promise.all( currencyPreset
-					.map( async presetCurrency => {
+					const ratePromises = currencyPreset.map( async presetCurrency => {
 						const rate = await convert( amount, currencyFrom, presetCurrency )
-							.catch( wentWrong )
 
 						if( currencyFrom === presetCurrency )
 							rate.value = `~~${rate.value}~~`
 
 						return rate
 					})
-				)
 
-				return session.update( formatRates( rates ) )
+					const rates = await Promise
+						.all( ratePromises )
+						.catch( wentWrong )
+
+					if( rates ){
+						return session.update( formatRates( rates ) )
+					}
+				}
 			},
 		})
 

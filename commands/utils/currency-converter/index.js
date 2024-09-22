@@ -12,10 +12,13 @@ module.exports = {
 		const getCurrencyRates = require( './getCurrencyRates' )
 
 		const DB_DIRECTORY = 'currencyPresets'
+		const ERROR_MESSAGE = `Something went wrong`
+		const CONVERSION_ERROR_MESSAGE = `Something went wrong :(\nI can't convert currency right now`
+		const MAX_PRESET_CURRENCIES_COUNT = 10
+
 		const NUMBER_RE = `(\\d[\\d\\s_,]*(?:\\.[\\d\\s_,]+)?(?:e-?\\d+)?|\\d+)`
 		const SINGLE_NUMBER_RE = new RegExp( `\\b${NUMBER_RE}\\b`, 'gi' )
 		const CONVERSION_RE = new RegExp( `\\b${NUMBER_RE}?\\s*(\\w{3})\\s*to\\s*(\\w{3})\\b`, 'gi' )
-		const MAX_PRESET_CURRENCIES_COUNT = 10
 
 		function formatCurrencies( currencies ){
 			if( currencies.length === 0 )
@@ -33,10 +36,10 @@ module.exports = {
 			const unknownCurrencies = currencies.filter( currency => !rates[currency] )
 
 			if( unknownCurrencies.length !== 0 )
-				throw Error( `Unknown currencies: ${formatCurrencies( unknownCurrencies )}` )
+				throw `Unknown currencies: ${formatCurrencies( unknownCurrencies )}`
 
-			if( unknownCurrencies.length > MAX_PRESET_CURRENCIES_COUNT )
-				throw Error( `Too many currencies! (Max: ${MAX_PRESET_CURRENCIES_COUNT})` )
+			if( currencies.length > MAX_PRESET_CURRENCIES_COUNT )
+				throw `Too many currencies! (Max: ${MAX_PRESET_CURRENCIES_COUNT})`
 
 			return currencies
 		}
@@ -100,9 +103,9 @@ module.exports = {
 					return session.update( 'Please specify a currency' )
 				}
 
-				const wentWrong = err => {
-					console.error( err )
-					session.update( `Something went wrong :(\nI can't convert currency right now` )
+				const wentWrong = error => {
+					console.error( error )
+					session.update( CONVERSION_ERROR_MESSAGE )
 					return null
 				}
 
@@ -190,7 +193,12 @@ module.exports = {
 
 						return session.update( `Currency preset changed to: ${formatCurrencies( currencies )}` )
 					})
-					.catch( error => session.update( error ) )
+					.catch( error => {
+						if( error instanceof Error )
+							throw error
+
+						return session.update( error || ERROR_MESSAGE )
+					})
 			},
 		})
 
@@ -218,7 +226,12 @@ module.exports = {
 
 						return session.update( `Added ${formatCurrencies( currenciesToAdd )} to the preset.\nCurrent preset: ${formatCurrencies( newCurrencies )}` )
 					})
-					.catch( error => session.update( error ) )
+					.catch( error => {
+						if( error instanceof Error )
+							throw error
+
+						return session.update( error || ERROR_MESSAGE )
+					})
 			},
 		})
 
@@ -246,7 +259,12 @@ module.exports = {
 
 						return session.update( `Removed ${formatCurrencies( currenciesToRemove )} from the preset.\nCurrent preset: ${formatCurrencies( newCurrencies )}` )
 					})
-					.catch( error => session.update( error ) )
+					.catch( error => {
+						if( error instanceof Error )
+							throw error
+
+						return session.update( error || ERROR_MESSAGE )
+					})
 			},
 		})
 
@@ -264,9 +282,9 @@ module.exports = {
 						: 1
 
 					const conversion = await convert( amount, from, to )
-						.catch( err => {
-							session.update( `Something went wrong :(\nI can't convert currency right now` )
-							throw err
+						.catch( error => {
+							session.update( CONVERSION_ERROR_MESSAGE )
+							throw error
 						})
 
 					acc = await acc

@@ -47,7 +47,7 @@ module.exports = {
 		function getUserPreset( uid ){
 			return bakadb.fallback({
 				path: [DB_DIRECTORY, uid],
-				defaultValue: [],
+				defaultValue: () => [],
 			})
 		}
 

@@ -228,8 +228,10 @@ module.exports = {
 				}
 
 				if( evalFlags.file ){
+					const extension = evalFlags.file.value || 'txt'
+
 					const attachment = new discord.AttachmentBuilder()
-						.setName( 'output.txt' )
+						.setName( `output.${extension}` )
 						.setFile( Buffer.from( messageOptions.content, 'utf8' ) )
 
 					messageOptions = {

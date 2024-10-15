@@ -7,6 +7,8 @@ module.exports = {
 		const bakadb = require( '@/instances/bakadb' )
 		const cb = require( '@/functions/cb' )
 
+		const NOT_FOUND = -1
+
 		addCommand({
 			aliases: 'get-backup backup',
 			description: 'saves and send a copy of the DB in PMs',
@@ -17,16 +19,14 @@ module.exports = {
 					const lastSave = fs.readdirSync( bakadb.path )
 						.map( filename => parseInt( filename ) )
 						.filter( n => !isNaN(n) )
-						.reduce( ( a, b ) => Math.max( a, b ), 0 )
-						.toString()
+						.reduce( ( a, b ) => Math.max( a, b ), NOT_FOUND )
 
-					if( lastSave === 0 )
+					if( lastSave === NOT_FOUND )
 						return session.update( 'No saves found' )
 
-					await msg.author.send({
-						files: [join( bakadb.path, lastSave )]
-					})
+					const path = join( bakadb.path, lastSave.toString() )
 
+					await msg.author.send({ files: [path] })
 					await msg.react( '✅' )
 				} catch( err ){
 					session.update( cb( err ) )

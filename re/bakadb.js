@@ -44,13 +44,6 @@ class BakaDB extends events {
 		super()
 	}
 
-	makePath( path ){
-		if( !fs.existsSync( path ) ){
-			this.makePath( path.matchFirst( /(.+?)[^/\\]+[/\\]*$/ ) )
-			fs.mkdirSync( path )
-		}
-	}
-
 	init( path, shit ){
 		if( path instanceof Object )
 			shit = path
@@ -84,8 +77,9 @@ class BakaDB extends events {
 					this.emit( 'error-parsing-save', this.path, file, error )
 				}
 			}
-		} else
-			this.makePath( this.path )
+		} else {
+			fs.mkdirSync( this.path, { recursive: true } )
+		}
 
 		this.coders = this.default_coders
 		if( data.coders )
@@ -257,13 +251,17 @@ class BakaDB extends events {
 		this.emit( 'save' )
 
 		try {
-			let data = this._encode({
+			const data = this._encode({
 				db: this.db,
 				coders: this.coders,
 				separator: this.separator,
 			})
 
-			let json = JSON.stringify( data )
+			const json = JSON.stringify( data )
+
+			if( !fs.existsSync( this.path ) )
+				fs.mkdirSync( this.path, { recursive: true } )
+
 			fs.writeFileSync( join( this.path, String( Date.now() ) ), json )
 
 			this.lastSave = Date.now()
@@ -323,7 +321,7 @@ class BakaDB extends events {
 				this.timer = setInterval( () => {
 					if( this.lastSave + this.autoSaveDelay < Date.now() )
 						this.save()
-				}, 1337 )
+				}, 5e3 )
 		} else {
 			clearInterval( this.timer )
 			delete this.timer

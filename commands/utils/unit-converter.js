@@ -8,6 +8,18 @@ module.exports = {
 		const numsplit = require( '@/functions/numsplit' )
 		const prettyRound = require( '@/functions/prettyRound' )
 
+		// Length measurement units (based on 1 meter)
+		const MILLIMETER = 1000
+		const CENTIMETER = 100
+		const METER = 1
+		const KILOMETER = 0.001
+		const INCH = 39.37008
+		const FOOT = 3.28084
+		const YARD = 1.093613
+		const MILE = 0.000621
+
+		const LENGTH_TO_LITER_RATIO = 0.1
+
 		const systems = new Collection([
 			['Time', [
 				{
@@ -76,49 +88,49 @@ module.exports = {
 					single: "Millimeter",
 					plural: "Millimeters",
 					short: "mm",
-					value: 1000,
+					value: MILLIMETER,
 				},
 				{
 					single: "Centimeter",
 					plural: "Centimeters",
 					short: "cm",
-					value: 100,
+					value: CENTIMETER,
 				},
 				{
 					single: "Meter",
 					plural: "Meters",
 					short: "m",
-					value: 1,
+					value: METER,
 				},
 				{
 					single: "Kilometer",
 					plural: "Kilometers",
 					short: "km",
-					value: 0.001,
+					value: KILOMETER,
 				},
 				{
 					single: "Inch",
 					plural: "Inches",
 					short: "in",
-					value: 39.37008,
+					value: INCH,
 				},
 				{
 					single: "Foot",
 					plural: "Feet",
 					short: "ft",
-					value: 3.28084,
+					value: FOOT,
 				},
 				{
 					single: "Yard",
 					plural: "Yards",
 					short: "yd",
-					value: 1.093613,
+					value: YARD,
 				},
 				{
 					single: "Mile",
 					plural: "Miles",
 					short: "mi",
-					value: 0.000621,
+					value: MILE,
 				},
 			]],
 			['Area', [
@@ -126,37 +138,43 @@ module.exports = {
 					single: "Millimeter square",
 					plural: "Millimeters square",
 					short: "mm2",
-					value: 1000000,
+					value: MILLIMETER ** 2,
 				},
 				{
 					single: "Centimeter square",
 					plural: "Centimeters square",
 					short: "cm2",
-					value: 10000,
+					value: CENTIMETER ** 2,
 				},
 				{
 					single: "Meter square",
 					plural: "Meters square",
 					short: "m2",
-					value: 1,
+					value: METER ** 2,
 				},
 				{
 					single: "Inch square",
 					plural: "Inches square",
 					short: "in2",
-					value: 1550.003,
+					value: INCH ** 2,
 				},
 				{
 					single: "Foot square",
 					plural: "Feet square",
 					short: "ft2",
-					value: 10.76391,
+					value: FOOT ** 2,
 				},
 				{
 					single: "Yard square",
 					plural: "Yards square",
 					short: "yd2",
-					value: 1.19599,
+					value: YARD ** 2,
+				},
+				{
+					single: "Mile square",
+					plural: "Miles square",
+					short: "mi2",
+					value: MILE ** 2,
 				},
 			]],
 			['Volume', [
@@ -164,13 +182,13 @@ module.exports = {
 					single: "Centimeter cube",
 					plural: "Centimeters cube",
 					short: "cm3",
-					value: 1000,
+					value: ( CENTIMETER * LENGTH_TO_LITER_RATIO ) ** 3,
 				},
 				{
 					single: "Meter cube",
 					plural: "Meters cube",
 					short: "m3",
-					value: 0.001,
+					value: ( METER * LENGTH_TO_LITER_RATIO ) ** 3,
 				},
 				{
 					single: "Liter",
@@ -182,13 +200,13 @@ module.exports = {
 					single: "Inch cube",
 					plural: "Inches cube",
 					short: "in3",
-					value: 61,
+					value: ( INCH * LENGTH_TO_LITER_RATIO ) ** 3,
 				},
 				{
 					single: "Foot cube",
 					plural: "Feet cube",
 					short: "ft3",
-					value: 0.035,
+					value: ( FOOT * LENGTH_TO_LITER_RATIO ) ** 3,
 				},
 				{
 					single: "US gallon",
@@ -214,19 +232,19 @@ module.exports = {
 					single: "Grams",
 					plural: "Grams",
 					short: "g",
-					value: 1000
+					value: 1000,
 				},
 				{
 					single: "Kilograms",
 					plural: "Kilograms",
 					short: "kg",
-					value: 1
+					value: 1,
 				},
 				{
 					single: "Metric Tonnes",
 					plural: "Metric Tonnes",
 					short: "tonne",
-					value: 0.001
+					value: 0.001,
 				},
 				{
 					single: "Short tons",

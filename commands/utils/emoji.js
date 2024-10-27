@@ -7,7 +7,7 @@ module.exports = {
 
 		addCommand({
 			aliases: 'emoji e',
-			description: 'Sends random emoji that matches the keyword',
+			description: 'Returns link to an emoji',
 			callback({ args, session }){
 				let match = args[0]?.match( /<a?:[\w_-]+:(\d+)>/ )
 

@@ -206,57 +206,57 @@ module.exports = {
 				.catch( () => null )
 		}
 
-		// Message.findLastPic
-		discord.Message.prototype.findLastPic = async function(){
+		// Message.recent
+		discord.Message.prototype.recent = async function* () {
+			const ref = await this.getReferencedMessage()
+
+			if( ref )
+				yield ref
+
+			yield this
+
 			const messages = await this.channel.messages.fetch({
 				before: this.id,
 				limit: 100,
 			})
-				.then( c => c.toArray() )
-				.catch( () => [] )
 
-			messages.unshift( this )
-			await this.getReferencedMessage()
-				.then( ref => ref && messages.unshift( ref ) )
-
-			let url = null
-
-			for( const msg of messages ){
-				url = msg.content.matchFirst( /(https?:\/\/\S+\.(jpe?g|png|webp|gif|bmp))/i )
-					|| msg.attachments.find( a => a.contentType.indexOf( 'image' ) !== -1 )?.url
-					|| msg.embeds.find( e => e.data.image )?.data.image.url
-					|| msg.embeds.find( e => e.data.thumbnail )?.data.thumbnail.url
-					|| null
-
-				if( url ) break
-			}
-
-			return url
+			for( const message of messages.values() )
+				yield message
 		}
 
-		// Message.findLastVideo
-		discord.Message.prototype.findLastVideo = async function(){
-			const messages = await this.channel.messages.fetch({ limit: 100 })
-				.then( c => c.toArray() )
-				.catch( () => [] )
+		// Message.findRecent
+		discord.Message.prototype.findRecent = async function( callback ){
+			for await( const message of this.recent() ){
+				const data = await callback( message )
 
-			messages.unshift( this )
-			await this.getReferencedMessage()
-				.then( ref => ref && messages.unshift( ref ) )
-
-			let url
-			for( const msg of messages ){
-				if( url = msg.content.matchFirst( /(https?:\/\/\S+\.(webm|mp4|mkv))/i ) )
-					return url
-
-				if( url = msg.attachments.find( a => a.contentType.indexOf( 'video' ) !== -1 )?.url )
-					return url
-
-				if( url = msg.embeds.find( e => !!e.video )?.video.url )
-					return url
+				if( data )
+					return data
 			}
 
 			return null
+		}
+
+		// Message.findRecentImage
+		discord.Message.prototype.findRecentImage = async function(){
+			const url = await this.findRecent( message => {
+				return message.content.matchFirst(/(https?:\/\/\S+\.(jpe?g|png|webp|gif|bmp))/i)
+					|| message.attachments.find(a => a.contentType.indexOf('image') !== -1)?.url
+					|| message.embeds.find(e => e.data.image)?.data.image.url
+					|| message.embeds.find(e => e.data.thumbnail)?.data.thumbnail.url
+			})
+
+			return url || null
+		}
+
+		// Message.findRecentVideo
+		discord.Message.prototype.findRecentVideo = async function(){
+			const url = await this.findRecent( msg => {
+				return msg.content.matchFirst( /(https?:\/\/\S+\.(webm|mp4|mkv))/i )
+					|| msg.attachments.find( a => a.contentType.indexOf( 'video' ) !== -1 )?.url
+					|| msg.embeds.find( e => !!e.video )?.video.url
+			})
+
+			return url || null
 		}
 
 		// Message.toString: url to message instead of its content

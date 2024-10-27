@@ -19,7 +19,7 @@ module.exports = {
 				single: 're-encodes a video to h264',
 			},
 			async callback({ msg, session }){
-				const url = await msg.findLastVideo()
+				const url = await msg.findRecentVideo()
 
 				if( !url )
 					return session.update( 'No videos were found' )

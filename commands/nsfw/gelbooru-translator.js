@@ -159,15 +159,17 @@ module.exports = {
 					}, textWidth, textHeight )
 				})
 
+				const filename = `${ pic.md5 || 'image' }.png`
+
 				return session.update({
 					embeds: [Embed()
 						.setDescription( `[Original](${pic.postURL})` )
-						.setImage( 'attachment://tr.jpg' )
+						.setImage( 'attachment://' + filename )
 						.setFooter({ text: 'Powered by ' + Gelbooru.config.name })
 					],
 					files: [
-						new discord.AttachmentBuilder( await image.getBufferAsync( Jimp.MIME_JPEG ), {
-							name: 'tr.jpg',
+						new discord.AttachmentBuilder( await image.getBufferAsync( Jimp.MIME_PNG ), {
+							name: filename,
 						})
 					],
 				})

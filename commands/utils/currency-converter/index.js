@@ -57,6 +57,7 @@ module.exports = {
 		}
 
 		const single = 'converts currencies'
+		const currencyListCache = new WeakMap()
 
 		const root = addCommand({
 			aliases: 'exchange-rate er',
@@ -77,11 +78,24 @@ module.exports = {
 				['list', 'lists all available currencies'],
 			],
 			async callback({ msg, args, session }) {
-				if( args.flags.list.specified )
+				if( args.flags.list.specified ){
+					const currencies = await getCurrencyRates()
+					let currencyList = currencyListCache.get( currencies )
+
+					if( !currencyList ){
+						currencyList = formatCurrencies( Object
+							.keys( currencies )
+							.sort()
+						)
+
+						currencyListCache.set( currencies, currencyList )
+					}
+
 					return session.update( Embed()
 						.setTitle( 'Available currencies' )
-						.setDescription( formatCurrencies( Object.keys( await getCurrencyRates() ) ) )
+						.setDescription( currencyList )
 					)
+				}
 
 				if( !args[0] )
 					return session.update( this.help )

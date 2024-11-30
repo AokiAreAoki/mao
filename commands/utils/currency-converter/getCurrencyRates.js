@@ -14,7 +14,7 @@ module.exports = async function getCurrencyRates(){
 	if( nextRefresh < Date.now() ){
 		nextRefresh = Date.now() + 60e3
 
-		return rates = axios.get( `https://v6.exchangerate-api.com/v6/${token}/latest/USD` )
+		rates = axios.get( `https://v6.exchangerate-api.com/v6/${token}/latest/USD` )
 			.then( ({ data }) => {
 				if( data.result === 'error' ){
 					nextRefresh = -1
@@ -34,8 +34,10 @@ module.exports = async function getCurrencyRates(){
 
 				console.log( `[ExchangeRate-API] Cache refreshed. Next refresh in ${timeLeft} (${date})` )
 
-				return rates = data.conversion_rates
+				return data.conversion_rates
 			})
+
+		Object.freeze( rates )
 	}
 
 	return rates

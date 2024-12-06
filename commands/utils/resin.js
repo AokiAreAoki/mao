@@ -4,7 +4,7 @@ module.exports = {
 	init({ addCommand }){
 		const TimeSplitter = require( '@/re/time-splitter' )
 
-		const MAX_RESIN = 160
+		const MAX_RESIN = 200
 		const MINUTES_PER_RESIN = 8
 
 		addCommand({

@@ -4,8 +4,8 @@ module.exports = {
 	init({ addCommand }){
 		const TimeSplitter = require( '@/re/time-splitter' )
 
-		const maxResin = 160
-		const minutesPerResin = 8
+		const MAX_RESIN = 160
+		const MINUTES_PER_RESIN = 8
 
 		addCommand({
 			aliases: 'resin',
@@ -38,7 +38,7 @@ module.exports = {
 					return session.update( 'Usage: `-help resin`' )
 
 				if( to === 'max' || to === 'full' )
-					to = maxResin
+					to = MAX_RESIN
 				else if( isNaN( to = parseInt( to ) ) )
 					return session.update( 'Provide a valid number' )
 
@@ -52,7 +52,7 @@ module.exports = {
 					return session.update( '<:suspicious:597568055199137802>' )
 
 				let ts = new TimeSplitter({
-					minutes: ( to - from ) * minutesPerResin - minutesPerResin / 2
+					minutes: ( to - from ) * MINUTES_PER_RESIN - MINUTES_PER_RESIN / 2
 				})
 
 				let timeleft = ts.toString({
@@ -62,9 +62,9 @@ module.exports = {
 				})
 
 				if( oneArg )
-					session.update( `\`${to}\` resin will be regenerated in ${timeleft} ± \`${minutesPerResin / 2} minutes\`` )
+					session.update( `\`${to}\` resin will be regenerated in ${timeleft} ± \`${MINUTES_PER_RESIN / 2} minutes\`` )
 				else
-					session.update( `Resin will regenerate from \`${from}\` to \`${to}\` in ${timeleft} ± \`${minutesPerResin / 2} minutes\`` )
+					session.update( `Resin will regenerate from \`${from}\` to \`${to}\` in ${timeleft} ± \`${MINUTES_PER_RESIN / 2} minutes\`` )
 			}
 		})
 	}

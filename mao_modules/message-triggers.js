@@ -33,7 +33,10 @@ module.exports = {
 				.replace( /%user/gi, member.displayName.replace( /@/g, '#' ) )
 		}
 
+		/** @type {WeakMap<discord.Guild, number>} */
 		const guildCoolDowns = new WeakMap()
+
+		/** @type {WeakMap<discord.User, number>} */
 		const userCoolDowns = new WeakMap()
 
 		client.once( discord.Events.ClientReady, () => {

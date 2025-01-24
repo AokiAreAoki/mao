@@ -50,7 +50,7 @@ module.exports = {
 				],
 			},
 			callback({ args, session }){
-				const codes = args.filter( s => /^\w{8,16}$/i.test(s) )
+				const codes = args.filter( s => /^\w{8,20}$/i.test(s) )
 
 				if( codes.length === 0 )
 					return session.update( `Give me some codes` )

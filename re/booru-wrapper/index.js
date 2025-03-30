@@ -121,7 +121,7 @@ class Booru {
 			tags = tags.join( ' ' )
 
 		params[this.config.params.tags] = tags
-		params[this.config.params.page] = ( page ?? 0 ) + this.config.pageOffset
+		params[this.config.params.page] = page = ( page ?? 0 ) + this.config.pageOffset
 		params[this.config.params.limit] = limit = limit ?? this.config.limit
 
 		const {
@@ -154,6 +154,16 @@ class Booru {
 			limit,
 			booru: this,
 		})
+	}
+
+	async postsAll( tags ){
+		const response = await this.posts( tags, 0 )
+
+		while( response.hasNext ){
+			await response.parseNextPage()
+		}
+
+		return response
 	}
 }
 

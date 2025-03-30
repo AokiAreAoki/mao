@@ -26,6 +26,7 @@ module.exports = class BooruResponse {
 		this.tags = options.tags ?? ''
 		this.page = options.page ?? this.booru.config.page_offset
 		this.limit = options.limit ?? this.booru.config.limit
+		this.hasNext = pics.length === this.limit
 
 		if( keys ){
 			this.results = []
@@ -60,8 +61,12 @@ module.exports = class BooruResponse {
 	}
 
 	async parseNextPage( limit ){
+		if ( !this.hasNext )
+			return null
+
 		const response = await this.booru.posts( this.tags, ++this.page, limit ?? this.limit )
 		this.results.push( ...response.results )
+		this.hasNext = response.hasNext
 		return response
 	}
 }

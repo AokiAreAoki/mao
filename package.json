@@ -9,9 +9,6 @@
 	"scripts": {
 		"start": "node .",
 		"dev": "node . --dev",
-		"start16": "\"\"%NVM_HOME%/v16.17.0/node\" .\"",
-		"dev16": "\"\"%NVM_HOME%/v16.17.0/node\" . --dev\"",
-		"nodemon dev16": "nodemon --exec npm run dev16",
 		"eslint": "npx eslint ."
 	},
 	"keywords": [

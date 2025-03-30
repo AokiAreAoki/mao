@@ -1,6 +1,6 @@
 const axios = require( 'axios' )
 const axiosRetry = require( 'axios-retry' )
-const _ = require( 'lodash' )
+const get = require( 'lodash/get' )
 const Picture = require( './picture' )
 const BooruResponse = require( './response' )
 
@@ -135,7 +135,7 @@ class Booru {
 
 		let pics = this._splittedPathToPics.length === 0
 			? data
-			: _.get( data, this._splittedPathToPics )
+			: get( data, this._splittedPathToPics )
 
 		pics = pics instanceof Array
 			? pics

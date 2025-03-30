@@ -1,7 +1,8 @@
 const fs = require( 'fs' )
 const join = require( 'path' ).join
 const events = require( 'events' )
-const _ = require( 'lodash' )
+const get = require( 'lodash/get' )
+const set = require( 'lodash/set' )
 
 String.prototype.matchFirst = function( re, cb ){
 	let matched = this.match( re )
@@ -94,13 +95,13 @@ class BakaDB extends events {
 	}
 
 	get( ...path ){
-		return _.get( this.db, this._resolvePropPath( path ) )
+		return get( this.db, this._resolvePropPath( path ) )
 	}
 
 	set( ...path ){
 		const value = path.pop()
 		const props = this._resolvePropPath( path )
-		_.set( this.db, props, value )
+		set( this.db, props, value )
 	}
 
 	fallback({ path, defaultValue }){

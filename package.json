@@ -29,7 +29,6 @@
 		"ffmpeg-static": "^5.1.0",
 		"jimp": "^0.16.2",
 		"lodash": "^4.17.21",
-		"nhentai-api": "^3.4.3",
 		"nodeyourmeme": "^2.0.0",
 		"npm": "^8.19.2",
 		"pet-pet-gif": "^1.0.9",

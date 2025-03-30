@@ -3,7 +3,7 @@ require = global.alias(require)
 const fs = require( 'fs' )
 const axios = require( 'axios' )
 const axiosRetry = require( 'axios-retry' )
-const _ = require( 'lodash' )
+const get = require( 'lodash/get' )
 const decodeHTMLEntities = require( '@/functions/decodeHTMLEntities' )
 
 Set.prototype.merge = function( set ){
@@ -136,7 +136,7 @@ class TagCacher {
 					console.log( 'Tag API failed. Retrying...' )
 				},
 			})
-			.then( response => _.get( response.data.tag, this.responsePath, response.data.tag ) )
+			.then( response => get( response.data.tag, this.responsePath, response.data.tag ) )
 			.then( newTags => {
 				if( newTags instanceof Array ){
 					newTags.forEach( tag => {

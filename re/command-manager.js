@@ -786,6 +786,7 @@ module.exports = {
 	CommandManager,
 	ExpandableDelay,
 	Command,
+	CommandFlag,
 	ArgumentParser,
 	SubcommandsArray,
 	CommandDescription,

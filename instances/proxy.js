@@ -1,15 +1,18 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 const { SocksProxyAgent } = require( 'socks-proxy-agent' )
-const bakadb = require( '@/instances/bakadb' )
+
+let dropCache = false
+
+function refreshProxy(){
+	dropCache = true
+}
 
 function socksProxy(){
-	const socksProxy = bakadb.fallback({
-		path: 'socksProxy',
-		defaultValue: () => null,
-	})
+	const tokens = require( '@/tokens.yml', dropCache )
+	dropCache = false
 
-	return socksProxy
+	return tokens.booru_proxy?.uri
 }
 
 function proxyAgent() {
@@ -19,6 +22,7 @@ function proxyAgent() {
 }
 
 module.exports = {
+	refreshProxy,
 	socksProxy,
 	proxyAgent,
 }

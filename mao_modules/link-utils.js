@@ -105,7 +105,7 @@ module.exports = {
 			// },
 
 			// Twitter direct links provider
-			// async ( msg, cache, react ) => {
+			// async ( msg, cache, react, suppressEmbeds ) => {
 			// 	let links = [
 			// 		/https?:\/\/(?:\w+\.)?(?:vx)?twitter\.com\/([^/\s]+)\/status\/(\d+)/gmi,
 			// 	]
@@ -144,9 +144,9 @@ module.exports = {
 			// },
 
 			// Reddit/TikTok files provider
-			async ( msg, cache, react ) => {
+			async ( msg, cache, react, suppressEmbeds ) => {
 				let links = [
-					/https?:\/\/(?:\w+\.)?(reddit)\.com\/r\/(\S+)/gmi,
+					// /https?:\/\/(?:\w+\.)?(reddit)\.com\/r\/(\S+)/gmi,
 					/https?:\/\/(?:\w+\.)?(tiktok)\.com\/(\w+)/gmi,
 					/https?:\/\/(?:\w+\.)?(instagram)\.com\/reel\/(\w+)/gmi,
 				]
@@ -194,11 +194,17 @@ module.exports = {
 					return pathPromise
 				}))
 
-				return files
+				const validFiles = files
 					.map( paths => paths?.split( '\n' ) )
 					.flat(1)
 					.filter( s => !!s )
 					// .map( path => join( TEMP_FOLDER, path ) )
+
+				if( validFiles.length > 0 ){
+					suppressEmbeds()
+				}
+
+				return validFiles
 			},
 		]
 
@@ -210,19 +216,24 @@ module.exports = {
 				return
 
 			const session = msg.response.session
-			let immediate = null
 			let reaction = null
+			let suppress = false
 
 			function react(){
 				reaction ??= new Promise( resolve => {
-					immediate ??= setImmediate( () => {
+					setImmediate( () => {
 						resolve( msg.react( processing( '👌' ) ) )
 					})
 				})
 			}
 
+			function suppressEmbeds(){
+				suppress = true
+			}
+
 			const files = []
-			const content = await Promise.all( utils.map( ( util, i ) => util( msg, caches[i], react ) ) )
+			const content = await Promise
+				.all( utils.map( ( util, i ) => util( msg, caches[i], react, suppressEmbeds ) ) )
 				.then( links => links
 					.flat(1)
 					.filter( link => {
@@ -246,7 +257,6 @@ module.exports = {
 					throw err
 				})
 
-			clearImmediate( immediate )
 			const hasSomething = content || files.length !== 0
 
 			if( hasSomething )
@@ -254,7 +264,11 @@ module.exports = {
 
 			if( reaction ){
 				await reaction
-				msg.reactions.removeAll()
+				msg.reactions.removeAll().catch( () => {} )
+			}
+
+			if( suppress ){
+				msg.suppressEmbeds().catch( () => {} )
 			}
 
 			return hasSomething

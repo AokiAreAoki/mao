@@ -6,7 +6,7 @@ module.exports = {
 		const discord = require( 'discord.js' )
 		const Jimp = require( 'jimp' )
 		const { Gelbooru } = require( '@/instances/booru' )
-		const { proxyAgent } = require( '@/instances/proxy' )
+		const { getProxyAgent } = require( '@/instances/proxy' )
 		const clamp = require( '@/functions/clamp' )
 		const Embed = require( '@/functions/Embed' )
 		const processing = require( '@/functions/processing' )
@@ -21,8 +21,8 @@ module.exports = {
 					q: 'index',
 					json: 1,
 				},
-				httpAgent: proxyAgent(),
-				httpsAgent: proxyAgent(),
+				httpAgent: getProxyAgent( 'booru' ),
+				httpsAgent: getProxyAgent( 'booru' ),
 			})
 
 			const translations = Array.from( data.matchAll( /<note\b.+?\/>/gsi ), ([ note ]) => {

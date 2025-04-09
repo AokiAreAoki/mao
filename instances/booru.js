@@ -6,7 +6,11 @@ const TagCacher = require( '@/re/tag-cacher' )
 const Embed = require( '@/functions/Embed' )
 const tokens = require( '@/tokens.yml' )
 const config = require( '@/config.yml' )
-const { proxyAgent } = require( '@/instances/proxy' )
+const { getProxyAgent } = require( '@/instances/proxy' )
+
+function proxyAgent(){
+	return getProxyAgent( 'booru' )
+}
 
 const displayableTagTypes = [
 	'artist',

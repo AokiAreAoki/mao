@@ -11,7 +11,7 @@ module.exports = {
 		const { join } = require( 'path' )
 		const binarySearch = require( '@/functions/binarySearch' )
 		const ytdl = require( 'youtube-dl-exec' )
-		const { socksProxy } = require( '@/instances/proxy' )
+		const { getSocksProxy } = require( '@/instances/proxy' )
 
 		const cacheTimeout = 2 * 24 * 3600e3
 
@@ -173,7 +173,7 @@ module.exports = {
 						// recodeVideo: format,
 						formatSort: `codec:h264`,
 						o: join( TEMP_FOLDER, `%(id)s.%(ext)s` ),
-						proxy: socksProxy(),
+						proxy: getSocksProxy( 'yt-dlp' ),
 					}
 
 					const pathPromise = ytdl( url[0], {

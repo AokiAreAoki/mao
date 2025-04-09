@@ -2,27 +2,48 @@
 require = global.alias(require)
 const { SocksProxyAgent } = require( 'socks-proxy-agent' )
 
-let dropCache = false
+/**
+ * @typedef {"yt-dlp" | "booru"} ProxyType
+ * @typedef {Record<ProxyType, string | null>} ProxyOptions
+*/
 
-function refreshProxy(){
-	dropCache = true
+/** @type {Set<ProxyType>} */
+const PROXY_TYPES = new Set(["yt-dlp", "booru"])
+
+/** @type {ProxyOptions} */
+const cache = {
+	"yt-dlp": null,
+	"booru": null,
 }
 
-function socksProxy(){
-	const tokens = require( '@/tokens.yml', dropCache )
-	dropCache = false
+/** @param {ProxyType} proxyType */
+function refreshProxy( proxyType ){
+	if( proxyType !== 'all' && !PROXY_TYPES.has( proxyType ) )
+		throw new TypeError( `Invalid proxy type: ${proxyType}. Use one of [${Array.from( PROXY_TYPES ).join( ", " )}] or "all" keyword.` )
 
-	return tokens.booru_proxy?.uri
+	if( proxyType === 'all' ){
+		for( const type of PROXY_TYPES )
+			cache[type] = null
+	} else {
+		cache[proxyType] = null
+	}
 }
 
-function proxyAgent() {
-	return socksProxy()
-		? new SocksProxyAgent( socksProxy() )
+/** @param {ProxyType} proxyType */
+function getSocksProxy( proxyType ){
+	return ( cache[proxyType] ??= require( '@/tokens.yml', true ).proxies?.[proxyType] || {} )?.uri
+}
+
+/** @param {ProxyType} proxyType */
+function getProxyAgent( proxyType ) {
+	return getSocksProxy()
+		? new SocksProxyAgent( getSocksProxy( proxyType ) )
 		: undefined
 }
 
 module.exports = {
+	PROXY_TYPES,
 	refreshProxy,
-	socksProxy,
-	proxyAgent,
+	getSocksProxy,
+	getProxyAgent,
 }

@@ -5,7 +5,7 @@ const axios = require( 'axios' )
 const fs = require( 'fs' )
 const { join } = require( 'path' )
 
-const { proxyAgent } = require( '@/instances/proxy' )
+const { getProxyAgent } = require( '@/instances/proxy' )
 
 /**
  * @param {Media} media
@@ -15,8 +15,8 @@ const { proxyAgent } = require( '@/instances/proxy' )
 async function downloadURL( media, path ){
 	return axios.get( media.url, {
 		responseType: 'stream',
-		httpAgent: proxyAgent(),
-		httpsAgent: proxyAgent(),
+		httpAgent: getProxyAgent( 'yt-dlp' ),
+		httpsAgent: getProxyAgent( 'yt-dlp' ),
 	})
 		.then( response => {
 			const filePath = join( path, media.filename )

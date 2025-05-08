@@ -50,16 +50,17 @@ module.exports = {
 			await msg.getReferencedMessage()
 				.then( ref => ref && messages.unshift( ref ) )
 
-			const message = messages.find( m => !m.isCommand && !m.isSED && regexp.test( m.content ) )
+			const message = messages.find( m => !m.isCommand && !m.sedIgnored && regexp.test( m.content ) )
 
 			return session
 				.update( message
 					? `${message.author}: ${message.content.replace( regexp, replacement )}`
 					: `Could not find any matches`
 				)
-				.then( m => {
-					m.isSED = true
-					return m
+				.then( responseMessage => {
+					msg.sedIgnored = true
+					responseMessage.sedIgnored = true
+					return responseMessage
 				})
 		})
 	}

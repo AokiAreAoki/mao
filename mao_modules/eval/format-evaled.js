@@ -51,9 +51,13 @@ function formatEvaled({
 		if( value == null )
 			return `\`${String( value )}\` has no keys`
 
+		const searchQuery = evalFlags.keys.value?.toLowerCase()
+
 		evalFlags.prt = false
 		evalFlags.json = false
-		const keys = Object.keys( value ).join( '` `' )
+		const keys = Object.keys( value )
+			.filter( key => !searchQuery || key?.toLowerCase().includes( searchQuery ) )
+			.join( '` `' )
 		return keys ? `keys: \`${keys}\`` : 'no keys'
 	}
 

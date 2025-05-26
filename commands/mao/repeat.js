@@ -6,7 +6,7 @@ module.exports = {
 		const processing = require( '@/functions/processing' )
 
 		addCommand({
-			aliases: 'repeat',
+			aliases: 'repeat r',
 			description: 'repeats last command',
 			async callback({ msg, session }){
 				msg.isCommand = false

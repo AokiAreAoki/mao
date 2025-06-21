@@ -9,3 +9,4 @@ tokens*
 package-lock.json
 *.sh
 *.bat
+mao.service

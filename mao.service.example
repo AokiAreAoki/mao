@@ -1,0 +1,16 @@
+[Unit]
+Description=Mao service
+After=network.target
+
+[Service]
+Type=forking
+User=aoki
+Group=aoki
+WorkingDirectory=/home/aoki/mao
+ExecStart=/home/aoki/mao/start.sh
+ExecStop=/home/aoki/mao/stop.sh
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

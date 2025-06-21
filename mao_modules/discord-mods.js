@@ -194,14 +194,14 @@ module.exports = {
 
 		// Message.getReferencedMessage
 		discord.Message.prototype.getReferencedMessage = async function(){
-			const r = this.reference
+			const reference = this.reference
 
-			if( !r )
+			if( !reference )
 				 return null
 
-			return this.reference.message ??= client.guilds.fetch( r.guildId )
-				.then( g => g.channels.fetch( r.channelId ) )
-				.then( c => c.messages.fetch( r.messageId ) )
+			return this.reference.message ??= client.guilds.fetch( reference.guildId )
+				.then( g => g.channels.fetch( reference.channelId ) )
+				.then( c => c.messages.fetch( reference.messageId ) )
 				.then( m => this.reference.message = m )
 				.catch( () => null )
 		}

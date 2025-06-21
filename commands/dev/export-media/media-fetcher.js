@@ -1,5 +1,9 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias(require)
+
+const { join } = require( 'path' )
 const getMedia = require( './get-media' )
-const downloadURL = require( './download-url' )
+const downloadURL = require( '@/functions/download-url' )
 
 /**
  * @typedef {Object} MediaFetcherCoroutineParams
@@ -32,7 +36,7 @@ async function* createMediaFetcherCoroutine({ state, before, channel, limit, med
 				const medias = getMedia( message )
 
 				return medias.map( media => {
-					return () => downloadURL( media, mediaPath )
+					return () => downloadURL( media.url, join( mediaPath, media.filename ) )
 				})
 			})
 			.flat()

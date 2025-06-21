@@ -6,6 +6,7 @@ module.exports = {
 		const { join, resolve } = require( 'path' )
 		const cp = require( 'child_process' )
 		const ffmpegPath = require( 'ffmpeg-static' )
+		const downloadURL = require( '@/functions/download-url' )
 		const tempPath = require( '@/instances/temp-folder' )
 		const OutputBuffer = require( '@/re/output-buffer' )
 		const Embed = require( '@/functions/Embed' )
@@ -24,19 +25,35 @@ module.exports = {
 				if( !url )
 					return session.update( 'No videos were found' )
 
-				session.update( Embed().setDescription( processing( 'Encoding...' ) ) )
+				const tempFolderPath = join( resolve( tempPath ) )
+				const uniqueId = Date.now().toString(36)
+				const inputPath = join( tempFolderPath, `input-${uniqueId}.mp4` )
+				const outputPath = join( tempFolderPath, `output-${uniqueId}.mp4` )
 
-				const outputFolderPath = join( resolve( tempPath ) )
-				const outputPath = join( outputFolderPath, Date.now().toString(36) + '.mp4' )
+				session.update( Embed()
+					.setDescription( processing( '...' ) )
+					.setFooter({ text: 'Downloading...' })
+				)
+
+				const success = await downloadURL( url, inputPath )
+
+				if( !success )
+					return session.update( 'Failed to download the file :(' )
+
+				session.update( Embed()
+					.setDescription( processing( '...' ) )
+					.setFooter({ text: 'Encoding...' })
+				)
+
 				const args = [
-					'-i', url,
+					'-i', inputPath,
 					'-c:v', 'libx264',
 					'-c:a', 'aac',
 					outputPath,
 					'-y',
 				]
 
-				mkdirSync( outputFolderPath, { recursive: true } )
+				mkdirSync( tempFolderPath, { recursive: true } )
 
 				let interval = null
 				let exitCode = null

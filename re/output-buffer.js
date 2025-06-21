@@ -5,26 +5,31 @@ const CODE_BLOCK_CLOSE = '```'
 
 module.exports = class OutputBuffer {
 	output = ''
-	limit = 1024
 	hasOverflowed = false
 	useCodeBlock = false
+	limit = 1024
+	contentLimit = this.limit
 	cropTimeout = null
 
 	constructor({ useCodeBlock = true, subtractPrettiers = true } = {}){
 		this.useCodeBlock = useCodeBlock
-
-		if( subtractPrettiers ){
-			this.limit -= ELLIPSIS.length
-
-			if( this.useCodeBlock ){
-				this.limit -= CODE_BLOCK_OPEN.length
-				this.limit -= CODE_BLOCK_CLOSE.length
-			}
-		}
+		this.subtractPrettiers = subtractPrettiers
+		this.setLimit()
 	}
 
 	setLimit( limit = 1024 ){
 		this.limit = limit
+		this.contentLimit = limit
+
+		if( this.subtractPrettiers ){
+			this.contentLimit -= ELLIPSIS.length
+
+			if( this.useCodeBlock ){
+				this.contentLimit -= CODE_BLOCK_OPEN.length
+				this.contentLimit -= CODE_BLOCK_CLOSE.length
+			}
+		}
+
 		return this
 	}
 
@@ -58,9 +63,9 @@ module.exports = class OutputBuffer {
 			})
 			.join( '\n' )
 
-		if( this.output.length > this.limit ){
+		if( this.output.length > this.contentLimit ){
 			this.hasOverflowed = true
-			this.output = this.output.slice( this.output.length - this.limit )
+			this.output = this.output.slice( this.output.length - this.contentLimit )
 		}
 	}
 

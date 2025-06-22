@@ -1,3 +1,4 @@
+
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 module.exports = {
@@ -6,11 +7,12 @@ module.exports = {
 		const { join, resolve } = require( 'path' )
 		const cp = require( 'child_process' )
 		const ffmpegPath = require( 'ffmpeg-static' )
-		const downloadURL = require( '@/functions/download-url' )
-		const tempPath = require( '@/instances/temp-folder' )
-		const OutputBuffer = require( '@/re/output-buffer' )
 		const Embed = require( '@/functions/Embed' )
 		const processing = require( '@/functions/processing' )
+		const downloadURL = require( '@/functions/download-url' )
+		const { Permissions } = require( '@/constants/perms' )
+		const tempPath = require( '@/constants/temp-folder' )
+		const OutputBuffer = require( '@/re/output-buffer' )
 
 		const EXEC_TIMEOUT = 120e3
 
@@ -20,6 +22,9 @@ module.exports = {
 				single: 're-encodes a video to h264',
 			},
 			async callback({ msg, session }){
+				if( !msg.author.hasPerm( Permissions.H264IFY ) )
+					return session.update( `Access to this command is restricted due to high load on server` )
+
 				const url = await msg.findRecentVideo()
 
 				if( !url )

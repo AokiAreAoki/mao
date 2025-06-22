@@ -15,6 +15,10 @@ class List {
 			return items.toLowerCase().trim().split( /\s+/ ).forEach( item => this[item] = true )
 	}
 
+	has( item ){
+		return Object.prototype.hasOwnProperty.call( this, item.toLowerCase() )
+	}
+
 	remove( items ){
 		if( items instanceof List )
 			return this.remove( Object.keys( items ) )
@@ -34,10 +38,10 @@ class List {
 		return Object.keys( this ).join( separator )
 	}
 
-	pretty(){
+	pretty( mapper, splitter ){
 		return this
-			.map( v => `\`${v}\`` )
-			.join( ', ' )
+			.map( mapper || ( v => `\`${v}\`` ) )
+			.join( splitter ?? ', ' )
 	}
 
 	toString(){

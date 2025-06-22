@@ -4,7 +4,7 @@ module.exports = {
 	init(){
 		const client = require( '@/instances/client' )
 		const MM = require( '@/instances/message-manager' )
-		const TEMP_FOLDER = require( '@/instances/temp-folder' )
+		const TEMP_FOLDER = require( '@/constants/temp-folder' )
 		const cp = require( 'child_process' )
 		const fs = require( 'fs' )
 		const processing = require( '@/functions/processing' )

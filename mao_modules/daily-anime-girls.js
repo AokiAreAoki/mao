@@ -103,18 +103,18 @@ module.exports = {
 					defaultValue: () => [],
 				})
 
-				if( filter === null )
+				if( filter == null )
 					return dailies
 
 				return dailies.filter( daily => {
 					return this.params.every( param => {
-						const fp = filter[param]
+						const fp = filter[param]?.toLowerCase()
 						if( fp == null )
 							return true
 
 						const dp = daily[param]
 						return typeof dp === 'string'
-							? dp.indexOf( fp ) !== -1
+							? dp.toLowerCase().indexOf( fp ) !== -1
 							: dp === fp
 					})
 				})
@@ -155,8 +155,7 @@ module.exports = {
 			},
 
 			// posting tree
-			buildTree( filter ){
-				const dailies = this.getDailies( filter )
+			buildTree( dailies ){
 				const guilds = {}
 
 				for( const daily of dailies ){
@@ -189,26 +188,19 @@ module.exports = {
 					: `[DAG] posting...`
 				)
 
-				const today = this.currentDay()
-				const guilds = this.buildTree( filter )
-
 				let index = 0
-				const totalDailies = this.getDailies( filter ).length
+				const today = this.currentDay()
+				const dailies = this.getDailies( filter )
+				const guilds = this.buildTree( dailies )
 
 				for( const gid in guilds ){
-					const {
-						// guild,
-						channels,
-					} = guilds[gid]
+					const { channels } = guilds[gid]
 
 					for( const cid in channels ){
-						const {
-							channel,
-							dailies,
-						} = channels[cid]
+						const { channel, dailies } = channels[cid]
 
 						if( dailies.length === 0 )
-							return
+							continue
 
 						const delay = bakadb.fallback({
 							path: 'dag/delay',
@@ -219,7 +211,7 @@ module.exports = {
 							let minDelay = Promise.resolve()
 
 							function logProgress( text ){
-								console.log( `- [${++index}/${totalDailies}] ${text}` )
+								console.log( `- [${++index}/${dailies.length}] ${text}` )
 							}
 
 							async function getContent( post ){
@@ -236,8 +228,8 @@ module.exports = {
 								return content
 							}
 
-							daily.history = daily.history.filter( entry => entry.day === today )
-							const lastEntry = daily.history?.pop()
+							daily.history = daily.history?.filter( entry => entry.day === today ) || []
+							const lastEntry = daily.history.pop()
 							let message
 
 							if( lastEntry )

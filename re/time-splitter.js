@@ -106,10 +106,11 @@ class TimeSplitter {
 			tu = tu.reverse()
 
 		for( const u of tu ){
-			if( !ignoreZeros || this[u] !== 0 ){
-				const single = TimeSplitter.singularForm[u]
-				units.push( formatter( this[u], single, this[u] === 1 ? single : u ) )
-			}
+			if( ignoreZeros && this[u] === 0 )
+				continue
+
+			const single = TimeSplitter.singularForm[u]
+			units.push( formatter( this[u], single, this[u] === 1 ? single : u ) )
 
 			if( maxTU > 0 && units.length !== 0 && --maxTU === 0 )
 				break

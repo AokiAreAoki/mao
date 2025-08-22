@@ -80,6 +80,7 @@ class Booru {
 		removeOtherKeys,
 		retries,
 		proxyAgent,
+		credentialAgent,
 	}) {
 		resolveOptions( config, this.config )
 
@@ -92,6 +93,7 @@ class Booru {
 		this.tagFetcher = tagFetcher ?? (v => v)
 		this.removeOtherKeys = removeOtherKeys ?? false
 		this.retries = retries ?? 5
+		this.credentialAgent = credentialAgent
 		this.proxyAgent = typeof proxyAgent === 'function'
 			? proxyAgent
 			: () => proxyAgent
@@ -123,6 +125,9 @@ class Booru {
 		params[this.config.params.tags] = tags
 		params[this.config.params.page] = page = ( page ?? 0 ) + this.config.pageOffset
 		params[this.config.params.limit] = limit = limit ?? this.config.limit
+
+		if( typeof this.credentialAgent === "function" )
+			Object.assign( params, this.credentialAgent() )
 
 		const {
 			status,

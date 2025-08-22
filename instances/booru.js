@@ -12,6 +12,10 @@ function proxyAgent(){
 	return getProxyAgent( 'booru' )
 }
 
+function credentialAgent(){
+	return tokens.gelbooru
+}
+
 const displayableTagTypes = [
 	'artist',
 	'character',
@@ -77,6 +81,7 @@ Booru.Picture.prototype.embed = function({
 const tagCacher = new TagCacher({
 	...config.boorus.gelbooru.tags,
 	proxyAgent,
+	credentialAgent,
 })
 
 tagCacher.tags = bakadb.fallback({
@@ -114,10 +119,8 @@ const Gelbooru = new Booru({
 		return tagCacher.resolveTags( new Set( tags ) )
 	},
 	proxyAgent,
+	credentialAgent,
 })
-
-Gelbooru.config.constParams.api_key = tokens.gelbooru.api_key
-Gelbooru.config.constParams.user_id = tokens.gelbooru.user_id
 
 const Yandere = new Booru({
 	config: {

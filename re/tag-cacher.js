@@ -33,15 +33,17 @@ class TagCacher {
 		path = null,
 		url,
 		tagParam = 'names',
-		const_params = {},
+		constParams = {},
 		tagSplitter = ' ',
 		responsePath = '',
 		proxyAgent,
+		credentialAgent,
 	}){
 		this.path = path
 		this.endpoint = url
 		this.tagParam = tagParam
-		this.const_params = const_params
+		this.constParams = constParams
+		this.credentialAgent = credentialAgent
 		this.tagSplitter = tagSplitter
 		this.responsePath = responsePath
 		this.proxyAgent = typeof proxyAgent === 'function'
@@ -129,7 +131,8 @@ class TagCacher {
 		const newTagsPromise = this.axios
 			.get( this.endpoint, {
 				params: {
-					...this.const_params,
+					...this.constParams,
+					...this.credentialAgent?.(),
 					[this.tagParam]: uncachedTags.join( this.tagSplitter ),
 				},
 				onRetry(){

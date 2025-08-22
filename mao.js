@@ -31,6 +31,7 @@ process.argv.slice(2).forEach( arg => {
 if( !runMao )
 	return
 
+const FULL_EXIT_CODE = 228
 const cp = require( 'child_process' )
 const killSignals = require( './kill-signals' )
 require( './methods/Set.join' )()
@@ -84,7 +85,7 @@ function start(){
 		log()
 		log( `Mao exited with code ${code}` )
 
-		if( code == 228 || shutdown ){ // full exit code (will not restart)
+		if( code == FULL_EXIT_CODE || shutdown ){ // full exit code (will not restart)
 			log( `Full exit code received. Mao won't be restarted.` )
 			process.exit()
 		}

@@ -148,12 +148,12 @@ module.exports = {
 						.replace( /@@((?:\/[\w-]+)+)/gi, ( match, path ) => {
 							path = findInclude( path )
 							autoIncludedFiles.add( '@/' + path )
-							return `require("@/${path}")`
+							return `(require("@/${path}"))`
 						})
 						.replace( /@@([\w-]+)/gi, ( match, path ) => {
 							path = findInclude( `node_modules/${path}` )
 							autoIncludedFiles.add( '@/' + path )
-							return `require("@/${path}")`
+							return `(require("@/${path}"))`
 						})
 				}
 

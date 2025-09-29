@@ -77,7 +77,7 @@ class FendWrapper {
 				if( code === 0 )
 					resolve( output.getPretty().trimEnd() )
 				else
-					reject( new Error( `Fend exited with code ${code}: ${output.getPretty()}` ) )
+					reject( new Error( output.getPretty() ) )
 			})
 		})
 	}

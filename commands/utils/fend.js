@@ -38,7 +38,7 @@ module.exports = {
 					const result = await FendWrapper.evaluate( expression )
 					return session.update( `${result}`, { cb: result.includes( '\n' ) && "bash" } )
 				} catch( error ) {
-					session.update( `Error: ${error.message}` )
+					session.update( error.message )
 				}
 			},
 		})

@@ -1,0 +1,5 @@
+enable-internet-access = true
+exchange-rate-source = "UN"
+exchange-rate-max-age = 86400
+decimal-separator-style = "dot"
+

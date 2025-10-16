@@ -9,7 +9,7 @@ Group=aoki
 WorkingDirectory=/home/aoki/mao
 ExecStart=/home/aoki/mao/start.sh
 ExecStop=/home/aoki/mao/stop.sh
-Restart=always
+Restart=never
 RestartSec=1
 
 [Install]

@@ -96,7 +96,7 @@ if [[ -f "$BASE_DIR/fend-config.toml" ]]; then
   mkdir -p $(dirname $FEND_CONFIG)
   sudo cp "$BASE_DIR/fend-config.toml" "$FEND_CONFIG"
   sudo chown root:root "$FEND_CONFIG"
-  chmod 0644 "$FEND_CONFIG"
+  sudo chmod 0644 "$FEND_CONFIG"
   echo "- [SUCCESS] Copied fend config \"$BASE_DIR/fend-config.toml\"->\"$FEND_CONFIG\""
 else
   echo "- [WARNING] fend-config.toml not found in $BASE_DIR"

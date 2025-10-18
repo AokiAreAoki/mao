@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
-  echo "- [ERROR] This script must be run as root (use sudo)."
-  exit 1
+if ! sudo echo "[sudo] perms granted";
+then
+  echo This script requires sudo perms
 fi
+
+#if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+#  echo "- [ERROR] This script must be run as root (use sudo)."
+#  exit 1
+#fi
 
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -20,9 +25,9 @@ done
 
 # Install and enable systemd service
 if [[ -f "$BASE_DIR/mao.service" ]]; then
-  cp "$BASE_DIR/mao.service" /etc/systemd/system/mao.service
-  systemctl daemon-reload
-  systemctl enable mao.service
+  sudo cp "$BASE_DIR/mao.service" /etc/systemd/system/mao.service
+  sudo systemctl daemon-reload
+  sudo systemctl enable mao.service
   echo "- [SUCCESS] Installed and enabled mao.service"
 else
   echo "- [ERROR] mao.service not found in $BASE_DIR"
@@ -89,8 +94,8 @@ fi
 FEND_CONFIG=$(fend --help | grep -i "config file" | sed -E 's@config file:\s+(.+)$@\1@i')
 if [[ -f "$BASE_DIR/fend-config.toml" ]]; then
   mkdir -p $(dirname $FEND_CONFIG)
-  cp "$BASE_DIR/fend-config.toml" "$FEND_CONFIG"
-  chown root:root "$FEND_CONFIG"
+  sudo cp "$BASE_DIR/fend-config.toml" "$FEND_CONFIG"
+  sudo chown root:root "$FEND_CONFIG"
   chmod 0644 "$FEND_CONFIG"
   echo "- [SUCCESS] Copied fend config \"$BASE_DIR/fend-config.toml\"->\"$FEND_CONFIG\""
 else

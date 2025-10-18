@@ -3,7 +3,8 @@ set -euo pipefail
 
 if ! sudo echo "[sudo] perms granted";
 then
-  echo This script requires sudo perms
+  echo "- [ERROR] This script requires sudo perms"
+  exit 1
 fi
 
 #if [[ ${EUID:-$(id -u)} -ne 0 ]]; then

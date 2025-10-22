@@ -7,15 +7,23 @@ then
   exit 1
 fi
 
-#if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
-#  echo "- [ERROR] This script must be run as root (use sudo)."
-#  exit 1
-#fi
-
+# Scripts dir
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Service paths
+PATH_TO_MAO_SERVICE="$BASE_DIR/mao.service"
+PATH_IN_SYSTEMD="/etc/systemd/system/mao.service"
+
+# Fend installation
+FEND_BIN="/usr/bin/fend"
+FEND_URL="https://github.com/printfn/fend/releases/download/v1.5.7/fend-1.5.7-linux-x86_64-gnu.zip"
+
+# Fend configuration
+PATH_TO_FEND_CONFIG="$BASE_DIR/fend-config.toml"
+FEND_CONFIG=$(fend --help | grep -i "config file" | sed -E 's@config file:\s+(.+)$@\1@i')
+
 # Make start/stop scripts executable
-for f in start.sh stop.sh; do
+for f in launch-config.sh launch-command.sh start.sh stop.sh; do
   if [[ -f "$BASE_DIR/$f" ]]; then
     chmod +x "$BASE_DIR/$f"
     echo "- [SUCCESS] Made $f executable"
@@ -25,19 +33,17 @@ for f in start.sh stop.sh; do
 done
 
 # Install and enable systemd service
-if [[ -f "$BASE_DIR/mao.service" ]]; then
-  sudo cp "$BASE_DIR/mao.service" /etc/systemd/system/mao.service
+if [[ -f $PATH_TO_MAO_SERVICE ]]; then
+  sudo cp $PATH_TO_MAO_SERVICE $PATH_IN_SYSTEMD
   sudo systemctl daemon-reload
   sudo systemctl enable mao.service
   echo "- [SUCCESS] Installed and enabled mao.service"
 else
-  echo "- [ERROR] mao.service not found in $BASE_DIR"
+  echo "- [ERROR] mao.service not found in $PATH_TO_MAO_SERVICE"
   exit 2
 fi
 
 # Install fend globally
-FEND_BIN="/usr/bin/fend"
-FEND_URL="https://github.com/printfn/fend/releases/download/v1.5.7/fend-1.5.7-linux-x86_64-gnu.zip"
 if command -v fend >/dev/null 2>&1; then
   echo "- [SUCCESS] fend already installed at $(command -v fend)"
 else
@@ -92,15 +98,15 @@ else
 fi
 
 # Replace fend config
-FEND_CONFIG=$(fend --help | grep -i "config file" | sed -E 's@config file:\s+(.+)$@\1@i')
-if [[ -f "$BASE_DIR/fend-config.toml" ]]; then
+if [[ -f $PATH_TO_FEND_CONFIG ]]; then
   mkdir -p $(dirname $FEND_CONFIG)
-  sudo cp "$BASE_DIR/fend-config.toml" "$FEND_CONFIG"
-  sudo chown root:root "$FEND_CONFIG"
-  sudo chmod 0644 "$FEND_CONFIG"
-  echo "- [SUCCESS] Copied fend config \"$BASE_DIR/fend-config.toml\"->\"$FEND_CONFIG\""
+  sudo cp $PATH_TO_FEND_CONFIG $FEND_CONFIG
+  sudo chown root:root $FEND_CONFIG
+  sudo chmod 0644 $FEND_CONFIG
+  echo "- [SUCCESS] Copied fend config \"$PATH_TO_FEND_CONFIG\"->\"$FEND_CONFIG\""
 else
-  echo "- [WARNING] fend-config.toml not found in $BASE_DIR"
+  echo "- [WARNING] $PATH_TO_FEND_CONFIG not found"
 fi
 
+# Done
 echo "[DONE] Installation complete."

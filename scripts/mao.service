@@ -7,8 +7,8 @@ Type=forking
 User=aoki
 Group=aoki
 WorkingDirectory=/home/aoki/mao
-ExecStart=/home/aoki/mao/start.sh
-ExecStop=/home/aoki/mao/stop.sh
+ExecStart=/home/aoki/mao/scripts/start.sh
+ExecStop=/home/aoki/mao/scripts/stop.sh
 Restart=never
 RestartSec=1
 

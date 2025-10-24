@@ -1,6 +1,9 @@
+#!/bin/bash
+
 export LOCATION="/home/aoki/mao"
 export APP_NAME="Mao"
 export SESSION_NAME="mao"
 export START_SCRIPT="scripts/start.sh"
 export STOP_SCRIPT="scripts/stop.sh"
+export LAUNCH_CONFIG="scripts/launch-config.sh"
 export LAUNCH_COMMAND="scripts/launch-command.sh"

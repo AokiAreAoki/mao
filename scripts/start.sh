@@ -13,4 +13,9 @@ if screen -ls $SESSION_NAME > /dev/null 2>&1; then
 fi
 
 echo "Starting $APP_NAME..."
-screen -dmS "$SESSION_NAME" sh "$LOCATION/$LAUNCH_COMMAND"
+
+screen -dmS "$SESSION_NAME" $LOCATION/$LAUNCH_COMMAND
+
+if [ "$1" = "-x" ]; then
+	screen -x $SESSION_NAME
+fi

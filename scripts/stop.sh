@@ -12,6 +12,10 @@ cd $LOCATION
 echo "Stopping $APP_NAME..."
 kill $(ps h --ppid $(screen -ls | grep $SESSION_NAME | cut -d. -f1) -o pid)
 
+if [ "$1" = "-x" ]; then
+	screen -x $SESSION_NAME
+fi
+
 if screen -ls $SESSION_NAME > /dev/null 2>&1; then
 	sleep 1
 

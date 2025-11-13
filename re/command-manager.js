@@ -511,7 +511,23 @@ class ArgumentParser extends Array {
 		for( let i = this.negativeLength; i < 0; ++i )
 			path.push( this[i] )
 
-		return `${path.join( '::' )}( \`${this.join( '`, `' )}\` )`
+		const commandLine = `${path.join( '::' )}( \`${this.join( '`, `' )}\` )`
+
+		if( this.flags ){
+			const flags = Object.entries( this.flags )
+				.filter( ([, args]) => args.specified )
+				.map( ([key, args]) => {
+					return `\n    --${key}` + ( args.length === 0
+						? ``
+						: `: [ ${args.join( ', ' )} ]`
+					)
+				})
+				.join( '' )
+
+			return commandLine + flags
+		}
+
+		return commandLine
 	}
 }
 

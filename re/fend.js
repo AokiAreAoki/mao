@@ -57,7 +57,7 @@ class FendWrapper {
 	 * @param {string} expression expression to evaluate
 	 * @returns {Promise<string>} result of the expression
 	 */
-	static async evaluate(expression) {
+	static async evaluate( expression ) {
 		return new Promise( ( resolve, reject ) => {
 			const fend = cp.spawn( "fend", ["-e", expression], { timeout: EXEC_TIMEOUT } )
 			const output = new OutputBuffer({

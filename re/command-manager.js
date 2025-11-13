@@ -462,43 +462,43 @@ class ArgumentParser extends Array {
 	parseArgs(){
 		this.length = 0
 		this.pos.length = 0
-		let arg = '', pos = 0, quotes = ''
+		let currentArg = '', pos = 0, currentQuotes = ''
 
 		for( let i = 0; i < this.string.length; ++i ){
 			let char = this.string[i]
 
-			if( !quotes && /\s/.test( char ) ){
-				if( arg ){
-					this.push( arg )
+			if( !currentQuotes && /\s/.test( char ) ){
+				if( currentArg ){
+					this.push( currentArg )
 					this.pos.push( pos )
-					arg = ''
+					currentArg = ''
 				}
 			} else {
-				if( quotes ){
-					if( char == quotes ){
-						this.push( arg )
+				if( currentQuotes ){
+					if( char == currentQuotes ){
+						this.push( currentArg )
 						this.pos.push( pos )
-						arg = ''
-						quotes = ''
+						currentArg = ''
+						currentQuotes = ''
 						continue
 					}
 				} else {
 					if( char == '"' || char == "'" ){
-						quotes = char
+						currentQuotes = char
 						pos = i
 						continue
 					}
 				}
 
-				if( !arg && !quotes )
+				if( !currentArg && !currentQuotes )
 					pos = i
 
-				arg += char
+				currentArg += char
 			}
 		}
 
-		if( arg ){
-			this.push( arg )
+		if( currentArg ){
+			this.push( currentArg )
 			this.pos.push( pos )
 		}
 	}

@@ -454,9 +454,11 @@ class ArgumentParser extends Array {
 		return args
 	}
 
-	getRaw( number = 0 ){
-		if( typeof this.pos[number] === 'number' )
+	getRaw( number = null ){
+		if( typeof number === 'number' && typeof this.pos[number] === 'number' )
 			return this.string.substring( this.pos[number] )
+
+		return this.string
 	}
 
 	parseArgs(){

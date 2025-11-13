@@ -483,7 +483,7 @@ class ArgumentParser extends Array {
 						continue
 					}
 				} else {
-					if( char == '"' || char == "'" ){
+					if( !currentArg && ( char == '"' || char == "'" ) ){
 						currentQuotes = char
 						pos = i
 						continue

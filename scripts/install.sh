@@ -18,10 +18,6 @@ PATH_IN_SYSTEMD="/etc/systemd/system/mao.service"
 FEND_BIN="/usr/bin/fend"
 FEND_URL="https://github.com/printfn/fend/releases/download/v1.5.7/fend-1.5.7-linux-x86_64-gnu.zip"
 
-# Fend configuration
-PATH_TO_FEND_CONFIG="$BASE_DIR/fend-config.toml"
-FEND_CONFIG=$(fend --help | grep -i "config file" | sed -E 's@config file:\s+(.+)$@\1@i')
-
 # Make start/stop scripts executable
 for f in launch-config.sh launch-command.sh start.sh stop.sh; do
   if [[ -f "$BASE_DIR/$f" ]]; then
@@ -87,8 +83,8 @@ else
     if [[ -z "$FOUNDFILE" ]]; then
       echo "- [ERROR] Could not locate 'fend' binary inside archive" >&2
     else
-      cp "$FOUNDFILE" "$FEND_BIN"
-      chmod 0755 "$FEND_BIN"
+      sudo cp "$FOUNDFILE" "$FEND_BIN"
+      sudo chmod 0755 "$FEND_BIN"
       echo "- [SUCCESS] Downloaded fend from $(echo $FEND_URL)"
     fi
   else
@@ -97,9 +93,13 @@ else
   fi
 fi
 
+# Fend configuration
+PATH_TO_FEND_CONFIG="$BASE_DIR/fend-config.toml"
+FEND_CONFIG=$(fend --help | grep -i "config file" | sed -E 's@config file:\s+(.+)$@\1@i')
+
 # Replace fend config
 if [[ -f $PATH_TO_FEND_CONFIG ]]; then
-  mkdir -p $(dirname $FEND_CONFIG)
+  sudo mkdir -p $(dirname $FEND_CONFIG)
   sudo cp $PATH_TO_FEND_CONFIG $FEND_CONFIG
   sudo chown root:root $FEND_CONFIG
   sudo chmod 0644 $FEND_CONFIG

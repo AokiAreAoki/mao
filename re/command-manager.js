@@ -26,7 +26,8 @@ class CommandManager {
 	client
 	prefix
 	considerMentionAsPrefix
-	mentionRE
+	flagPrefix = "--"
+	mentionRegexCache = null
 	/** @type {Collection<string, Module>} */
 	modules = new Collection()
 	/** @type {Collection<string, Command>} */
@@ -138,7 +139,7 @@ class CommandManager {
 			if( !this.considerMentionAsPrefix )
 				return
 
-			prefix = msg.content.matchFirst( this.mentionRE ??= new RegExp( `^<@!?${this.client.user.id}>\\s*` ) )
+			prefix = msg.content.matchFirst( this.mentionRegexCache ??= new RegExp( `^<@!?${this.client.user.id}>\\s*` ) )
 
 			if( !prefix )
 				return
@@ -643,12 +644,17 @@ class CommandDescription {
 		lines = [lines.join( '\n' )]
 
 		// Flags
-		if( this.command.hasFlags )
-			lines.push( 'Flags:\n' + this.command.flags.map( flag => {
-				return `• \`${[flag.name, ...flag.args].join( '` `' )}\` - ${flag.description}`
-			}).join( '\n' ) )
+		if( this.command.hasFlags ){
+			const flagPrefix = this.command.cm.flagPrefix
 
-		// Usage
+			lines.push( 'Flags:\n' + this.command.flags.map( flag => {
+				const flagAndArgs = [flag.name, ...flag.args].join( '` `' )
+
+				return `• \`${flagPrefix}${flagAndArgs}\` - ${flag.description}`
+			}).join( '\n' ) )
+		}
+
+		// Usages
 		if( this.usages.length !== 0 ){
 			const usage = this.usages.map( usage => {
 				if( typeof usage === 'string' )
@@ -671,7 +677,7 @@ class CommandDescription {
 			lines.push( 'Usage:\n' + usage )
 		}
 
-		// Example
+		// Examples
 		if( this.examples.length !== 0 ){
 			const examples = this.examples.map( example => {
 				const args = [...this.command.fullName.split( ' ' ), ...example.args]

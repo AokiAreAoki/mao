@@ -36,12 +36,15 @@ module.exports = {
 				],
 			},
 			async callback({ msg, args, session }){
-				let lang = args[0].toLowerCase()
+				let lang = args[0]?.toLowerCase()
 
-				if( lang != 'ru' && lang != 'en' )
+				if( !lang )
+					return session.update( 'Please specify a language! Use `EN` or `RU`' )
+
+				if( lang !== 'ru' && lang !== 'en' )
 					return session.update( 'Invalid language! Use `EN` or `RU`' )
 
-				lang = lang == 'en'
+				const toEnglish = lang === 'en'
 
 				if( args[1] ){
 					const text = args.getRaw(1)
@@ -50,7 +53,7 @@ module.exports = {
 						const message = await msg.channel.messages.fetch( args[1] )
 
 						if( message ){
-							const transliteratedText = transliterate( lang, message.content )
+							const transliteratedText = transliterate( toEnglish, message.content )
 
 							if( transliteratedText )
 								session.update( Embed()
@@ -65,7 +68,7 @@ module.exports = {
 						} else
 							session.update( 'Failed to fetch the message! The message doesn\'t exist, or is in another channel.' )
 					} else { // Text provided
-						const transliteratedText = transliterate( lang, text )
+						const transliteratedText = transliterate( toEnglish, text )
 
 						if( transliteratedText )
 							session.update( Embed()
@@ -91,7 +94,7 @@ module.exports = {
 					if( !message )
 						session.update( 'Previous message not found.' )
 
-					const transliteratedText = transliterate( lang, message.content )
+					const transliteratedText = transliterate( toEnglish, message.content )
 
 					if( transliteratedText )
 						session.update( Embed()

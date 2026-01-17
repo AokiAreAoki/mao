@@ -12,50 +12,29 @@ module.exports = {
 			modifyModuleSettings,
 		} = require( '@/functions/getModuleSettings' )
 
-		const NONE = 'None'
-
-		function list( modules ){
-			return modules
-				.map( module => `\`${module.printname}\`` )
-				.join( ', ' ) || NONE
+		function statusEmoji( isEnabled ){
+			return isEnabled ? '✅' : '❌'
 		}
 
 		function listModules( modules, guildId ){
 			const toggleableModules = modules
 				.filter( module => !module.isDev && !module.isAlwaysEnabled )
 
-			const disabledModules = []
-			const globallyDisabledModules = []
-
-			const enabledModules = toggleableModules.filter( module => {
+			const list = toggleableModules.map( module => {
 				const globalSettings = getModuleSettings( module )
 				const guildSettings = getModuleSettings( module, guildId )
 
-				if( globalSettings.enabled && guildSettings.enabled )
-					return true
+				const suffix = !globalSettings.enabled && guildId !== GLOBAL_KEYWORD
+					? " (disabled globally)"
+					: ""
 
-				if( !globalSettings.enabled && guildId !== GLOBAL_KEYWORD )
-					globallyDisabledModules.push( module )
-				else
-					disabledModules.push( module )
-
-				return false
+				return `- ${statusEmoji( globalSettings.enabled && guildSettings.enabled )} - \`${module.printname}\`${suffix}`
 			})
 
-			return [
-				{
-					name: 'Enabled:',
-					value: list( enabledModules ),
-				},
-				{
-					name: 'Disabled:',
-					value: list( disabledModules ),
-				},
-				globallyDisabledModules.length !== 0 && {
-					name: 'Globally disabled:',
-					value: list( globallyDisabledModules ),
-				},
-			].filter( Boolean )
+			return [{
+				name: 'Modules:',
+				value: list.join( '\n' ) || "No modules",
+			}]
 		}
 
 		function hasPermission( member ){
@@ -78,8 +57,8 @@ module.exports = {
 
 				return session.update( Embed()
 					.setTitle( isGlobal
-						? 'Global settings'
-						: 'Guild settings'
+						? "Global settings"
+						: "Guild settings"
 					)
 					.addFields( listModules( CM.modules, guildId ) )
 				)

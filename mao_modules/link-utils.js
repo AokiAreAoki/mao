@@ -2,18 +2,24 @@
 require = global.alias(require)
 module.exports = {
 	init(){
-		const client = require( '@/instances/client' )
-		const MM = require( '@/instances/message-manager' )
-		const TEMP_FOLDER = require( '@/constants/temp-folder' )
 		const cp = require( 'child_process' )
 		const fs = require( 'fs' )
-		const processing = require( '@/functions/processing' )
 		const { join } = require( 'path' )
-		const binarySearch = require( '@/functions/binarySearch' )
 		const ytdl = require( 'youtube-dl-exec' )
-		const { getSocksProxy } = require( '@/instances/proxy' )
 
-		const cacheTimeout = 2 * 24 * 3600e3
+		const config = require( '@/config.yml' )
+		const TEMP_FOLDER = require( '@/constants/temp-folder' )
+
+		const client = require( '@/instances/client' )
+		const MM = require( '@/instances/message-manager' )
+		const { getSocksProxy } = require( '@/instances/proxy' )
+		const zipline = require( '@/instances/zipline' )
+
+		const Embed = require( '@/functions/Embed' )
+		const processing = require( '@/functions/processing' )
+		const binarySearch = require( '@/functions/binarySearch' )
+
+		const CACHE_TIMEOUT = 2 * 24 * 3600e3
 
 		function Entry({
 			value,
@@ -105,7 +111,7 @@ module.exports = {
 			// },
 
 			// Twitter direct links provider
-			// async ( msg, cache, react, suppressEmbeds ) => {
+			// async ( msg, cache, react, suppressUserEmbeds ) => {
 			// 	let links = [
 			// 		/https?:\/\/(?:\w+\.)?(?:vx)?twitter\.com\/([^/\s]+)\/status\/(\d+)/gmi,
 			// 	]
@@ -144,11 +150,10 @@ module.exports = {
 			// },
 
 			// Reddit/TikTok files provider
-			async ( msg, cache, react, suppressEmbeds ) => {
+			async ( msg, cache, react, suppressUserEmbeds ) => {
 				let links = [
 					// /https?:\/\/(?:\w+\.)?(reddit)\.com\/r\/(\S+)/gmi,
-					/https?:\/\/(?:\w+\.)?(tiktok)\.com\/([_\w]+)/gmi,
-					/https?:\/\/(?:\w+\.)?(tiktok)\.com\/@([_\w]+)\/([_\w]+)/gmi,
+					/https?:\/\/(?:\w+\.)?(tiktok)\.com(\/@([_\w]+))?\/([_\w]+)/gmi,
 					/https?:\/\/(?:\w+\.)?(instagram)\.com\/reel\/(\w+)/gmi,
 				]
 					.map( re => Array.from( msg.content.matchAll( re ) ) )
@@ -159,14 +164,11 @@ module.exports = {
 
 				react()
 
-				const files = await Promise.all( links.map( async url => {
+				const urls = await Promise.all( links.map( async url => {
 					const key = url[1] + '/' + url[2]
 
 					if( cache.get( key ) ){
-						const path = cache.get( key ).value
-
-						if( fs.existsSync( path ) )
-							return path
+						return cache.get( key )
 					}
 
 					// const format = `webm`
@@ -183,8 +185,17 @@ module.exports = {
 					})
 						.then( async path => {
 							await ytdl( url[0], flags )
-							cache.set( key, path )
-							return path
+
+							if( !fs.existsSync( path ) )
+								return null
+
+							const ziplineURL = await zipline.upload( path, {
+								folderID: config.zipline.folderID,
+							})
+							cache.set( key, ziplineURL )
+							fs.promises.unlink( path ).catch( () => {} )
+
+							return ziplineURL
 						})
 						.catch( err => {
 							cache.delete( key )
@@ -195,22 +206,21 @@ module.exports = {
 					return pathPromise
 				}))
 
-				const validFiles = files
+				const validURLs = urls
 					.map( paths => paths?.split( '\n' ) )
 					.flat(1)
 					.filter( s => !!s )
-					// .map( path => join( TEMP_FOLDER, path ) )
 
-				if( validFiles.length > 0 ){
-					suppressEmbeds()
+				if( validURLs.length > 0 ){
+					suppressUserEmbeds()
 				}
 
-				return validFiles
+				return validURLs
 			},
 		]
 
 		const caches = {}
-		utils.forEach( ( _, i ) => caches[i] = new TempCache( cacheTimeout ) )
+		utils.forEach( ( _, i ) => caches[i] = new TempCache( CACHE_TIMEOUT ) )
 
 		MM.pushHandler( 'link-utils', false, async msg => {
 			if( msg.author.bot || msg.author.id === client.user.id )
@@ -228,20 +238,26 @@ module.exports = {
 				})
 			}
 
-			function suppressEmbeds(){
+			function suppressUserEmbeds(){
 				suppress = true
 			}
 
 			const files = []
+			const embeds = []
 			const content = await Promise
-				.all( utils.map( ( util, i ) => util( msg, caches[i], react, suppressEmbeds ) ) )
+				.all( utils.map( ( util, i ) => util( msg, caches[i], react, suppressUserEmbeds ) ) )
 				.then( links => links
 					.flat(1)
 					.filter( link => {
 						if( !link )
 							return false
 
-						if( !link.toLowerCase().startsWith( 'http' ) ){
+						if( typeof link === 'object' ){
+							embeds.push( link )
+							return false
+						}
+
+						if( typeof link === 'string' && !link.toLowerCase().startsWith( 'http' ) ){
 							files.push( link )
 							return false
 						}
@@ -258,10 +274,15 @@ module.exports = {
 					throw err
 				})
 
-			const hasSomething = content || files.length !== 0
+			const hasSomething = content || files.length !== 0 || embeds.length !== 0
 
-			if( hasSomething )
-				await session.update({ content, files })
+			if( hasSomething ) {
+				await session.update({
+					content,
+					files,
+					embeds,
+				})
+			}
 
 			if( reaction ){
 				await reaction

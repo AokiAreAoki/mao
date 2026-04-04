@@ -153,7 +153,7 @@ module.exports = {
 			async ( msg, cache, react, suppressUserEmbeds ) => {
 				let links = [
 					// /https?:\/\/(?:\w+\.)?(reddit)\.com\/r\/(\S+)/gmi,
-					/https?:\/\/(?:\w+\.)?(tiktok)\.com(\/@([_\w]+))?\/([_\w]+)/gmi,
+					/https?:\/\/(?:\w+\.)?(tiktok)\.com\/((?:@[-_\w]+\/)?[-_\w]+)/gmi,
 					/https?:\/\/(?:\w+\.)?(instagram)\.com\/reel\/(\w+)/gmi,
 				]
 					.map( re => Array.from( msg.content.matchAll( re ) ) )
@@ -167,9 +167,9 @@ module.exports = {
 				const urls = await Promise.all( links.map( async url => {
 					const key = url[1] + '/' + url[2]
 
-					if( cache.get( key ) ){
-						return cache.get( key )
-					}
+					const cached = cache.get( key )
+					if( cached )
+						return cached.value
 
 					// const format = `webm`
 					const flags = {

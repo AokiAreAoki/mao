@@ -1,11 +1,15 @@
 const fs = require( 'fs' )
 const YAML = require( 'yaml' )
 
+function resolvePath( path ){
+	return path.startsWith( '@/' )
+		? __dirname + path.substring(1)
+		: path
+}
+
 global.alias = function( original_require ){
 	function aliasedRequire( path, dropCache = false ){
-		path = path.startsWith( '@/' )
-			? __dirname + path.substring(1)
-			: path
+		path = resolvePath( path )
 
 		if( dropCache ){
 			delete original_require.cache[original_require.resolve( path )]
@@ -28,4 +32,8 @@ global.alias = function( original_require ){
 		aliasedRequire[k] = require[k]
 
 	return aliasedRequire
+}
+
+module.exports = {
+	resolvePath,
 }

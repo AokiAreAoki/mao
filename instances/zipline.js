@@ -19,13 +19,13 @@ module.exports = {
 	 * @param {object} options
 	 * @param {string} [options.folderID]
 	 * @param {string} [options.format]
-	 * @param {number} [options.deletesAt]
+	 * @param {number} [options.deletesIn]
 	 * @returns {Promise<string>}
 	 */
 	async upload( filePath, {
 		folderID = undefined,
 		format = "random",
-		deletesAt = DEFAULT_LIFETIME,
+		deletesIn = DEFAULT_LIFETIME,
 	} = {} ){
 		const config = tokens.zipline
 
@@ -46,7 +46,7 @@ module.exports = {
 					authorization: config.token,
 					[X_HEADER_FOLDER]: folderID,
 					[X_HEADER_FORMAT]: format,
-					[X_HEADER_DELETES_AT]: deletesAt,
+					[X_HEADER_DELETES_AT]: deletesIn,
 				},
 			})
 

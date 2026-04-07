@@ -2,6 +2,7 @@ maoclr: 0x970045
 log_channel: '893430789306470430'
 
 zipline:
+    deletesIn: 90d
     folderID: 'cmnjl00lw016001nvp1d40fdq'
 
 boorus:

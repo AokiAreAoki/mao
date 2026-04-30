@@ -31,6 +31,7 @@ process.argv.slice(2).forEach( arg => {
 if( !runMao )
 	return
 
+const TIMEOUT = 60e3
 const FULL_EXIT_CODE = 228
 const cp = require( 'child_process' )
 const killSignals = require( './kill-signals' )
@@ -48,10 +49,11 @@ if( maoFlags.size === 0 )
 else
 	log( `Running Mao with next flags: ${maoFlags.join( ', ' )}\n` )
 
-let timeout = 0
-let reset = 0
+let restartDelay = 0
+let resetDelay = 0
 let mao = null
 let shutdown = false
+let timeout = null
 
 function intercept(){
 	process.stdin.resume()
@@ -66,10 +68,21 @@ function intercept(){
 		process.exit()
 }
 
+function resetTimeout(){
+	clearTimeout( timeout )
+
+	timeout = setTimeout( () => {
+		console.log( `[Wrapper] Force restarting Mao due to no heartbeat for too long` )
+		mao.kill()
+	}, TIMEOUT );
+}
+
 killSignals.forEach( signal => process.on( signal, intercept ) )
 
 function start(){
 	mao = cp.fork( __dirname + '/index.js', [process.pid, ...maoFlags], { detached: false } )
+
+	resetTimeout()
 
 	if( process.platform === 'win32' ){
 		cp.exec( `wmic process where "ProcessID=${process.pid}" CALL setpriority "above normal"` )
@@ -78,6 +91,11 @@ function start(){
 		// here could be linux's nice
 		//cp.exec( `nice...` )
 	}
+
+	mao.on( 'message', data => {
+		if( data === 'hb' )
+			resetTimeout()
+	})
 
 	mao.once( 'exit', code => {
 		mao = null
@@ -94,16 +112,16 @@ function start(){
 			log( 'Restarting...\n' )
 			start()
 		} else {
-			if( reset < Date.now() )
-				timeout = 0
+			if( resetDelay < Date.now() )
+				restartDelay = 0
 
-			if( timeout < 10 )
-				timeout += Math.ceil( ( 10 - timeout ) * .25 )
+			if( restartDelay < 10 )
+				restartDelay += Math.ceil( ( 10 - restartDelay ) * .25 )
 
-			log( `Restart in`, timeout, `seconds` )
+			log( `Restart in`, restartDelay, `seconds` )
 			log()
-			setTimeout( start, timeout * 1e3 )
-			reset = Date.now() + 30e3
+			setTimeout( start, restartDelay * 1e3 )
+			resetDelay = Date.now() + 30e3
 		}
 	})
 }

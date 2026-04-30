@@ -8,6 +8,10 @@ module.exports = {
 	loggedIn: -1,
 }
 
+setInterval( () => {
+	process.send( 'hb' )
+}, 5e3 )
+
 const args = process.argv.slice(2)
 let wrapperPID = parseInt( args[0] )
 

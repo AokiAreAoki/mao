@@ -73,7 +73,7 @@ function resetTimeout(){
 
 	timeout = setTimeout( () => {
 		console.log( `[Wrapper] Force restarting Mao due to no heartbeat for too long` )
-		mao.kill()
+		mao.kill( 'SIGKILL' )
 	}, TIMEOUT );
 }
 

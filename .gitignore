@@ -2,7 +2,6 @@
 /.vs
 /node_modules
 /bdb
-/re/MyLang.js
 /test
 /temp
 tokens*

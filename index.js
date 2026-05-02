@@ -34,14 +34,6 @@ const { Events } = require( 'discord.js' )
 const numsplit = require( '@/functions/numsplit' )
 const includeFiles = require( '@/functions/includeFiles' )
 
-// Including methods //
-includeFiles({
-	text: 'Including methods',
-	query: 'methods/*.js',
-	callback: method => void method(),
-})
-
-// On client ready
 const client = require( '@/instances/client' )
 
 client.once( Events.ClientReady, () => {
@@ -76,11 +68,11 @@ client.once( Events.ClientReady, () => {
 	client.on( Events.ShardReady, resume )
 })
 
-// Initializing instances //
+// Including methods //
 includeFiles({
-	text: 'Initializing instances',
-	query: 'instances/*.js',
-	callback: () => {},
+	text: 'Declaring custom methods',
+	query: 'methods/*.js',
+	callback: method => void method(),
 })
 
 // Initializing modules //
@@ -88,56 +80,6 @@ includeFiles({
 	text: 'Initializing mao modules',
 	query: 'mao_modules/*(.js)?/index.js',
 	callback: inclusion => inclusion.init({}),
-})
-
-// Initializing command modules //
-// Modules
-const CM = require( '@/instances/command-manager' )
-const folderLookup = new Map()
-
-includeFiles({
-	text: 'Initializing command modules',
-	query: 'commands/**/index.js',
-	callback: ( settings, [, folder] ) => {
-		const module = CM.addModule( settings )
-		folderLookup.set( folder, module )
-	},
-})
-
-// Commands
-includeFiles({
-	text: 'Initializing commands',
-	query: 'commands/**/*(.js)?/index.js',
-	callback( inclusion, path ){
-		const [, folder, file] = path
-
-		if( file === 'index.js' )
-			return
-
-		if( typeof inclusion?.init !== 'function' ){
-			setTimeout( () => {
-				console.warn( `[Warning] "${path.join( '/' )}" command does not have the init function` )
-			}, 1 )
-
-			return
-		}
-
-		const module = folderLookup.get( folder )
-
-		if( !module ){
-			setTimeout( () => {
-				console.warn( `[Warning] "${folder}" module was not initiated` )
-			}, 1 )
-
-			return
-		}
-
-		inclusion.init({
-			addCommand: options => {
-				return CM.addCommand({ ...options, module })
-			},
-		})
-	}
 })
 
 // End

@@ -1,5 +1,5 @@
 const fs = require( 'fs' )
-const join = require( 'path' ).join
+const { join } = require( 'path' )
 const events = require( 'events' )
 const get = require( 'lodash/get' )
 const set = require( 'lodash/set' )

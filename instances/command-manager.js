@@ -2,7 +2,6 @@
 require = global.alias(require)
 const { Events } = require( 'discord.js' )
 const { CommandManager } = require( '@/re/command-manager' )
-const MM = require( '@/instances/message-manager' )
 const client = require( '@/instances/client' )
 const { flags } = require( '@/index' )
 const { getModuleSettings } = require( '@/functions/getModuleSettings' )
@@ -12,7 +11,6 @@ const prefix = flags.dev
 	: /^(-|(mao|мао)\s+)/i
 
 const CM = new CommandManager( client, prefix, true )
-MM.unshiftHandler( 'commands', true, ( ...args ) => CM.handleMessage( ...args ) )
 
 CM.setModuleAccessor( /**
  * @param {import('discord.js').Message} message

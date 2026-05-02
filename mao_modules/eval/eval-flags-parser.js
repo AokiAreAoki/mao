@@ -1,4 +1,3 @@
-
 module.exports = class EvalFlagParser {
 	constructor( flags ){
 		this.flags = new Set( flags )

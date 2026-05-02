@@ -5,7 +5,7 @@ module.exports = {
 		const Jimp = require( 'jimp' )
 		const config = require( '@/config.yml' )
 		const cb = require( '@/functions/cb' )
-		const vec = require( '@/re/vector' )
+		const vec = require( '@/libs/vector' )
 
 		function toByte( string_int ){
 			let int = parseInt( string_int )

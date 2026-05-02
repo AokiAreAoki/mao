@@ -1,4 +1,4 @@
-const printify = require('../../re/printify')
+const printify = require('../../libs/printify')
 
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)

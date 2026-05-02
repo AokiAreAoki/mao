@@ -2,7 +2,7 @@
 require = global.alias(require)
 
 const numsplit = require( '@/functions/numsplit' )
-const printify = require( '@/re/printify' )
+const printify = require( '@/libs/printify' )
 
 const isNumberPrimitive = number => /^[+-]?([\w_]+|(\d+)?(\.\d+)?(e\d+)?)$/i.test( number )
 const isCodePrimitive = ( code, result ) => (

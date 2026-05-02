@@ -6,7 +6,7 @@ module.exports = {
 		const { db } = require( '@/instances/bakadb' )
 		const Embed = require( '@/functions/Embed' )
 		const numsplit = require( '@/functions/numsplit' )
-		const TimeSplitter = require( '@/re/time-splitter' )
+		const TimeSplitter = require( '@/libs/time-splitter' )
 
 		addCommand({
 			aliases: 'uptime',

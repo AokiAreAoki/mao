@@ -2,7 +2,7 @@
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
-		const TimeSplitter = require( '@/re/time-splitter' )
+		const TimeSplitter = require( '@/libs/time-splitter' )
 
 		const MAX_RESIN = 200
 		const MINUTES_PER_RESIN = 8

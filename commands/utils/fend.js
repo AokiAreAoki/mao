@@ -4,7 +4,7 @@ module.exports = {
 	init({ addCommand }){
 		const { Events } = require( "discord.js" )
 		const client = require( "@/instances/client" )
-		const FendWrapper = require( "@/re/fend" )
+		const FendWrapper = require( "@/libs/fend" )
 
 		client.once( Events.ClientReady, () => {
 			FendWrapper.checkVersion()

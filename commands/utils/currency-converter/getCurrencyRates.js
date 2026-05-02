@@ -2,7 +2,7 @@
 require = global.alias(require)
 
 const axios = require( 'axios' )
-const TimeSplitter = require( '@/re/time-splitter' )
+const TimeSplitter = require( '@/libs/time-splitter' )
 const { currency_converter: token } = require( '@/tokens.yml' )
 
 const MINIMAL_REFRESH_INTERVAL = 3600e3

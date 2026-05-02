@@ -2,7 +2,7 @@
 require = global.alias(require)
 
 const cp = require( "child_process" )
-const OutputBuffer = require( "@/re/output-buffer" )
+const OutputBuffer = require( "@/libs/output-buffer" )
 
 const EXEC_TIMEOUT = 3e3
 

@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 const bakadb = require( '@/instances/bakadb' )
-const Booru = require( '@/re/booru-wrapper' )
-const TagCacher = require( '@/re/tag-cacher' )
+const Booru = require( '@/libs/booru-wrapper' )
+const TagCacher = require( '@/libs/tag-cacher' )
 const Embed = require( '@/functions/Embed' )
 const tokens = require( '@/tokens.yml' )
 const config = require( '@/config.yml' )

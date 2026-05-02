@@ -3,7 +3,7 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const bakadb = require( '@/instances/bakadb' )
-		const List = require( '@/re/list' )
+		const List = require( '@/libs/list' )
 
 		addCommand({
 			aliases: 'evalall',

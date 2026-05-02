@@ -4,7 +4,7 @@ module.exports = {
 	init({ addCommand }){
 		const { Collection } = require( 'discord.js' )
 		const MM = require( '@/instances/message-manager' )
-		const timer = require( '@/re/timer' )
+		const timer = require( '@/libs/timer' )
 
 		const HI_LIFETIME = 600e3
 		const COOLDOWN = 900e3

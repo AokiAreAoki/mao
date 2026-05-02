@@ -7,7 +7,7 @@ module.exports = {
 		const bakadb = require( '@/instances/bakadb' )
 		const { Gelbooru, Yandere } = require( '@/instances/booru' )
 		const checkTypes = require( '@/functions/checkTypes' )
-		const timer = require( '@/re/timer' )
+		const timer = require( '@/libs/timer' )
 
 		bakadb.db.dag ??= {
 			GMT: 3,

@@ -12,7 +12,7 @@ module.exports = {
 		const downloadURL = require( '@/functions/download-url' )
 		const { Permissions } = require( '@/constants/perms' )
 		const tempPath = require( '@/constants/temp-folder' )
-		const OutputBuffer = require( '@/re/output-buffer' )
+		const OutputBuffer = require( '@/libs/output-buffer' )
 
 		const EXEC_TIMEOUT = 120e3
 

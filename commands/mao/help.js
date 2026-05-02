@@ -2,7 +2,7 @@
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
-		const { ArgumentParser } = require( '@/re/command-manager' )
+		const { ArgumentParser } = require( '@/libs/command-manager' )
 		const CM = require( '@/instances/command-manager' )
 		const Embed = require( '@/functions/Embed' )
 		const cb = require( '@/functions/cb' )

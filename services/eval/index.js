@@ -17,7 +17,7 @@ module.exports = {
 		const Embed = require( '@/functions/Embed' )
 		const transformMessagePayload = require( '@/functions/transformMessagePayload' )
 		const processing = require( '@/functions/processing' )
-		const printify = require( '@/re/printify' )
+		const printify = require( '@/libs/printify' )
 
 		const EvalFlagParser = require( './eval-flags-parser' )
 		const formatEvaled = require( './format-evaled' )

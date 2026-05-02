@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
-const MessageManager = require( '@/re/message-manager' )
+const MessageManager = require( '@/libs/message-manager' )
 const client = require( '@/instances/client' )
 
 const MM = new MessageManager({

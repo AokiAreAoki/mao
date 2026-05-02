@@ -4,7 +4,7 @@ require = global.alias(require)
 const discord = require( 'discord.js' )
 const bakadb = require( '@/instances/bakadb' )
 const { db } = bakadb
-const List = require( '@/re/list' )
+const List = require( '@/libs/list' )
 
 const Permissions = {
 	MASTER: 'master',

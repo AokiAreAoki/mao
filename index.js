@@ -75,10 +75,10 @@ includeFiles({
 	callback: method => void method(),
 })
 
-// Initializing modules //
+// Initializing services //
 includeFiles({
-	text: 'Initializing mao modules',
-	query: 'mao_modules/*(.js)?/index.js',
+	text: 'Initializing services',
+	query: 'services/*(.js)?/index.js',
 	callback: inclusion => inclusion.init({}),
 })
 

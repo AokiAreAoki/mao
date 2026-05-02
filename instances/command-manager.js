@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 const { Events } = require( 'discord.js' )
-const { CommandManager } = require( '@/re/command-manager' )
+const { CommandManager } = require( '@/libs/command-manager' )
 const client = require( '@/instances/client' )
 const { flags } = require( '@/index' )
 const { getModuleSettings } = require( '@/functions/getModuleSettings' )
@@ -14,7 +14,7 @@ const CM = new CommandManager( client, prefix, true )
 
 CM.setModuleAccessor( /**
  * @param {import('discord.js').Message} message
- * @param {import('../re/command-manager').Module} module
+ * @param {import('../libs/command-manager').Module} module
  * @returns {boolean}
  */ ( message, module ) => {
 	if( !message.guild )

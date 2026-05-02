@@ -2,7 +2,7 @@
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
-		const updateRemote = require( '@/mao_modules/slash-commands/update-remote' )
+		const updateRemote = require( '@/services/slash-commands/update-remote' )
 		const processing = require( '@/functions/processing' )
 		const cb = require( '@/functions/cb' )
 

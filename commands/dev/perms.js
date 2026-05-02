@@ -6,7 +6,7 @@ module.exports = {
 		const bakadb = require( '@/instances/bakadb' )
 		const { db } = bakadb
 		const { PermissionsArray, PermissionsSet, PermissionsList } = require( '@/constants/perms' )
-		const List = require( '@/re/list' )
+		const List = require( '@/libs/list' )
 
 		const CHECK_EMOJI = `✅`
 		const CROSS_EMOJI = `❌`

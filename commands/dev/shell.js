@@ -6,7 +6,7 @@ module.exports = {
 		const cp = require( 'child_process' )
 		const Embed = require( '@/functions/Embed' )
 		const processing = require( '@/functions/processing' )
-		const OutputBuffer = require( '@/re/output-buffer' )
+		const OutputBuffer = require( '@/libs/output-buffer' )
 
 		const EXEC_TIMEOUT = 600e3
 

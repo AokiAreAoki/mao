@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
-const BakaDB = require( '@/re/bakadb' )
-const List = require( '@/re/list' )
+const BakaDB = require( '@/libs/bakadb' )
+const List = require( '@/libs/list' )
 const { flags } = require( '@/index' )
 
 const bakadb = new BakaDB()

@@ -7,7 +7,7 @@ module.exports = {
 		const bakadb = require( '@/instances/bakadb' )
 		const { db } = bakadb
 		const MM = require( '@/instances/message-manager' )
-		const TimeSplitter = require( '@/re/time-splitter' )
+		const TimeSplitter = require( '@/libs/time-splitter' )
 
 		const max_tms = 5
 		const max_lifetime = 3 * 86400e3

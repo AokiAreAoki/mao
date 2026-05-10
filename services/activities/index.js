@@ -154,7 +154,7 @@ module.exports = {
 		}
 
 		ActivityManager.Activity = Activity
-		module.exports = ActivityManager
+		module.exports.instance = ActivityManager
 
 		client.once( Events.ClientReady, () => ActivityManager.init( client ) )
 		require( './default-activities' )

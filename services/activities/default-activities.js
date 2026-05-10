@@ -1,4 +1,4 @@
-const ActivityManager  = require( '.' )
+const { instance: ActivityManager } = require( '.' )
 
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)

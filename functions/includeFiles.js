@@ -73,7 +73,12 @@ function log( message, isError ){
 	process.stdout.write( message )
 }
 
-module.exports = function includeFiles({ text, query, callback }){
+module.exports = function includeFiles({
+	text,
+	query,
+	callback,
+	cwd = process.cwd(),
+}){
 	const children = []
 	messageStack.push( children )
 
@@ -92,6 +97,7 @@ module.exports = function includeFiles({ text, query, callback }){
 
 	query = query
 		.split( /[/\\]+/ )
+		.filter( entity => entity !== '.' )
 		.map( ( entity, index, array ) => {
 			if( entity === '**' )
 				return {
@@ -134,6 +140,7 @@ module.exports = function includeFiles({ text, query, callback }){
 				throw error
 			}
 		},
+		path: cwd,
 	})
 
 	if( children.length === 0 )

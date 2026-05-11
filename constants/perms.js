@@ -15,8 +15,6 @@ const PermissionsArray = Object.values( Permissions )
 const PermissionsSet = new Set( PermissionsArray )
 const PermissionsList = new List( PermissionsArray )
 
-bakadb.createCoder( List, perms => 'List:' + perms.toString(), list => new List( list ) )
-
 if( db.perms ){
 	for( let k in db.perms ){
 		let perms = db.perms[k]

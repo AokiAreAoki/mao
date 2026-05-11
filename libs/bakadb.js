@@ -18,40 +18,59 @@ String.prototype.matchFirst = function( re, cb ){
 	return string
 }
 
+/**
+ * @typedef {Object} BakaDBCoder
+ * @property {function(*, string):*} [serialize] Function that serializes a value for storage.
+ * @property {function(string, string):*} [deserialize] Function that deserializes a stored string.
+ *
+ * @typedef {Object.<string, (BakaDBCoder|string)>} BakaDBCoders
+ * Coders can be a serializer/deserializer object or a redirect to another coder key.
+ *
+ * @typedef {Object} BakaDBOptions
+ * @property {number} [saveThrottle] Save throttle delay in milliseconds.
+ * @property {number} [backupLimit] Number of backup files to keep.
+ * @property {BakaDBCoders} [coders] Custom coders to merge with defaults.
+ */
 class BakaDB extends events {
-	saveThrottle = 100
-	backups_limit = 10
-	default_coders = {
+	defaultCoders = {
 		Function: {
-			encode: func => 'Function:' + String( func ),
-			decode: str => eval( str ),
+			serialize: func => 'Function:' + String( func ),
+			deserialize: str => eval( str ),
 		},
 		AsyncFunction: 'Function', //redirect
 		RegExp: {
-			encode: reg => 'RegExp:' + String( reg ),
-			decode: str => eval( str ),
+			serialize: reg => 'RegExp:' + String( reg ),
+			deserialize: str => eval( str ),
 		},
 		Array: {
-			encode: ( arr, path ) => this._encode( arr, path ),
-			decode: ( str, path ) => this._decode( str, path ),
+			serialize: ( arr, path ) => this._serialize( arr, path ),
+			deserialize: ( str, path ) => this._deserialize( str, path ),
 		},
 		Object: {
-			encode: ( obj, path ) => this._encode( obj, path ),
-			decode: ( str, path ) => this._decode( str, path ),
+			serialize: ( obj, path ) => this._serialize( obj, path ),
+			deserialize: ( str, path ) => this._deserialize( str, path ),
 		},
 	}
 
-	constructor(){
+	/**
+	 * @param {BakaDBOptions} [options]
+	 */
+	constructor({
+		saveThrottle = 100,
+		backupLimit = 10,
+		coders,
+	} = {}){
 		super()
+
+		this.saveThrottle = saveThrottle
+		this.backupLimit = backupLimit
+		this.coders = {
+			...this.defaultCoders,
+			...coders,
+		}
 	}
 
-	init( path, shit ){
-		if( path instanceof Object )
-			shit = path
-
-		if( shit instanceof Object )
-			for( let k in shit ) global[k] = shit[k]
-
+	init( path ){
 		this.path = ( typeof path === 'string' && path ) ? path.replace( /^(?!\.[/\\])[/\\]?([\w\s_-]+)(?!:)/, './$1' ) : './bdb'
 		let data = {}
 
@@ -82,11 +101,10 @@ class BakaDB extends events {
 			fs.mkdirSync( this.path, { recursive: true } )
 		}
 
-		this.coders = this.default_coders
 		if( data.coders )
-			this._foreach( data.coders, ( coder, type ) => this.coders[type] = this._decode( coder ) )
+			delete data.coders
 
-		this.db = data.db ? this._decode( data.db ) : {}
+		this.db = data.db ? this._deserialize( data.db ) : {}
 
 		process.on( 'exit', () => this.save( true ) )
 
@@ -149,41 +167,41 @@ class BakaDB extends events {
 				cb( object[k], k );
 	}
 
-	_encode( object, _path='/' ){
-		let encoded
+	_serialize( object, _path='/' ){
+		let serialized
 
 		if( object instanceof Array )
-			encoded = []
+			serialized = []
 		else if( object instanceof Object )
-			encoded = {}
+			serialized = {}
 		else
-			return this._encodeValue( object, _path )
+			return this._serializeValue( object, _path )
 
 		this._foreach( object, ( val, k ) => {
-			encoded[k] = this._encodeValue( val, _path )
+			serialized[k] = this._serializeValue( val, _path )
 		})
 
-		return encoded
+		return serialized
 	}
 
-	_decode( object, _path='/' ){
-		let decoded
+	_deserialize( object, _path='/' ){
+		let deserialized
 
 		if( object instanceof Array )
-			decoded = []
+			deserialized = []
 		else if( object instanceof Object )
-			decoded = {}
+			deserialized = {}
 		else
-			return this._decodeValue( object, _path )
+			return this._deserializeValue( object, _path )
 
 		this._foreach( object, ( val, k ) => {
-			decoded[k] = this._decodeValue( val, _path )
+			deserialized[k] = this._deserializeValue( val, _path )
 		})
 
-		return decoded
+		return deserialized
 	}
 
-	_encodeValue( val, _path='/' ){
+	_serializeValue( val, _path='/' ){
 		if( typeof val === 'undefined' || val == null )
 			return
 
@@ -200,13 +218,13 @@ class BakaDB extends events {
 		if( typeof coder === 'string' )
 			coder = this.coders[coder]
 
-		if( typeof coder !== 'undefined' && coder.encode instanceof Function )
-			return coder.encode( val, _path )
+		if( typeof coder !== 'undefined' && coder.serialize instanceof Function )
+			return coder.serialize( val, _path )
 		else
-			this.emit( 'missing-encoder', type, _path )
+			this.emit( 'missing-serializer', type, _path )
 	}
 
-	_decodeValue( val, _path='/' ){
+	_deserializeValue( val, _path='/' ){
 		if( typeof val === 'number' || typeof val === 'boolean' )
 			return val
 
@@ -225,18 +243,23 @@ class BakaDB extends events {
 			if( type === 'String' )
 				return val
 
-			let coder = this.coders[type]
+			let coder = type
+			let redirectsLeft = 5
 
-			// redirect
-			if( typeof coder === 'string' )
+			while( typeof coder === 'string' ){
+				if( --redirectsLeft < 0 ){
+					throw Error( `Too many redirects while looking for coder "${type}" (path: "${_path}")` )
+				}
+
 				coder = this.coders[coder]
+			}
 
-			if( typeof coder !== 'undefined' && coder.decode instanceof Function )
-				return coder.decode( val, _path )
-			else
-				this.emit( 'missing-decoder', type, _path )
+			if( typeof coder !== 'undefined' && coder.deserialize instanceof Function )
+				return coder.deserialize( val, _path )
+
+			this.emit( 'missing-deserializer', type, _path )
 		} else if( typeof val === 'object' )
-			return this._decode( val )
+			return this._deserialize( val )
 	}
 
 	save( force = false ){
@@ -252,13 +275,8 @@ class BakaDB extends events {
 		this.emit( 'save' )
 
 		try {
-			const data = this._encode({
-				db: this.db,
-				coders: this.coders,
-				separator: this.separator,
-			})
-
-			const json = JSON.stringify( data )
+			const serializedData = this._serialize({ db: this.db })
+			const json = JSON.stringify( serializedData )
 
 			if( !fs.existsSync( this.path ) )
 				fs.mkdirSync( this.path, { recursive: true } )
@@ -275,7 +293,7 @@ class BakaDB extends events {
 			.filter( file => /^\d+$/.test( file ) )
 			.map( file => parseInt( file ) )
 			.sort( ( a, b ) => b - a )
-			.slice( this.backups_limit )
+			.slice( this.backupLimit )
 			.forEach( timestamp => {
 				fs.unlinkSync( join( this.path, timestamp.toString() ) )
 			})
@@ -292,12 +310,12 @@ class BakaDB extends events {
 			.filter( p => !!p )
 	}
 
-	createCoder( constructor, encoder, decoder ){
+	createCoder( constructor, serialize, deserialize ){
 		constructor = this._getConstructorName( constructor )
 
 		this.coders[constructor] = {
-			encode: encoder,
-			decode: decoder,
+			serialize,
+			deserialize,
 		}
 		this.emit( 'coder-created', constructor, this.coders[constructor] )
 	}

@@ -9,7 +9,7 @@ function( bakadb ){
 	function serialize( promise ) {
 		if( !promise.bakadbIsAwaiting ){
 			promise.bakadbIsAwaiting = true
-			promise.then( () => this.save() )
+			promise.then( () => bakadb.save() )
 		}
 	}
 

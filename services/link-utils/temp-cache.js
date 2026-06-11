@@ -27,8 +27,22 @@ class TempCache extends Map {
 	}
 
 	static insertGlobal( entry ){
-		const index = binarySearch( this.globalCache, entry.timeout, v => v.timeout )
-		this.globalCache.splice( index, 0, entry )
+		const insertableIndex = binarySearch( this.globalCache, entry.timeout, v => v.timeout )
+		this.globalCache.splice( insertableIndex, 0, entry )
+	}
+
+	static removeGlobal( entryToRemove ){
+		const insertableIndex = binarySearch( this.globalCache, entryToRemove.timeout, v => v.timeout )
+
+		for( let i = insertableIndex - 1; i >= 0; --i ){
+			const entry = this.globalCache[i]
+
+			if( entry === entryToRemove )
+				this.globalCache.splice( i, 1 )
+
+			if( entry.timeout < entryToRemove.timeout )
+				break
+		}
 	}
 
 	static {
@@ -48,24 +62,25 @@ class TempCache extends Map {
 	}
 
 	set( key, value ){
-		const entry = super.get( key )
+		let entry = super.get( key )
 
 		if( entry ){
+			TempCache.removeGlobal( entry )
+
 			entry.timeout = Date.now() + this.timeout
 			entry.value = value
-			TempCache.sortGlobal()
-			return
+		} else {
+			entry = new Entry({
+				value,
+				key,
+				timeout: Date.now() + this.timeout,
+				cache: this,
+			})
+
+			super.set( key, entry )
 		}
 
-		const newEntry = new Entry({
-			value,
-			key,
-			timeout: Date.now() + this.timeout,
-			cache: this,
-		})
-
-		super.set( key, newEntry )
-		TempCache.insertGlobal( newEntry )
+		TempCache.insertGlobal( entry )
 	}
 
 	get( key ){

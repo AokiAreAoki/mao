@@ -4,34 +4,33 @@ module.exports = {
 	init({ addCommand }){
 		const discord = require( 'discord.js' )
 		const client = require( '@/instances/client' )
+		const stripEmojis = require( '@/functions/stripEmojis' )
 
-		async function sortChannels( category ){
+		async function sortChannels( category, ignoreEmojis = false ){
 			if( !( category instanceof discord.CategoryChannel ) )
 				throw Error( `category must be an instance of CategoryChannel` )
 
-			const channels = Array.from( category.children.cache.values() )
+			const fetchedCategory = await category.guild.channels.fetch().then( c => c.get( category.id ) )
+			const channels = Array.from( fetchedCategory.children.cache.values() )
+			const channelNames = new Map()
 
-			channels.sort( ( a, b ) => {
-				a = a.name
-				b = b.name
-				let i = 0
+			for( const channel of channels ){
+				const channelName = ignoreEmojis
+					? stripEmojis( channel.name ).trim()
+					: channel.name
 
-				do {
-					if( a[i] === b[i] ) continue
-					if( b.length < i ) return 1
-					return a.charCodeAt(i) - b.charCodeAt(i)
-				} while( ++i < a.length )
+				channelNames.set( channel, channelName )
+			}
 
-				return -1
-			})
-
+			channels.sort( ( a, b ) => channelNames.get( a ).localeCompare( channelNames.get( b ) ) )
 			channels.nothingChanged = true
 
-			for( let i = 0; i < channels.length; ++i )
+			for( let i = 0; i < channels.length; ++i ){
 				if( channels[i].position !== i ){
 					await channels[i].setPosition(i)
 					channels.nothingChanged = false
 				}
+			}
 
 			return channels.length !== 0 ? channels : null
 		}
@@ -44,6 +43,9 @@ module.exports = {
 					[`<category ID>`, 'sorts channels of $1 by alphabet'],
 				],
 			},
+			flags: [
+				[['ignore-emojis', 'ie'], 'ignores emojis in channel names'],
+			],
 			async callback({ msg, args, session }){
 				if( !msg.member.permissions.has( discord.PermissionsBitField.Flags.ManageChannels ) )
 					return session.update( `You don't have permission` )
@@ -63,7 +65,7 @@ module.exports = {
 				await category.guild.channels.fetch( null, { force: true } )
 
 				const [channels, message] = await Promise.all([
-					sortChannels( category ),
+					sortChannels( category, args.flags['ignore-emojis'].specified ),
 					messagePromise,
 				])
 

@@ -368,10 +368,10 @@ class CommandFlag {
 		else if( Array.isArray( this.aliases ) )
 			this.aliases = this.aliases.map( alias => alias.toLowerCase() )
 
-	const usage = new Usage( args )
-	this.description = usage.description
-	this.args = usage.args
-}
+		const usage = new Usage( args )
+		this.description = usage.description
+		this.args = usage.args
+	}
 
 	get id(){
 		return this.aliases[0]
@@ -650,23 +650,23 @@ class CommandDescription {
 		if( this._cache )
 			return this._cache
 
-		//// Single line breaks
-		let lines = [
+		const paragraphs = []
+
+		// Aliases and description
+		const firstParagraph = [
 			`Aliases: \`${this.command.aliases.join( '`, `' )}\``
 		]
 
-		// Description
 		if( this.full )
-			lines.push( this.full )
+			firstParagraph.push( this.full )
 
-		//// Double line breaks
-		lines = [lines.join( '\n' )]
+		paragraphs.push( firstParagraph.join( '\n' ) )
 
 		// Flags
 		if( this.command.hasFlags ){
 			const flagPrefix = this.command.cm.flagPrefix
 
-			lines.push( 'Flags:\n' + this.command.flags.map( flag => {
+			paragraphs.push( 'Flags:\n' + this.command.flags.map( flag => {
 				const flagAliases = flag.aliases
 					.map( alias => `\`${flagPrefix}${alias}\`` )
 					.join( '/' )
@@ -700,7 +700,7 @@ class CommandDescription {
 				return `• ${args.join( ' ' )}${description}`
 			}).join( '\n' )
 
-			lines.push( 'Usage:\n' + usage )
+			paragraphs.push( 'Usage:\n' + usage )
 		}
 
 		// Examples
@@ -711,18 +711,22 @@ class CommandDescription {
 				return `• \`${args.join( '` `' )}\`${description}`
 			}).join( '\n' )
 
-			lines.push( `Example${examples.length === 1 ? '' : 's'}:\n${examples}` )
+			paragraphs.push( `Example${examples.length === 1 ? '' : 's'}:\n${examples}` )
 		}
 
 		// Subcommands
 		if( this.command.subcommands.length !== 0 )
-			lines.push( 'Subcommands:\n' + this.command.listSubcommands().join( '\n' ) )
+			paragraphs.push( 'Subcommands:\n' + this.command.listSubcommands().join( '\n' ) )
 
 		//// End
-		return this._cache = lines.join( '\n\n' ) || 'no description :('
+		return this._cache = paragraphs.join( '\n\n' ) || 'no description :('
 	}
 }
 
+/**
+ * @param {string[]} args
+ * @returns {Usage}
+ */
 function Usage( args ){
 	const description = args.pop()
 

@@ -272,7 +272,9 @@ class Command {
 		flags?.forEach( flagArgs => {
 			if( flagArgs instanceof Array ){
 				const flag = new CommandFlag( ...flagArgs )
-				this.flags.set( flag.name, flag )
+
+				for( const alias of flag.aliases )
+					this.flags.set( alias, flag )
 			}
 		})
 
@@ -352,11 +354,28 @@ class Command {
 	}
 }
 
-function CommandFlag( ...args ){
-	this.name = args.shift().toLowerCase()
+class CommandFlag {
+	/** @type {string[]}	*/ aliases
+	/** @type {string}		*/ description
+	/** @type {string[]}	*/ args
+	/** @type {Command}		*/ parent
+
+	constructor( ...args ){
+		this.aliases = args.shift()
+
+		if( typeof this.aliases === 'string' )
+			this.aliases = [this.aliases.toLowerCase()]
+		else if( Array.isArray( this.aliases ) )
+			this.aliases = this.aliases.map( alias => alias.toLowerCase() )
+
 	const usage = new Usage( args )
 	this.description = usage.description
 	this.args = usage.args
+}
+
+	get id(){
+		return this.aliases[0]
+	}
 }
 
 class ArgumentParser extends Array {
@@ -385,14 +404,14 @@ class ArgumentParser extends Array {
 				if( !prefix )
 					continue
 
-				const flag = command.flags.get( arg.substr( prefix.length ) )
+				const flag = command.flags.get( arg.substring( prefix.length ) )
 
 				if( flag ){
 					const flagInstance = this.spliceArgs( i, flag.args.length + 1 )
 					flagInstance.shift()
 					flagInstance.class = flag
 					flagInstance.specified = true
-					this.flags[flag.name] = flagInstance
+					this.flags[flag.id] = flagInstance
 				}
 			}
 
@@ -648,9 +667,16 @@ class CommandDescription {
 			const flagPrefix = this.command.cm.flagPrefix
 
 			lines.push( 'Flags:\n' + this.command.flags.map( flag => {
-				const flagAndArgs = [flag.name, ...flag.args].join( '` `' )
+				const flagAliases = flag.aliases
+					.map( alias => `\`${flagPrefix}${alias}\`` )
+					.join( '/' )
 
-				return `• \`${flagPrefix}${flagAndArgs}\` - ${flag.description}`
+				const flagAndArgs = [
+					flagAliases,
+					...flag.args.map( arg => `\`${arg}\`` ),
+				].join( ' ' )
+
+				return `• ${flagAndArgs} - ${flag.description}`
 			}).join( '\n' ) )
 		}
 

@@ -2,10 +2,10 @@
 require = global.alias(require)
 module.exports = {
 	init(){
-		// const cp = require( 'child_process' )
+		const cp = require( 'child_process' )
 		const fs = require( 'fs' )
 		const { join } = require( 'path' )
-		const ytdl = require( 'youtube-dl-exec' )
+		let ytdl = require( 'youtube-dl-exec' )
 
 		const config = require( '@/config.yml' )
 		const TEMP_FOLDER = require( '@/constants/temp-folder' )
@@ -15,9 +15,21 @@ module.exports = {
 		const { getSocksProxy } = require( '@/instances/proxy' )
 		const zipline = require( '@/instances/zipline' )
 
+		const CACHE_TIMEOUT = 2 * 24 * 3600e3
 		const TempCache = require( "./temp-cache" )
 
-		const CACHE_TIMEOUT = 2 * 24 * 3600e3
+		try {
+			const command = process.platform === 'win32'
+				? 'where yt-dlp'
+				: 'which yt-dlp'
+			const output = cp.execSync( command, { encoding: 'utf8' } ).trim()
+			const ytDlpPath = output.split( '\n' )[0].trim()
+
+			ytdl = ytdl.create( ytDlpPath )
+			console.log( `[Link Utils] Found a local installation of 'yt-dlp' at "${ytDlpPath}".` )
+		} catch( err ) {
+			console.warn( `[Link Utils] Failed to resolve the path to a local 'yt-dlp'. Falling back onto 'youtube-dl-exec' included binary.` )
+		}
 
 		// function spawnAsync( program, args, options ){
 		// 	return new Promise( resolve => {

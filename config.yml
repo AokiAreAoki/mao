@@ -1,5 +1,6 @@
 maoclr: 0x970045
-log_channel: '893430789306470430'
+dateLocale: 'ru'
+logChannel: '893430789306470430'
 
 zipline:
     deletesIn: 90d

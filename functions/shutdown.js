@@ -15,17 +15,17 @@ module.exports = async function shutdown( code ){
 
 	if( index.isLoggedIn ){
 		tryingToShutdown = Date.now() + 5e3
-		console.log( '\nShutting down...' )
+		console.log( '\n[Shutdown] Shutting down...' )
 
-		console.log( 'Saving DB...' )
+		console.log( '[Shutdown] Saving DB...' )
 		bakadb.save( true )
-		console.log( 'DB Saved.' )
+		console.log( '[Shutdown] DB Saved.' )
 
-		console.log( 'Logging out...' )
+		console.log( '[Shutdown] Logging out...' )
 		await client.destroy()
-		console.log( 'Logged out.' )
+		console.log( '[Shutdown] Logged out.' )
 	} else {
-		console.log( 'Process has been terminated' )
+		console.log( '[Shutdown] Process has been terminated' )
 	}
 
 	code = isFinite( code ) ? Math.floor( code ) : NaN

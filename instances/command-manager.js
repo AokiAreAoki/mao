@@ -42,7 +42,7 @@ if( flags.dev ){
 	client.once( Events.ClientReady, () => {
 		print = ( command, property ) => {
 			console.log()
-			console.log( '[CM] Warning: misplaced properties found:' )
+			console.log( '[Command Manager] Warning: misplaced properties found:' )
 			console.warn(
 				`    command(\`${command.fullName}\`):\n        \`.${property}\` must be at \`.description.${property}\``
 			)

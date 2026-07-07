@@ -33,32 +33,34 @@ require( '@/graceful-shutdown' )
 const { Events } = require( 'discord.js' )
 const numsplit = require( '@/functions/numsplit' )
 const includeFiles = require( '@/functions/includeFiles' )
-
+const {
+	dateLocale = 'ru',
+} = require( '@/config.yml' )
 const client = require( '@/instances/client' )
 
 client.once( Events.ClientReady, () => {
 	module.exports.loggedIn = Date.now() - module.exports.initializedAt
 	module.exports.isLoggedIn = true
 
-	console.log( 'Logged in as ' + client.user.tag )
+	console.log( '[Client] Logged in as ' + client.user.tag )
 
 	let online = true
 
 	function reconnecting() {
 		if( online ){
 			online = false
-			console.log( `[${new Date().toLocaleString( 'ru' )}] Reconnecting to discord...` )
+			console.log( `[Client] [${new Date().toLocaleString( dateLocale )}] Reconnecting to discord...` )
 		}
 	}
 
 	function disconnected() {
-		console.log( `[${new Date().toLocaleString( 'ru' )}] Shard disconnected` )
+		console.log( `[Client] [${new Date().toLocaleString( dateLocale )}] Shard disconnected` )
 	}
 
 	function resume() {
 		if( !online ){
 			online = true
-			console.log( `[${new Date().toLocaleString( 'ru' )}] Connection to discord is back` )
+			console.log( `[Client] [${new Date().toLocaleString( dateLocale )}] Connection to discord is back` )
 		}
 	}
 
@@ -70,14 +72,14 @@ client.once( Events.ClientReady, () => {
 
 // Including methods //
 includeFiles({
-	text: 'Declaring custom methods',
+	text: '[Index] Declaring custom methods',
 	query: 'methods/*.js',
 	callback: method => void method(),
 })
 
 // Initializing services //
 includeFiles({
-	text: 'Initializing services',
+	text: '[Index] Initializing services',
 	query: 'services/*(.js)?/index.js',
 	callback: inclusion => inclusion.init({}),
 })
@@ -85,4 +87,4 @@ includeFiles({
 // End
 module.exports.initializedIn = Math.round( Date.now() - module.exports.startedAt )
 module.exports.initializedAt = Date.now()
-console.log( `\nInitialization finished in ${numsplit( module.exports.initializedIn )}ms, logging in...` )
+console.log( `\n[Index] Initialization finished in ${numsplit( module.exports.initializedIn )}ms, logging in...` )

@@ -10,8 +10,8 @@ async function updateRemoteCommand(){
 	const remoteCommands = await rest.get( routes.commands() )
 
 	if( flags.dev ){
-		console.log( `local commands:`, localCommands )
-		console.log( `remote commands:`, remoteCommands )
+		console.log( `[SCM] [Debug] local commands:`, localCommands )
+		console.log( `[SCM] [Debug] remote commands:`, remoteCommands )
 	}
 
 	remoteCommands

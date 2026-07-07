@@ -26,6 +26,6 @@ includeFiles({
 bakadb.init( flags.dev ? './test/bdb' : './bdb' )
 
 bakadb.autoSave( 5 * 60 )
-bakadb.on( 'missing-serializer', serializer => console.log( `[WARNING] Missing "${serializer}" serializer` ) )
-bakadb.on( 'missing-deserializer', deserializer => console.log( `[WARNING] Missing "${deserializer}" deserializer` ) )
+bakadb.on( 'missing-serializer', serializer => console.warn( `[BakaDB] [WARNING] Missing "${serializer}" serializer` ) )
+bakadb.on( 'missing-deserializer', deserializer => console.warn( `[BakaDB] [WARNING] Missing "${deserializer}" deserializer` ) )
 module.exports = bakadb

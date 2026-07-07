@@ -27,7 +27,7 @@ module.exports = {
 
 			errors[id].nextMessage = Date.now() + MESSAGE_INTERVAL
 
-			return client.channels.fetch( config.log_channel )
+			return client.channels.fetch( config.logChannel )
 				.then( async channel => {
 					const message = await errors[id].message
 					message?.delete()
@@ -51,8 +51,8 @@ module.exports = {
 				process.stdout.write( `[${prefix}] ` )
 				console.error( error )
 
-				if( !config.log_channel )
-					return console.log( '`log_channel` is not specified in config' )
+				if( !config.logChannel )
+					return console.log( '[Error Catcher] `logChannel` is not specified in the `config.yml`' )
 
 				const id = String( error )
 

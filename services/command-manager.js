@@ -12,7 +12,7 @@ module.exports = {
 		const folderLookup = new Map()
 
 		includeFiles({
-			text: 'Initializing command modules',
+			text: '[Command Manager] Initializing command modules',
 			query: 'commands/**/index.js',
 			callback: ( settings, [, folder] ) => {
 				const module = CM.addModule( settings )
@@ -22,7 +22,7 @@ module.exports = {
 
 		/// Commands ///
 		includeFiles({
-			text: 'Initializing commands',
+			text: '[Command Manager] Initializing commands',
 			query: 'commands/**/*(.js)?/index.js',
 			callback( inclusion, path ){
 				const [, folder, file] = path

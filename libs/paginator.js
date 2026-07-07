@@ -136,7 +136,7 @@ class Paginator {
 
 		switch( interaction.customId ){
 			default:
-				console.log( `Interaction with unknown custom ID: "${interaction.customId}"` )
+				console.log( `[Paginator] Interaction with unknown custom ID: "${interaction.customId}"` )
 				break
 
 			case `right`:

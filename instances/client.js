@@ -38,12 +38,12 @@ const client = new discord.Client({
 client.login( tokens.discord[flags.dev ? 'dev' : 'mao'] )
 	.catch( err => {
 		console.error( err )
-		console.log( 'Failed to log in. Exit.' )
+		console.log( '[Client] Failed to log in. Exit.' )
 		process.exit(2)
 	})
 
 client.on( discord.Events.Error, err => {
-	console.log( 'Client error happened:' )
+	console.log( '[Client] Client error happened:' )
 	process.emit( 'unhandledRejection', err )
 })
 

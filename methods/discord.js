@@ -76,7 +76,6 @@ module.exports = function(){
 	// TextChannel.send
 	discord.TextChannel.prototype.original_send = discord.TextChannel.prototype.send
 	discord.TextChannel.prototype.send = async function( content, options ){
-		await this.sendTyping()
 		return this.original_send( transformMessagePayload( content, options ) )
 	}
 

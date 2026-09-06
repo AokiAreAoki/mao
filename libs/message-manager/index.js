@@ -39,10 +39,21 @@ function checkTypes( variables, types, throwError = false ){
 	return true
 }
 
+/**
+ * @typedef {(msg: discord.Message) => unknown} HandlerCallback
+ */
+
 class MessageManager {
+	/** @type {discord.Client} */
 	client
+
+	/** @type {boolean} */
 	handleEdits
+
+	/** @type {boolean} */
 	handleDeletion
+
+	/** @type {Handler[]} */
 	handlers = []
 
 	constructor({
@@ -106,14 +117,29 @@ class MessageManager {
 			this.client.on( discord.Events.MessageDelete, msg => this.handleMessageDeletion( msg ) )
 	}
 
+	/**
+	 * @param {string} name
+	 * @param {boolean} markMessagesAsCommand
+	 * @param {HandlerCallback} callback
+	 */
 	pushHandler( name, markMessagesAsCommand, callback ){
 		this.handlers.push( new Handler( name, markMessagesAsCommand, callback ) )
 	}
 
+	/**
+	 * @param {string} name
+	 * @param {boolean} markMessagesAsCommand
+	 * @param {HandlerCallback} callback
+	 */
 	unshiftHandler( name, markMessagesAsCommand, callback ){
 		this.handlers.unshift( new Handler( name, markMessagesAsCommand, callback ) )
 	}
 
+	/**
+	 * @param {string} name
+	 * @param {boolean} markMessagesAsCommand
+	 * @param {HandlerCallback} callback
+	 */
 	replaceHandler( name, markMessagesAsCommand, callback ){
 		const index = this.handlers.findIndex( h => h.name === name )
 
@@ -160,6 +186,12 @@ class MessageManager {
 	}
 }
 
+/**
+ * @typedef {object} Handler
+ * @prop {string} name
+ * @prop {boolean} markMessagesAsCommand
+ * @prop {HandlerCallback} callback
+ */
 function Handler( name, markMessagesAsCommand, callback ){
 	checkTypes( { name }, 'string' )
 	checkTypes( { callback }, 'function' )

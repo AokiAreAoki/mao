@@ -1,4 +1,4 @@
-const { Collection } = require( '../node_modules/discord.js' )
+const { Collection } = require( 'discord.js' )
 
 String.prototype.matchFirst = function( re, cb ){
 	let matched = this.match( re )

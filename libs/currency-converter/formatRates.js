@@ -14,7 +14,7 @@ const QUESTIONS = [
 
 const SAME_CURRENCIES_RESPONSE = [
 	`Try different currencies`,
-	`There are the same currencies`,
+	`They are the same currency`,
 	`I bet it's the same`,
 ]
 

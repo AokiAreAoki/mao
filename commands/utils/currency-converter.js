@@ -7,9 +7,11 @@ module.exports = {
 		const Embed = require( '@/functions/Embed' )
 		const parsePrettyNumber = require( '@/functions/parsePrettyNumber' )
 
-		const convert = require( './convert' )
-		const formatRates = require( './formatRates' )
-		const getCurrencyRates = require( './getCurrencyRates' )
+		const {
+			convert,
+			formatRates,
+			getCurrencyRates,
+		} = require( '@/libs/currency-converter' )
 
 		const DB_DIRECTORY = 'currencyPresets'
 		const ERROR_MESSAGE = `Something went wrong`

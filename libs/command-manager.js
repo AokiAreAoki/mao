@@ -596,7 +596,12 @@ class CommandDescription {
 		if( typeof text !== 'string' || text.length === 0 )
 			return null
 
-		return text[0].toLowerCase() + text.substring(1)
+		const rest = text.substring(1)
+
+		if( rest === rest.toLowerCase() )
+			return text[0].toLowerCase() + rest
+
+		return text
 	}
 
 	command = null

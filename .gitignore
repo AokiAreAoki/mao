@@ -4,6 +4,7 @@
 /bdb
 /test
 /temp
+/.ollama
 tokens*
 package-lock.json
 *.bat

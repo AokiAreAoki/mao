@@ -10,8 +10,8 @@
 		"start": "node .",
 		"dev": "node . --dev",
 		"eslint": "npx eslint .",
-		"ollama-start": "docker-compose -f docker-compose.ollama.yml up -d",
-		"ollama-stop": "docker-compose -f docker-compose.ollama.yml down"
+		"ollama-start": "docker compose -f docker-compose.ollama.yml up -d",
+		"ollama-stop": "docker compose -f docker-compose.ollama.yml down"
 	},
 	"keywords": [
 		"mao",

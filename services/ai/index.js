@@ -141,7 +141,7 @@ Strict Negative Constraints (NEVER DO THIS):
 					content: MASTER_PROMPT,
 				},
 				...conversationHistory.map( msg => ({
-					role: "user",
+					role: msg.role,
 					content: `[${msg.name}] said: ${msg.content}`,
 				}) ),
 				// {
@@ -211,7 +211,7 @@ Strict Negative Constraints (NEVER DO THIS):
 			}
 
 			await session
-				.update( responseMessage )
+				.update( responseMessage ) // TODO: this might not return a Promise in some cases
 				.then( msg => markAsAIResponse( msg ) )
 
 			return true

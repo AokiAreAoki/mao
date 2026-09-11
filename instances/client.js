@@ -35,6 +35,10 @@ const client = new discord.Client({
 	],
 })
 
+client.whenReady = new Promise( resolve => {
+	client.once( discord.Events.ClientReady, resolve )
+})
+
 client.login( tokens.discord[flags.dev ? 'dev' : 'mao'] )
 	.catch( err => {
 		console.error( err )

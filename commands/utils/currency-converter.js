@@ -3,7 +3,6 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const bakadb = require( '@/instances/bakadb' )
-		const MM = require( '@/instances/message-manager' )
 		const Embed = require( '@/functions/Embed' )
 		const parsePrettyNumber = require( '@/functions/parsePrettyNumber' )
 
@@ -13,14 +12,13 @@ module.exports = {
 			getCurrencyRates,
 		} = require( '@/libs/currency-converter' )
 
-		const DB_DIRECTORY = 'currencyPresets'
-		const ERROR_MESSAGE = `Something went wrong`
-		const CONVERSION_ERROR_MESSAGE = `Something went wrong :(\nI can't convert currency right now`
-		const MAX_PRESET_CURRENCIES_COUNT = 10
-
-		const NUMBER_RE = `(\\d[\\d\\s_,]*(?:\\.[\\d\\s_,]+)?(?:e-?\\d+)?|\\d+)`
-		const SINGLE_NUMBER_RE = new RegExp( `\\b${NUMBER_RE}\\b`, 'gi' )
-		const CONVERSION_RE = new RegExp( `\\b${NUMBER_RE}?\\s*(\\w{3})\\s*to\\s*(\\w{3})\\b`, 'gi' )
+		const {
+			DB_DIRECTORY,
+			ERROR_MESSAGE,
+			CONVERSION_ERROR_MESSAGE,
+			MAX_PRESET_CURRENCIES_COUNT,
+			SINGLE_NUMBER_RE,
+		} = require( '@/constants/currency-converter' )
 
 		function formatCurrencies( currencies ){
 			if( currencies.length === 0 )
@@ -282,37 +280,6 @@ module.exports = {
 						return session.update( error || ERROR_MESSAGE )
 					})
 			},
-		})
-
-		MM.pushHandler( 'currency-converter', false, async msg => {
-			const session = msg.response.session
-			const expressions = Array.from( msg.content.matchAll( CONVERSION_RE ) )
-
-			if( expressions.length === 0 )
-				return
-
-			const exchangeRates = await expressions
-				.reduce( async ( acc, [, amount, from, to] ) => {
-					amount = amount?.match( SINGLE_NUMBER_RE )
-						? parsePrettyNumber( amount )
-						: 1
-
-					const conversion = await convert( amount, from, to )
-						.catch( error => {
-							session.update( CONVERSION_ERROR_MESSAGE )
-							throw error
-						})
-
-					acc = await acc
-					acc.push( conversion )
-					return acc
-				}, [] )
-				.then( rates => rates.filter( Boolean ) )
-
-			if( exchangeRates.length !== 0 ){
-				session.update( formatRates( exchangeRates ) )
-				return true
-			}
 		})
 	}
 }

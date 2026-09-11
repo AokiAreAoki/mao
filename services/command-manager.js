@@ -25,9 +25,9 @@ module.exports = {
 			text: '[Command Manager] Initializing commands',
 			query: 'commands/**/*(.js)?/index.js',
 			callback( inclusion, path ){
-				const [, folder, file] = path
+				const [, moduleFolder, commandFileOrFolder] = path
 
-				if( file === 'index.js' )
+				if( commandFileOrFolder === 'index.js' )
 					return
 
 				if( typeof inclusion?.init !== 'function' ){
@@ -38,11 +38,11 @@ module.exports = {
 					return
 				}
 
-				const module = folderLookup.get( folder )
+				const module = folderLookup.get( moduleFolder )
 
 				if( !module ){
 					setTimeout( () => {
-						console.warn( `[Warning] "${folder}" module was not initiated` )
+						console.warn( `[Warning] "${moduleFolder}" module was not initiated` )
 					}, 1 )
 
 					return

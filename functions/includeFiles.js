@@ -26,7 +26,7 @@ function iterate({
 
 	++depth
 
-	children.forEach( e => {
+	for( const e of children ){
 		entities.push( e.entity )
 
 		if( e.isFile ){
@@ -45,7 +45,7 @@ function iterate({
 		}
 
 		entities.pop()
-	})
+	}
 }
 
 const messageStack = []
@@ -73,7 +73,16 @@ function log( message, isError ){
 	process.stdout.write( message )
 }
 
-module.exports = function includeFiles({
+/**
+ * @typedef Params
+ * @property {string} text
+ * @property {string} query
+ * @property {(result: unknown, path: string[]) => void} callback
+ * @property {string} [cwd]
+ *
+ * @param {Params} params
+ */
+module.exports = async function includeFiles({
 	text,
 	query,
 	callback,

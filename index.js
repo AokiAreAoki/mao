@@ -30,45 +30,8 @@ require( './alias' )
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 require( '@/graceful-shutdown' )
-const { Events } = require( 'discord.js' )
 const numsplit = require( '@/functions/numsplit' )
 const includeFiles = require( '@/functions/includeFiles' )
-const {
-	dateLocale = 'ru',
-} = require( '@/config.yml' )
-const client = require( '@/instances/client' )
-
-client.once( Events.ClientReady, () => {
-	module.exports.loggedIn = Date.now() - module.exports.initializedAt
-	module.exports.isLoggedIn = true
-
-	console.log( '[Client] Logged in as ' + client.user.tag )
-
-	let online = true
-
-	function reconnecting() {
-		if( online ){
-			online = false
-			console.log( `[Client] [${new Date().toLocaleString( dateLocale )}] Reconnecting to discord...` )
-		}
-	}
-
-	function disconnected() {
-		console.log( `[Client] [${new Date().toLocaleString( dateLocale )}] Shard disconnected` )
-	}
-
-	function resume() {
-		if( !online ){
-			online = true
-			console.log( `[Client] [${new Date().toLocaleString( dateLocale )}] Connection to discord is back` )
-		}
-	}
-
-	client.on( Events.ShardReconnecting, reconnecting )
-	client.on( Events.ShardDisconnect, disconnected )
-	client.on( Events.ShardResume, resume )
-	client.on( Events.ShardReady, resume )
-})
 
 // Including methods //
 includeFiles({

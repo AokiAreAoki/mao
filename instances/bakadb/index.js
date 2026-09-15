@@ -2,7 +2,7 @@
 require = global.alias(require)
 
 const { flags } = require( '@/index' )
-const includeFiles = require( '@/functions/includeFiles' )
+const { includeFiles } = require( '@/functions/includeFiles' )
 const BakaDB = require( '@/libs/bakadb' )
 
 const bakadb = new BakaDB({

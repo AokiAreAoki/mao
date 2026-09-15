@@ -31,7 +31,7 @@ require( './alias' )
 require = global.alias(require)
 require( '@/graceful-shutdown' )
 const numsplit = require( '@/functions/numsplit' )
-const includeFiles = require( '@/functions/includeFiles' )
+const { includeFiles } = require( '@/functions/includeFiles' )
 const services = require( '@/services' )
 
 async function main() {

@@ -2,7 +2,7 @@
 require = global.alias(require)
 module.exports = {
 	init(){
-		const includeFiles = require( '@/functions/includeFiles' )
+		const { includeFiles } = require( '@/functions/includeFiles' )
 		const CM = require( '@/instances/command-manager' )
 		const MM = require( '@/instances/message-manager' )
 

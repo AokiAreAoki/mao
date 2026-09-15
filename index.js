@@ -32,22 +32,23 @@ require = global.alias(require)
 require( '@/graceful-shutdown' )
 const numsplit = require( '@/functions/numsplit' )
 const includeFiles = require( '@/functions/includeFiles' )
+const services = require( '@/services' )
 
-// Including methods //
-includeFiles({
-	text: '[Index] Declaring custom methods',
-	query: 'methods/*.js',
-	callback: method => void method(),
-})
+async function main() {
+	// Including methods //
+	includeFiles({
+		text: '[Index] Declaring custom methods',
+		query: 'methods/*.js',
+		callback: method => void method(),
+	})
 
-// Initializing services //
-includeFiles({
-	text: '[Index] Initializing services',
-	query: 'services/*(.js)?/index.js',
-	callback: inclusion => inclusion.init({}),
-})
+	// Initializing services //
+	await services.init()
 
-// End
-module.exports.initializedIn = Math.round( Date.now() - module.exports.startedAt )
-module.exports.initializedAt = Date.now()
-console.log( `\n[Index] Initialization finished in ${numsplit( module.exports.initializedIn )}ms, logging in...` )
+	// End
+	module.exports.initializedIn = Math.round( Date.now() - module.exports.startedAt )
+	module.exports.initializedAt = Date.now()
+	console.log( `\n[Index] Initialization finished in ${numsplit( module.exports.initializedIn )}ms, logging in...` )
+}
+
+main()

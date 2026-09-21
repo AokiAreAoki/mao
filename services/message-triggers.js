@@ -1,10 +1,14 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
+
+/** @type {import('@/libs/service-manager').Inclusion} */
 module.exports = {
-	init(){
-		const client = require( '@/instances/client' )
-		const MM = require( '@/instances/message-manager' )
+	id: "message-triggers",
+	name: "Message Triggers",
+	init({ sb }){
 		const discord = require( 'discord.js' )
+		const client = require( '@/instances/client' )
+		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
 		const responses = [
 			`%user`,
@@ -39,29 +43,13 @@ module.exports = {
 		/** @type {WeakMap<discord.User, number>} */
 		const userCoolDowns = new WeakMap()
 
-		client.once( discord.Events.ClientReady, () => {
-			triggers.push({
-				regexp: new RegExp( `^(?:mao|мао|<@!?(${client.user.id})>)`, 'i' ),
-				callback: mentionTrigger,
-			})
-
-			emojis.forEach( id => {
-				const emoji = client.emojis.resolve( id )
-
-				if( emoji )
-					responses.push( emoji )
-			})
-		})
-
 		/**
 		 * @callback TriggerCallback
 		 * @param {discord.Message} msg
 		 * @param {import('@/libs/message-manager/response')} session
 		 * @param {RegExpMatchArray} match
 		 * @returns {Promise<void>}
-		 */
-
-		/**
+		 *
 		 * @typedef {Object} Trigger
 		 * @property {RegExp} regexp
 		 * @property {TriggerCallback} callback
@@ -124,7 +112,21 @@ module.exports = {
 			return session.update( response, { reply: false } )
 		}
 
-		MM.pushHandler( 'message-triggers', false, msg => {
+		sb.onInit( () => {
+			triggers.push({
+				regexp: new RegExp( `^(?:mao|мао|<@!?(${client.user.id})>)`, 'i' ),
+				callback: mentionTrigger,
+			})
+
+			emojis.forEach( id => {
+				const emoji = client.emojis.resolve( id )
+
+				if( emoji )
+					responses.push( emoji )
+			})
+		})
+
+		sb.onMessage( MESSAGE_HANDLER_PRIORITIES.MESSAGE_TRIGGERS, msg => {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
 

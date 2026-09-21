@@ -1,20 +1,42 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
+
+/** @type {import('@/libs/service-manager').Inclusion} */
 module.exports = {
-	init(){
+	id: "totaluptime",
+	name: "Total Uptime Tracker",
+	alwaysOn: true,
+	init({ sb }){
 		const { Events } = require( 'discord.js' )
 		const timer = require( '@/libs/timer' )
 		const { db } = require( '@/instances/bakadb' )
 		const client = require( '@/instances/client' )
 
-		const interval = 30
+		const INTERVAL = 30
+		let lastTick = null
 
-		client.on( Events.ShardReady, () => {
-			timer.create( 'totaluptime', interval, 0, () => {
-				db.totaluptime = Math.round( ( ( db.totaluptime ?? 0 ) + interval / 60 ) * 10 ) / 10
-			})
-		})
+		function doTick(){
+			if( lastTick ){
+				const diff = Date.now() - lastTick
+				const newTotalUptime = ( db.totaluptime ?? 0 ) + diff / 60e3
+				db.totaluptime = Math.round( newTotalUptime * 10 ) / 10
+			}
 
-		client.on( Events.Invalidated, () => timer.remove( 'totaluptime' ) )
+			lastTick = Date.now()
+		}
+
+		function startTimer(){
+			doTick()
+			timer.create( 'totaluptime', INTERVAL, 0, doTick )
+		}
+
+		function stopTimer(){
+			doTick()
+			timer.remove( 'totaluptime' )
+			lastTick = null
+		}
+
+		sb.on( client, Events.ShardReady, startTimer )
+		sb.on( client, Events.Invalidated, stopTimer )
 	}
 }

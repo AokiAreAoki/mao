@@ -1,7 +1,11 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
+
+/** @type {import('@/libs/service-manager').Inclusion} */
 module.exports = {
-	init(){
+	id: "dag",
+	name: "DAG",
+	init({ sb }){
 		const discord = require( 'discord.js' )
 		const client = require( '@/instances/client' )
 		const bakadb = require( '@/instances/bakadb' )
@@ -47,7 +51,7 @@ module.exports = {
 		}
 		//// //// ////
 
-		const DAG = {
+		const API = {
 			sources: {
 				gelbooru: Gelbooru,
 				yandere: Yandere,
@@ -325,7 +329,7 @@ module.exports = {
 
 			// fetch
 			async fetch( { tags, source }, today ){
-				const booru = DAG.sources[source]
+				const booru = API.sources[source]
 
 				if( !booru )
 					throw Error( `Unknown source \`${source}\`` )
@@ -354,28 +358,39 @@ module.exports = {
 			},
 		}
 
-		module.exports = DAG
-
-		// Poster
-		client.once( discord.Events.ClientReady, check )
-
-		client.on( discord.Events.ShardReady, () => {
-			timer.create( 'daily_anime_girls', 30, 0, check )
-		})
-
-		client.on( discord.Events.Invalidated, () => {
-			timer.remove( 'daily_anime_girls' )
-		})
+		this.API = API
 
 		async function check(){
-			const today = DAG.currentDay()
+			if( !client.isReady() )
+				return
+
+			const today = API.currentDay()
 
 			if( bakadb.get( 'dag/lastPost' ) === today )
 				return
 
 			bakadb.set( 'dag/lastPost', today )
 			bakadb.save()
-			DAG.post( null )
+			API.post( null )
 		}
+
+		// Poster
+		function startChecker(){
+			if( client.ws.status !== discord.Status.Ready )
+				return
+
+			check()
+			timer.create( 'daily-anime-girls', 30, 0, check )
+		}
+
+		function stopChecker(){
+			timer.remove( 'daily-anime-girls' )
+		}
+
+		sb.onEnabled( startChecker )
+		sb.onDisabled( stopChecker )
+
+		sb.on( client, discord.Events.ShardReady, startChecker )
+		sb.on( client, discord.Events.Invalidated, stopChecker )
 	}
 }

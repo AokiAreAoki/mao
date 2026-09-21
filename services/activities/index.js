@@ -1,8 +1,12 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
+
+/** @type {import('@/libs/service-manager').Inclusion} */
 module.exports = {
-	init(){
-		const { Events, ActivityType } = require( 'discord.js' )
+	id: "activities",
+	name: "Activities",
+	init({ sb }){
+		const { Events, ActivityType, Status } = require( 'discord.js' )
 		const client = require( '@/instances/client' )
 		const bakadb = require( '@/instances/bakadb' )
 		const timer = require( '@/libs/timer' )
@@ -85,16 +89,13 @@ module.exports = {
 				return this.activities[this.id]
 			}
 
-			static init( client ){
+			static init(){
 				bakadb
 					.fallback({
 						path: 'customActivities',
 						defaultValue: () => [],
 					})
 					.sort( ( a, b ) => a.deadline - b.deadline )
-
-				client.on( Events.ShardReady, () => ActivityManager.reset() )
-				this.reset()
 			}
 
 			static update(){
@@ -117,11 +118,18 @@ module.exports = {
 				}
 			}
 
-			static reset(){
+			static start(){
+				if( client.ws.status !== Status.Ready )
+					return
+
 				this.id = -1
 				this.text = ''
 				this.next = Date.now() + 15e3
 				timer.create( 'activities', 4, 0, () => ActivityManager.update() )
+			}
+
+			static stop(){
+				timer.remove( 'activities' )
 			}
 
 			static pushActivity( type, callback ){
@@ -156,7 +164,14 @@ module.exports = {
 		ActivityManager.Activity = Activity
 		module.exports.instance = ActivityManager
 
-		client.once( Events.ClientReady, () => ActivityManager.init( client ) )
+		sb.onInit( () => ActivityManager.init( client ) )
+
+		sb.onEnabled( () => ActivityManager.start() )
+		sb.onDisabled( () => ActivityManager.stop() )
+
+		sb.on( client, Events.ShardReady, () => ActivityManager.start() )
+		sb.on( client, Events.Invalidated, () => ActivityManager.stop() )
+
 		require( './default-activities' )
 	}
 }

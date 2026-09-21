@@ -6,7 +6,7 @@ module.exports = {
 		const { basename } = require( 'path' );
 		const client = require( '@/instances/client' )
 		const serviceManager = require( '@/instances/service-manager' )
-		const { includeFiles, logPush, logPop, logFail, logSingle } = require( '@/functions/includeFiles' )
+		const { includeFiles, logPush, logPop, logSingle } = require( '@/functions/includeFiles' )
 
 		const thisFileName = basename( __filename )
 		const verbose = flags.dev
@@ -26,7 +26,7 @@ module.exports = {
 				if( filename === thisFileName )
 					return
 
-				serviceManager.register( inclusion )
+				serviceManager.register( inclusion, verbose )
 
 				if( verbose ){
 					let name = inclusion.name?.trim()

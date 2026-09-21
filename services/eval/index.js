@@ -1,8 +1,12 @@
 /* eslint-disable no-unused-vars */
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
+
+/** @type {import('@/libs/service-manager').Inclusion} */
 module.exports = {
-	init(){
+	id: "eval",
+	name: "Eval",
+	init({ sb }){
 		const fs = require( 'fs' )
 		const pathLib = require( 'path' )
 		const discord = require( 'discord.js' )
@@ -12,6 +16,7 @@ module.exports = {
 		const { db } = bakadb
 		const { iom, flags } = require( '@/index' )
 		const MM = require( '@/instances/message-manager' )
+		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
 		const cb = require( '@/functions/cb' )
 		const Embed = require( '@/functions/Embed' )
@@ -84,7 +89,7 @@ module.exports = {
 			return pathLib.relative( root, path ).replace( /\\/g, '/' )
 		}
 
-		MM.unshiftHandler( 'eval', true, async msg => {
+		sb.onMessage( MESSAGE_HANDLER_PRIORITIES.EVAL, async msg => {
 			if( !( msg.author instanceof discord.User ) || !msg.author.isMaster() )
 				return
 

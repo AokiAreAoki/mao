@@ -7,6 +7,7 @@ module.exports = {
 		const Embed = require( '@/functions/Embed' )
 		const numsplit = require( '@/functions/numsplit' )
 		const prettyRound = require( '@/functions/prettyRound' )
+		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
 		// Length measurement units (based on 1 meter)
 		const MILLIMETER = 1000
@@ -315,7 +316,7 @@ module.exports = {
 			),
 		})
 
-		MM.pushHandler( 'unit-converter', false, msg => {
+		MM.setHandler( 'unit-converter', MESSAGE_HANDLER_PRIORITIES.UNIT_CONVERTER, msg => {
 			const session = msg.response.session
 			const iter = msg.content.matchAll( RE )
 

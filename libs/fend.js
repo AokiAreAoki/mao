@@ -3,7 +3,9 @@ require = global.alias(require)
 
 const cp = require( "child_process" )
 const OutputBuffer = require( "@/libs/output-buffer" )
+const Logger = require( "@/functions/logger" )
 
+const logger = new Logger( 'Fend' )
 const EXEC_TIMEOUT = 3e3
 
 class FendWrapper {
@@ -19,14 +21,14 @@ class FendWrapper {
 	 * @returns {string | null} version string or null if not installed
 	 */
 	static checkVersion() {
-		console.log( "" )
-		console.log( "[Fend] Checking `fend` installation..." )
+		logger.log( "" )
+		logger.log( "Checking `fend` installation..." )
 		this.version = this.getVersion()
 
 		if( this.version )
-			console.log( `[Fend] Installed! (version: ${this.version})` )
+			logger.log( `Installed! (version: ${this.version})` )
 		else
-			console.log( `[Fend] WARNING: Fend is not installed or not in the PATH!` )
+			logger.warn( `WARNING: Fend is not installed or not in the PATH!` )
 
 		return this.version
 	}

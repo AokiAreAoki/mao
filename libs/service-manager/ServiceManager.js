@@ -3,7 +3,7 @@ require = global.alias(require)
 const EventBroadcaster = require( './EventBroadcaster' )
 const Service = require( './Service' )
 const StorageAdapter = require( './StorageAdapter' )
-const printify = require( '@/libs/printify' )
+const { logPush, logPop, logFail, logSingle } = require( '@/functions/includeFiles' )
 
 /**
  * @typedef ServiceManagerConstructorParams
@@ -27,45 +27,61 @@ module.exports = class ServiceManager {
 	}
 
 	/** @param {import('.').Inclusion} inclusion */
-	register( inclusion, verbose = false ){
+	register( inclusion ){
 		const service = new Service( inclusion, this )
 		this.services.set( service.id, service )
-
-		if( verbose ){
-			console.log( `[Service Manager] \`${service.id}\` service has been registered` )
-
-			console.log( `- id: \`${service.id}\`` )
-			console.log( `- name: \`${service.name}\`` )
-			console.log( `- should be enabled: ${
-				service.alwaysOn ? 'alwaysOn' : this.storageAdapter.isEnabled( service.id )
-			}` )
-		}
 	}
 
+	/** @param {bool} verbose  */
 	async boot( verbose = false ){
+		if( verbose ){
+			logPush( `[Service Manager] Booting up enabled services` )
+		}
+
 		for (const [id, service] of this.services) {
-			const isEnabled = service.alwaysOn || this.storageAdapter.isEnabled( id )
+			const isEnabled = this.isEnabled( service )
 
 			if( isEnabled ){
+				if( verbose ){
+					logPush( `\`${id}\` service` )
+				}
+
+				if( verbose ){
+					logPush( `initializing` )
+				}
+
 				const { succeeded, error } = await service.initialize()
 
 				if( succeeded ){
-					console.log( `[Service Manager] \`${id}\` service initialized` )
-					console.log( `- eeEventHandlerMap:`, printify( service.eeEventHandlerMap ) )
-					console.log( `- messageHandler:`, service.messageHandler )
-
-					service.enable( true )
+					logPop()
 
 					if( verbose ){
-						console.log( `[Service Manager] \`${id}\` service enabled` )
+						logPush( `enabling` )
 					}
-				} else {
-					console.warn( `[Service Manager] \`${id}\` service failed to initialize:\n`, error )
+
+					const error = await service.start( true )
+						.then( () => null )
+						.catch( e => e )
+
+					if( verbose ){
+						if( error )
+							logFail( `\`${id}\` service failed to start up\n` )
+						else
+							logPop()
+					}
+				} else if( verbose ){
+					logFail( `\`${id}\` service failed to initialize:\n`, error )
+				}
+
+				if( verbose ){
+					logPop()
 				}
 			}
 		}
 
 		if( verbose ){
+			logPop()
+
 			const disabledServices = Array
 				.from( this.services.keys() )
 				.filter( id => !this.storageAdapter.isEnabled( id ) )
@@ -73,35 +89,45 @@ module.exports = class ServiceManager {
 				.join( '\n' )
 
 			if( disabledServices )
-				console.log( `[Service Manager] disabled services:\n${disabledServices}` )
+				logSingle( `[Service Manager] disabled services:\n${disabledServices}` )
 			else
-				console.log( `[Service Manager] no disabled services` )
+				logSingle( `[Service Manager] no disabled services` )
 
-			console.log( `[Service Manager] booting finished` )
+			logSingle( `[Service Manager] booting finished` )
 		}
 	}
 
 	// Toggle Management //
 
-	/**
-	 * @param {import('./Service')} service
-	 * @param {boolean} isEnabled
-	 */
-	updateState( service, isEnabled ){
-		this.storageAdapter.setEnabled( service.id, isEnabled )
+	/** @param {import('./Service') | string} serviceOrId */
+	isEnabled( serviceOrId ){
+		const service = serviceOrId instanceof Service
+			? serviceOrId
+			: this.services.get( serviceOrId )
+
+		if( !service )
+			throw Error( `Service \`${serviceOrId}\` not found` )
+
+		return service.alwaysOn || this.storageAdapter.isEnabled( service.id )
 	}
 
 	/**
 	 * @param {import('./Service')} service
+	 * @param {boolean} isEnabled
 	 */
+	setEnabled( service, isEnabled ){
+		this.storageAdapter.setEnabled( service.id, isEnabled )
+	}
+
+	// Listeners //
+
+	/** @param {import('./Service')} service */
 	_registerListeners( service ){
 		this._registerEventHandlers( service )
 		this._registerMessageHandler( service )
 	}
 
-	/**
-	 * @param {import('./Service')} service
-	 */
+	/** @param {import('./Service')} service */
 	_unregisterListeners( service ){
 		this._unregisterEventHandlers( service )
 		this._unregisterMessageHandler( service )

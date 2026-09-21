@@ -26,7 +26,7 @@ module.exports = {
 				if( filename === thisFileName )
 					return
 
-				serviceManager.register( inclusion, verbose )
+				serviceManager.register( inclusion )
 
 				if( verbose ){
 					let name = inclusion.name?.trim()
@@ -42,7 +42,7 @@ module.exports = {
 			},
 		})
 
-		// Boot enabled services after login //
+		// Boot up enabled services after login //
 		client.whenReady.then( async () => {
 			if( verbose )
 				console.log()

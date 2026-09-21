@@ -18,7 +18,9 @@ module.exports = {
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 		const { getSocksProxy } = require( '@/instances/proxy' )
 		const zipline = require( '@/instances/zipline' )
+		const Logger = require( '@/functions/logger' )
 
+		const logger = new Logger( 'Link Utils' )
 		const CACHE_TIMEOUT = 2 * 24 * 3600e3
 		const TempCache = require( "./temp-cache" )
 
@@ -30,9 +32,9 @@ module.exports = {
 			const ytDlpPath = output.split( '\n' )[0].trim()
 
 			ytdl = ytdl.create( ytDlpPath )
-			console.log( `[Link Utils] Found a local installation of 'yt-dlp' at "${ytDlpPath}".` )
+			logger.log( `Found a local installation of 'yt-dlp' at "${ytDlpPath}".` )
 		} catch( err ) {
-			console.warn( `[Link Utils] Failed to resolve the path to a local 'yt-dlp'. Falling back onto 'youtube-dl-exec' included binary.` )
+			logger.warn( `Failed to resolve the path to a local 'yt-dlp'. Falling back onto 'youtube-dl-exec' included binary.` )
 		}
 
 		// function spawnAsync( program, args, options ){

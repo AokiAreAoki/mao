@@ -111,7 +111,7 @@ function logPop(){
 	messageStack.pop()
 }
 
-function logFail( message, error ){
+function logFail( message, error = null, doThrow = false ){
 	const children = messageStack.at(-1)
 
 	if( children.length === 0 )
@@ -119,7 +119,13 @@ function logFail( message, error ){
 
 	log( message, true )
 	messageStack.pop()
-	throw error
+
+	if( error ){
+		if( doThrow )
+			throw error
+		else
+			console.warn( error )
+	}
 }
 
 /**
@@ -176,7 +182,7 @@ async function includeFiles({
 				const mod = require( path )
 				callback( mod, Array.from( entities ) )
 			} catch( error ){
-				logFail( `callback call failed for "${path}":\n` )
+				logFail( `callback call failed for "${path}":\n`, error, true )
 			}
 		},
 		path: cwd,

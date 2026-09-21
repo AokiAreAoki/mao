@@ -30,9 +30,10 @@ require( './alias' )
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 require( '@/graceful-shutdown' )
+const services = require( '@/services' )
 const numsplit = require( '@/functions/numsplit' )
 const { includeFiles } = require( '@/functions/includeFiles' )
-const services = require( '@/services' )
+const sendAfterRestartMessage = require( '@/functions/sendAfterRestartMessage' )
 
 async function main() {
 	// Including methods //
@@ -49,6 +50,8 @@ async function main() {
 	module.exports.initializedIn = Math.round( Date.now() - module.exports.startedAt )
 	module.exports.initializedAt = Date.now()
 	console.log( `\n[Index] Initialization finished in ${numsplit( module.exports.initializedIn )}ms, logging in...` )
+
+	sendAfterRestartMessage()
 }
 
 main()

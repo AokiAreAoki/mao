@@ -1,10 +1,18 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias(require)
+
+const Logger = require( "@/utils/logger" )
 const ServiceBuilder = require( "./ServiceBuilder" )
 
 module.exports = class Service {
-	isInitialized = false
+	hasInitialized = false
 	hasFailed = false
+	isLaunched = false
 	error = null
-	isEnabled = false
+
+	get isEnabled() {
+		return this.serviceManager.isEnabled( this )
+	}
 
 	/**
 	 * @param {import(".").Inclusion} inclusion
@@ -20,10 +28,12 @@ module.exports = class Service {
 		this.alwaysOn = inclusion.alwaysOn
 		this.inclusion = inclusion
 		this.serviceManager = serviceManager
+
+		this.logger = new Logger( ['Service', this.name] )
 	}
 
 	async initialize(){
-		if( this.isInitialized )
+		if( this.hasInitialized )
 			throw new Error( "Service has already been initialized." )
 
 		if( this.hasFailed )
@@ -38,21 +48,19 @@ module.exports = class Service {
 			for( const initAction of sb.initActions ){
 				await initAction()
 			}
-		} catch( error ){
-			this.error = error
-			succeeded = false
-		}
 
-		if( succeeded ) {
-			this.isInitialized = true
+			this.hasInitialized = true
 
 			this.messageHandler = sb.messageHandler
 			this.eeEventHandlerMap = sb.eeEventHandlerMap
 
-			this.onEnableActions = sb.onEnableActions
-			this.onDisableActions = sb.onDisableActions
-		} else {
+			this.startupTasks = sb.onEnableActions
+			this.shutdownTasks = sb.onDisableActions
+		} catch( error ){
 			this.hasFailed = true
+			this.error = error
+
+			succeeded = false
 		}
 
 		this.inclusion = null
@@ -60,64 +68,59 @@ module.exports = class Service {
 		return { succeeded, error: this.error }
 	}
 
-	/**
-	 * @param {boolean} doNotPersist
-	 * @returns {boolean} true on success
-	 */
-	async enable( doNotPersist = false ){
-		if( !this.isInitialized ) return false
+	/** @returns {boolean} true on success */
+	async start(){
+		if( !this.hasInitialized ) return false
 		if( this.hasFailed ) return false
-		if( this.isEnabled ) return false
+		if( this.isLaunched ) return false
 
-		for( const enableAction of this.onEnableActions ){
+		for( const startupTask of this.startupTasks ){
 			try {
-				await enableAction()
+				await startupTask()
 			} catch( error ){
-				console.warn( `[Service Manager] \`${this.name}\` service startup task failed:\n`, error )
+				this.logger.error( `startup task failed:\n`, error )
 
-				for( const disableAction of this.onDisableActions ){
+				for( const shutdownTask of this.shutdownTasks ){
 					try {
-						await disableAction()
+						await shutdownTask()
 					} catch( err ){
-						console.warn( `[Service Manager] \`${this.name}\` service cleanup after failed startup task also failed:\n`, err )
+						this.logger.error( `cleanup after failed startup task also failed:\n`, err )
 					}
 				}
 
-				return false
+				this.hasFailed = true
+				this.error = error
+
+				throw new Error( `Service \`${this.name}\` failed to startup: ${error.message || error}` )
 			}
 		}
 
-		this.isEnabled = true
+		this.isLaunched = true
 		this.serviceManager._registerListeners( this )
-
-		if( !doNotPersist )
-			this.serviceManager.updateState( this, true )
 
 		return true
 	}
 
-	/**
-	 * @param {boolean} doNotPersist
-	 * @returns {boolean} true on success
-	 */
-	async disable( doNotPersist = false ){
-		if( !doNotPersist )
-			this.serviceManager.updateState( this, false )
-
-		if( !this.isInitialized ) return false
+	/** @returns {boolean} true on success */
+	async stop(){
+		if( !this.hasInitialized ) return false
 		if( this.hasFailed ) return false
-		if( !this.isEnabled ) return false
+		if( !this.isLaunched ) return false
 
-		for( const disableAction of this.onDisableActions ){
+		for( const disableAction of this.shutdownTasks ){
 			try {
 				await disableAction()
 			} catch( error ){
-				console.warn( `[Service Manager] \`${this.name}\` service shutdown task failed:\n`, error )
-				return false
+				this.logger.error( `shutdown task failed:\n`, error )
+
+				this.hasFailed = true
+				this.error = error
+
+				throw new Error( `Service \`${this.name}\` failed to shutdown: ${error.message || error}` )
 			}
 		}
 
-		this.isEnabled = false
+		this.isLaunched = false
 		this.serviceManager._unregisterListeners( this )
 
 		return true

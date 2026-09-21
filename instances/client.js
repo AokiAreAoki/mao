@@ -7,7 +7,7 @@ const {
 	IntentsBitField,
 	Events,
 } = require( 'discord.js' )
-const { flags } = require( '@/index' )
+const index = require( '@/index' )
 const tokens = require( '@/tokens.yml' )
 const { dateLocale = 'ru' } = require( '@/config.yml' )
 
@@ -46,8 +46,8 @@ client.on( Events.Error, err => {
 })
 
 client.once( Events.ClientReady, () => {
-	module.exports.loggedIn = Date.now() - module.exports.initializedAt
-	module.exports.isLoggedIn = true
+	index.loggedIn = Date.now() - index.initializedAt
+	index.isLoggedIn = true
 
 	console.log( '[Client] Logged in as ' + client.user.tag )
 
@@ -81,7 +81,7 @@ client.whenReady = new Promise( resolve => {
 	client.once( Events.ClientReady, resolve )
 })
 
-client.login( tokens.discord[flags.dev ? 'dev' : 'mao'] )
+client.login( tokens.discord[index.flags.dev ? 'dev' : 'mao'] )
 	.catch( err => {
 		console.error( err )
 		console.log( '[Client] Failed to log in. Exit.' )

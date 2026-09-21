@@ -24,7 +24,9 @@ module.exports = class EventBroadcaster {
 		this.event = event
 
 		this.listener = ( ...data ) => {
-			for( const [serviceName, listener] of this.serviceListenerMap ){
+			const listenersSnapshot = Array.from( this.serviceListenerMap )
+
+			for( const [serviceName, listener] of listenersSnapshot ){
 				invokeAsync( listener, data )
 					.catch( error => {
 						console.error( `[Service Manager] Event listener of \`${serviceName}\` service for \`${event}\` event failed:\n`, error )

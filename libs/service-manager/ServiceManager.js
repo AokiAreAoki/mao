@@ -85,24 +85,24 @@ module.exports = class ServiceManager {
 
 	/**
 	 * @param {import('./Service')} service
-	 * @param {boolean} doPersist
+	 * @param {boolean} isEnabled
 	 */
-	_onEnabled( service, doPersist ){
-		if( doPersist )
-			this.storageAdapter.setEnabled( service.id, true )
+	updateState( service, isEnabled ){
+		this.storageAdapter.setEnabled( service.id, isEnabled )
+	}
 
+	/**
+	 * @param {import('./Service')} service
+	 */
+	_registerListeners( service ){
 		this._registerEventHandlers( service )
 		this._registerMessageHandler( service )
 	}
 
 	/**
 	 * @param {import('./Service')} service
-	 * @param {boolean} doPersist
 	 */
-	_onDisabled( service, doPersist ){
-		if( doPersist )
-			this.storageAdapter.setEnabled( service.id, false )
-
+	_unregisterListeners( service ){
 		this._unregisterEventHandlers( service )
 		this._unregisterMessageHandler( service )
 	}
@@ -136,9 +136,11 @@ module.exports = class ServiceManager {
 	_unregisterEventHandlers( service ){
 		for( const [ee, eeEvents] of service.eeEventHandlerMap ){
 			const eventBroadcasterMap = this.eeEventBroadcasterMap.get( ee )
+			if( !eventBroadcasterMap ) continue
 
 			for( const eventName of eeEvents.keys() ){
 				let broadcaster = eventBroadcasterMap.get( eventName )
+				if( !broadcaster ) continue
 
 				broadcaster.removeServiceListener( service.name )
 

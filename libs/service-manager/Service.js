@@ -69,24 +69,29 @@ module.exports = class Service {
 		if( this.hasFailed ) return false
 		if( this.isEnabled ) return false
 
-		const results = await Promise.allSettled( this.onEnableActions.map( async enableAction => {
-			await enableAction()
-		}))
+		for( const enableAction of this.onEnableActions ){
+			try {
+				await enableAction()
+			} catch( error ){
+				console.warn( `[Service Manager] \`${this.name}\` service startup task failed:\n`, error )
 
-		let failed = false
+				for( const disableAction of this.onDisableActions ){
+					try {
+						await disableAction()
+					} catch( err ){
+						console.warn( `[Service Manager] \`${this.name}\` service cleanup after failed startup task also failed:\n`, err )
+					}
+				}
 
-		for( const result of results ){
-			if( result.status === 'rejected' ){
-				failed = true
-				console.warn( `[Service Manager] \`${this.name}\` service startup task failed:\n`, result.reason )
+				return false
 			}
 		}
 
-		if( failed )
-			return false
-
 		this.isEnabled = true
-		this.serviceManager._onEnabled( this, !doNotPersist )
+		this.serviceManager._registerListeners( this )
+
+		if( !doNotPersist )
+			this.serviceManager.updateState( this, true )
 
 		return true
 	}
@@ -96,28 +101,24 @@ module.exports = class Service {
 	 * @returns {boolean} true on success
 	 */
 	async disable( doNotPersist = false ){
+		if( !doNotPersist )
+			this.serviceManager.updateState( this, false )
+
 		if( !this.isInitialized ) return false
 		if( this.hasFailed ) return false
 		if( !this.isEnabled ) return false
 
-		const results = await Promise.allSettled( this.onDisableActions.map( async disableAction => {
-			await disableAction()
-		}))
-
-		let failed = false
-
-		for( const result of results ){
-			if( result.status === 'rejected' ){
-				failed = true
-				console.warn( `[Service Manager] \`${this.name}\` service shutdown task failed:\n`, result.reason )
+		for( const disableAction of this.onDisableActions ){
+			try {
+				await disableAction()
+			} catch( error ){
+				console.warn( `[Service Manager] \`${this.name}\` service shutdown task failed:\n`, error )
+				return false
 			}
 		}
 
-		if( failed )
-			return false
-
 		this.isEnabled = false
-		this.serviceManager._onDisabled( this, !doNotPersist )
+		this.serviceManager._unregisterListeners( this )
 
 		return true
 	}

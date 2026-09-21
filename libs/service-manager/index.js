@@ -8,6 +8,7 @@ require = global.alias(require)
  * @typedef {(params: InclusionParams) => Promise<void>} InclusionFunc
  *
  * @typedef Inclusion
+ * @property {string} id
  * @property {string} name
  * @property {boolean} [alwaysOn]
  * @property {InclusionFunc} init

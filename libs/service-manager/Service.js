@@ -3,6 +3,7 @@ const ServiceBuilder = require( "./ServiceBuilder" )
 module.exports = class Service {
 	isInitialized = false
 	hasFailed = false
+	error = null
 	isEnabled = false
 
 	/**
@@ -10,7 +11,12 @@ module.exports = class Service {
 	 * @param {import("./ServiceManager")} serviceManager
 	 */
 	constructor( inclusion, serviceManager ){
-		this.name = inclusion.name
+		this.id = inclusion.id
+
+		if( !this.id )
+			throw Error( "Service `id` is required" )
+
+		this.name = inclusion.name || `Unnamed-Service-${serviceManager.services.size + 1}`
 		this.alwaysOn = inclusion.alwaysOn
 		this.inclusion = inclusion
 		this.serviceManager = serviceManager
@@ -23,53 +29,64 @@ module.exports = class Service {
 		if( this.hasFailed )
 			throw new Error( "Service has previously failed to initialize." )
 
+		let succeeded = true
 		const sb = new ServiceBuilder()
 
-		this.inclusion.init({ sb })
+		try {
+			await this.inclusion.init({ sb })
 
-		const results = await Promise.all( sb.prerequisites.map( async cb => {
-			const result = {
-				succeeded: false,
-				error: null,
-				cb,
+			for( const initAction of sb.initActions ){
+				await initAction()
 			}
+		} catch( error ){
+			this.error = error
+			succeeded = false
+		}
 
-			try {
-				await cb()
-				result.succeeded = true
-			} catch( error ) {
-				result.succeeded = false
-				result.error = error
-			}
-
-			return result
-		}) )
-
-		const succeeded = results.every( r => r.succeeded )
-
-		if( succeeded )
+		if( succeeded ) {
 			this.isInitialized = true
-		else
+
+			this.messageHandler = sb.messageHandler
+			this.eeEventHandlerMap = sb.eeEventHandlerMap
+
+			this.onEnableActions = sb.onEnableActions
+			this.onDisableActions = sb.onDisableActions
+		} else {
 			this.hasFailed = true
+		}
 
 		this.inclusion = null
 
-		return { succeeded, results }
+		return { succeeded, error: this.error }
 	}
 
 	/**
 	 * @param {boolean} doNotPersist
 	 * @returns {boolean} true on success
 	 */
-	enable( doNotPersist = false ){
+	async enable( doNotPersist = false ){
 		if( !this.isInitialized ) return false
 		if( this.hasFailed ) return false
 		if( this.isEnabled ) return false
 
-		this.isEnabled = true
+		const results = await Promise.allSettled( this.onEnableActions.map( async enableAction => {
+			await enableAction()
+		}))
 
-		if( !doNotPersist )
-			this.serviceManager.storageAdapter.setEnabled( this.isEnabled )
+		let failed = false
+
+		for( const result of results ){
+			if( result.status === 'rejected' ){
+				failed = true
+				console.warn( `[Service Manager] \`${this.name}\` service startup task failed:\n`, result.reason )
+			}
+		}
+
+		if( failed )
+			return false
+
+		this.isEnabled = true
+		this.serviceManager._onEnabled( this, !doNotPersist )
 
 		return true
 	}
@@ -78,15 +95,29 @@ module.exports = class Service {
 	 * @param {boolean} doNotPersist
 	 * @returns {boolean} true on success
 	 */
-	disable( doNotPersist = false ){
+	async disable( doNotPersist = false ){
 		if( !this.isInitialized ) return false
 		if( this.hasFailed ) return false
 		if( !this.isEnabled ) return false
 
-		this.isEnabled = false
+		const results = await Promise.allSettled( this.onDisableActions.map( async disableAction => {
+			await disableAction()
+		}))
 
-		if( !doNotPersist )
-			this.serviceManager.storageAdapter.setEnabled( this.isEnabled )
+		let failed = false
+
+		for( const result of results ){
+			if( result.status === 'rejected' ){
+				failed = true
+				console.warn( `[Service Manager] \`${this.name}\` service shutdown task failed:\n`, result.reason )
+			}
+		}
+
+		if( failed )
+			return false
+
+		this.isEnabled = false
+		this.serviceManager._onDisabled( this, !doNotPersist )
 
 		return true
 	}

@@ -12,6 +12,7 @@ const bakadb = new BakaDB({
 			deserialize: str => `require = global.alias(require); ${eval( str )}`,
 		},
 	},
+	debugMode: flags.dev,
 })
 
 includeFiles({

@@ -3,11 +3,13 @@ require = global.alias(require)
 const { ServiceManager } = require( '@/libs/service-manager' )
 const BakaDBStorageAdapter = require( '@/libs/bakadb-storage-adapter' )
 const bakadb = require( '@/instances/bakadb' )
+const MM = require( '@/instances/message-manager' )
 
-const SERVICES_STATE_PATH = `services/state`
+const bakaDBstorageAdapter = new BakaDBStorageAdapter( bakadb, `service-manager` )
 
-const bakaDBstorageAdapter = new BakaDBStorageAdapter( bakadb, SERVICES_STATE_PATH )
-
-const serviceManager = new ServiceManager( bakaDBstorageAdapter )
+const serviceManager = new ServiceManager({
+	storageAdapter: bakaDBstorageAdapter,
+	messageManager: MM,
+})
 
 module.exports = serviceManager

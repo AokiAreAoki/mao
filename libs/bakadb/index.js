@@ -30,6 +30,7 @@ String.prototype.matchFirst = function( re, cb ){
  * @property {number} [saveThrottle] Save throttle delay in milliseconds.
  * @property {number} [backupLimit] Number of backup files to keep.
  * @property {BakaDBCoders} [coders] Custom coders to merge with defaults.
+ * @property {boolean} [debugMode] If true, saves will be pretty-printed.
  */
 class BakaDB extends events {
 	defaultCoders = {
@@ -59,6 +60,7 @@ class BakaDB extends events {
 		saveThrottle = 100,
 		backupLimit = 10,
 		coders,
+		debugMode = false,
 	} = {}){
 		super()
 
@@ -68,6 +70,7 @@ class BakaDB extends events {
 			...this.defaultCoders,
 			...coders,
 		}
+		this.debugMode = debugMode
 	}
 
 	init( path ){
@@ -276,7 +279,7 @@ class BakaDB extends events {
 
 		try {
 			const serializedData = this._serialize({ db: this.db })
-			const json = JSON.stringify( serializedData )
+			const json = JSON.stringify( serializedData, null, this.debugMode ? '\t' : null )
 
 			if( !fs.existsSync( this.path ) )
 				fs.mkdirSync( this.path, { recursive: true } )

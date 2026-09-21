@@ -8,18 +8,18 @@ module.exports = class StorageAdapter {
 	}
 
 	/**
-	 * @param {string} name
+	 * @param {string} id
 	 * @returns {boolean}
 	 */
-	isEnabled( name ){
-		return Boolean( this.state[name] )
+	isEnabled( id ){
+		return Boolean( this.state[id] )
 	}
 
 	/**
-	 * @param {string} name
+	 * @param {string} id
 	 * @param {boolean} isEnabled
 	 */
-	setEnabled( name, isEnabled ){
-		this.state[name] = Boolean( isEnabled )
+	setEnabled( id, isEnabled ){
+		this.state[id] = Boolean( isEnabled )
 	}
 }

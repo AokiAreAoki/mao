@@ -53,9 +53,8 @@ module.exports = class ServiceManager {
 				const { succeeded, error } = await service.initialize()
 
 				if( succeeded ){
-					logPop()
-
 					if( verbose ){
+						logPop()
 						logPush( `enabling` )
 					}
 

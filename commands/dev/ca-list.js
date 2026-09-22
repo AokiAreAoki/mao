@@ -2,10 +2,10 @@
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
-		const Embed = require( '@/functions/Embed' )
+		const Embed = require( '@/utils/Embed' )
 		const bakadb = require( '@/instances/bakadb' )
 		const { db } = bakadb
-		const cb = require( '@/functions/cb' )
+		const cb = require( '@/utils/cb' )
 
 		addCommand({
 			aliases: 'cas',

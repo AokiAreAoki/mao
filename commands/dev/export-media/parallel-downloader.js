@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 
-const wait = require( '@/functions/wait' )
+const wait = require( '@/utils/wait' )
 
 /**
  * @typedef {Object} DownloaderCoroutineParams

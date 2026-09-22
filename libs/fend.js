@@ -3,7 +3,7 @@ require = global.alias(require)
 
 const cp = require( "child_process" )
 const OutputBuffer = require( "@/libs/output-buffer" )
-const Logger = require( "@/functions/logger" )
+const Logger = require( "@/utils/logger" )
 
 const logger = new Logger( 'Fend' )
 const EXEC_TIMEOUT = 3e3

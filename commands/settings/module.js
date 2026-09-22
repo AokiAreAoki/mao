@@ -3,14 +3,14 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const { PermissionFlagsBits } = require( 'discord.js' )
-		const Embed = require( '@/functions/Embed' )
+		const Embed = require( '@/utils/Embed' )
 		const bakadb = require( '@/instances/bakadb' )
 		const CM = require( '@/instances/command-manager' )
 		const {
 			GLOBAL_KEYWORD,
 			getModuleSettings,
 			modifyModuleSettings,
-		} = require( '@/functions/getModuleSettings' )
+		} = require( '@/utils/getModuleSettings' )
 
 		function statusEmoji( isEnabled ){
 			return isEnabled ? '✅' : '❌'

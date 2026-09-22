@@ -13,12 +13,12 @@ module.exports = {
 
 		const config = require( '@/config.yml' )
 		const TEMP_FOLDER = require( '@/constants/temp-folder' )
-		const processing = require( '@/functions/processing' )
+		const processing = require( '@/utils/processing' )
 		const client = require( '@/instances/client' )
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 		const { getSocksProxy } = require( '@/instances/proxy' )
 		const zipline = require( '@/instances/zipline' )
-		const Logger = require( '@/functions/logger' )
+		const Logger = require( '@/utils/logger' )
 
 		const logger = new Logger( 'Link Utils' )
 		const CACHE_TIMEOUT = 2 * 24 * 3600e3

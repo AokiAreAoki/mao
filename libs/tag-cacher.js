@@ -4,7 +4,7 @@ const fs = require( 'fs' )
 const axios = require( 'axios' )
 const axiosRetry = require( 'axios-retry' )
 const get = require( 'lodash/get' )
-const decodeHTMLEntities = require( '@/functions/decodeHTMLEntities' )
+const decodeHTMLEntities = require( '@/utils/decodeHTMLEntities' )
 
 Set.prototype.merge = function( set ){
 	set.forEach( v => this.add(v) )

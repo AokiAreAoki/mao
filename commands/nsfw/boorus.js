@@ -4,8 +4,8 @@ module.exports = {
 	init({ addCommand }){
 		const client = require( '@/instances/client' )
 		const { Gelbooru, Yandere } = require( '@/instances/booru' )
-		const clamp = require( '@/functions/clamp' )
-		const Embed = require( '@/functions/Embed' )
+		const clamp = require( '@/utils/clamp' )
+		const Embed = require( '@/utils/Embed' )
 
 		const boorus = [
 			{

@@ -3,7 +3,7 @@ require = global.alias(require)
 const discord = require( 'discord.js' )
 const { Collection } = discord
 const Response = require( './response' )
-const binarySearch = require( '@/functions/binarySearch' )
+const binarySearch = require( '@/utils/binarySearch' )
 
 function listTypes( types ){
 	types = types.map( type => type?.name ?? String( type ) )

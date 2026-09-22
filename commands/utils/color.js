@@ -4,7 +4,7 @@ module.exports = {
 	init({ addCommand }){
 		const Jimp = require( 'jimp' )
 		const config = require( '@/config.yml' )
-		const cb = require( '@/functions/cb' )
+		const cb = require( '@/utils/cb' )
 		const vec = require( '@/libs/vector' )
 
 		function toByte( string_int ){

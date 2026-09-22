@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 
-const binarySearch = require( '@/functions/binarySearch' )
+const binarySearch = require( '@/utils/binarySearch' )
 
 function Entry({
 	value,

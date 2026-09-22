@@ -18,10 +18,10 @@ module.exports = {
 		const MM = require( '@/instances/message-manager' )
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
-		const cb = require( '@/functions/cb' )
-		const Embed = require( '@/functions/Embed' )
-		const transformMessagePayload = require( '@/functions/transformMessagePayload' )
-		const processing = require( '@/functions/processing' )
+		const cb = require( '@/utils/cb' )
+		const Embed = require( '@/utils/Embed' )
+		const transformMessagePayload = require( '@/utils/transformMessagePayload' )
+		const processing = require( '@/utils/processing' )
 		const printify = require( '@/libs/printify' )
 
 		const EvalFlagParser = require( './eval-flags-parser' )

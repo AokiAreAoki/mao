@@ -6,7 +6,7 @@ module.exports = {
 	id: "command-manager",
 	name: "Command Manager",
 	init({ sb }){
-		const { includeFiles } = require( '@/functions/includeFiles' )
+		const { includeFiles } = require( '@/utils/includeFiles' )
 		const CM = require( '@/instances/command-manager' )
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 

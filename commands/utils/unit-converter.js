@@ -4,9 +4,9 @@ module.exports = {
 	init({ addCommand }){
 		const { Collection } = require( 'discord.js' )
 		const MM = require( '@/instances/message-manager' )
-		const Embed = require( '@/functions/Embed' )
-		const numsplit = require( '@/functions/numsplit' )
-		const prettyRound = require( '@/functions/prettyRound' )
+		const Embed = require( '@/utils/Embed' )
+		const numsplit = require( '@/utils/numsplit' )
+		const prettyRound = require( '@/utils/prettyRound' )
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
 		// Length measurement units (based on 1 meter)

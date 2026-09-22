@@ -3,8 +3,8 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const updateRemote = require( '@/services/slash-commands/update-remote' )
-		const processing = require( '@/functions/processing' )
-		const cb = require( '@/functions/cb' )
+		const processing = require( '@/utils/processing' )
+		const cb = require( '@/utils/cb' )
 
 		addCommand({
 			aliases: 'update-slash',

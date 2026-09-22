@@ -3,7 +3,7 @@ require = global.alias(require)
 const EventBroadcaster = require( './EventBroadcaster' )
 const Service = require( './Service' )
 const StorageAdapter = require( './StorageAdapter' )
-const { logPush, logPop, logFail, logSingle } = require( '@/functions/includeFiles' )
+const { logPush, logPop, logFail, logSingle } = require( '@/utils/includeFiles' )
 
 /**
  * @typedef ServiceManagerConstructorParams

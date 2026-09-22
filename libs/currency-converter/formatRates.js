@@ -3,8 +3,8 @@ require = global.alias(require)
 
 const { Events } = require( 'discord.js' )
 const client = require( '@/instances/client' )
-const numsplit = require( '@/functions/numsplit' )
-const prettyRound = require( '@/functions/prettyRound' )
+const numsplit = require( '@/utils/numsplit' )
+const prettyRound = require( '@/utils/prettyRound' )
 
 const QUESTIONS = [
 	`Are you silly?`,

@@ -7,10 +7,10 @@ module.exports = {
 		const Jimp = require( 'jimp' )
 		const { Gelbooru } = require( '@/instances/booru' )
 		const { getProxyAgent } = require( '@/instances/proxy' )
-		const clamp = require( '@/functions/clamp' )
-		const Embed = require( '@/functions/Embed' )
-		const processing = require( '@/functions/processing' )
-		const decodeHTMLEntities = require( '@/functions/decodeHTMLEntities' )
+		const clamp = require( '@/utils/clamp' )
+		const Embed = require( '@/utils/Embed' )
+		const processing = require( '@/utils/processing' )
+		const decodeHTMLEntities = require( '@/utils/decodeHTMLEntities' )
 
 		async function parseTranslation( post_id ){
 			const { data } = await axios.get( `https://gelbooru.com/index.php`, {

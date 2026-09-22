@@ -10,7 +10,7 @@ module.exports = {
 		const client = require( '@/instances/client' )
 		const bakadb = require( '@/instances/bakadb' )
 		const timer = require( '@/libs/timer' )
-		const checkTypes = require( '@/functions/checkTypes' )
+		const checkTypes = require( '@/utils/checkTypes' )
 
 		const activityTypes = {
 			playing: ActivityType.Playing,

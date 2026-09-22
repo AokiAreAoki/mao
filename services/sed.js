@@ -7,7 +7,7 @@ module.exports = {
 	name: "SED",
 	init({ sb }){
 		const client = require( '@/instances/client' )
-		const cb = require( '@/functions/cb' )
+		const cb = require( '@/utils/cb' )
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
 		sb.onMessage( MESSAGE_HANDLER_PRIORITIES.SED, async msg => {

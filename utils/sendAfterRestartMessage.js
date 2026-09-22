@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
-const Embed = require( '@/functions/Embed' )
-const numsplit = require( '@/functions/numsplit' )
+const Embed = require( '@/utils/Embed' )
+const numsplit = require( '@/utils/numsplit' )
 const client = require( '@/instances/client' )
 const bakadb = require( '@/instances/bakadb' )
 

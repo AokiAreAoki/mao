@@ -17,8 +17,8 @@ module.exports = {
 	init({ sb }){
 		const client = require( '@/instances/client' )
 		const config = require( '@/config.yml' )
-		const cb = require( '@/functions/cb' )
-		const Embed = require( '@/functions/Embed' )
+		const cb = require( '@/utils/cb' )
+		const Embed = require( '@/utils/Embed' )
 
 		const ERROR_EVENTS = ['uncaughtException', 'unhandledRejection']
 		const MESSAGE_INTERVAL = 3e3

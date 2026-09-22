@@ -3,7 +3,7 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const bakadb = require( '@/instances/bakadb' )
-		const shutdown = require( '@/functions/shutdown' )
+		const shutdown = require( '@/utils/shutdown' )
 
 		addCommand({
 			aliases: 'exit die',

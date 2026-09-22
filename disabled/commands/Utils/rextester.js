@@ -2,7 +2,7 @@
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
-		const cb = require( '@/functions/cb' )
+		const cb = require( '@/utils/cb' )
 		const axios = require( 'axios' )
 
 		function Language( id, compiler_args ){

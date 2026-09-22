@@ -4,7 +4,7 @@ module.exports = {
 	init({ addCommand }){
 		const discord = require( 'discord.js' )
 		const client = require( '@/instances/client' )
-		const stripEmojis = require( '@/functions/stripEmojis' )
+		const stripEmojis = require( '@/utils/stripEmojis' )
 
 		async function sortChannels( category, ignoreEmojis = false ){
 			if( !( category instanceof discord.CategoryChannel ) )

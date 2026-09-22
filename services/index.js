@@ -6,7 +6,7 @@ module.exports = {
 		const { basename } = require( 'path' );
 		const client = require( '@/instances/client' )
 		const serviceManager = require( '@/instances/service-manager' )
-		const { includeFiles, logPush, logPop, logSingle } = require( '@/functions/includeFiles' )
+		const { includeFiles, logPush, logPop, logSingle } = require( '@/utils/includeFiles' )
 
 		const thisFileName = basename( __filename )
 		const verbose = flags.dev

@@ -2,7 +2,7 @@
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
-		const clamp = require( '@/functions/clamp' )
+		const clamp = require( '@/utils/clamp' )
 		const MAX_ROLLS = 50
 
 		addCommand({

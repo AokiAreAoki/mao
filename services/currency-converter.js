@@ -6,7 +6,7 @@ module.exports = {
 	id: "currency-converter",
 	name: "Currency Converter",
 	init({ sb }){
-		const parsePrettyNumber = require( '@/functions/parsePrettyNumber' )
+		const parsePrettyNumber = require( '@/utils/parsePrettyNumber' )
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
 		const {

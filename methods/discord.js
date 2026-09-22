@@ -4,9 +4,9 @@ module.exports = function(){
 	const discord = require( 'discord.js' )
 	const { Collection } = discord
 	const client = require( '@/instances/client' )
-	const clamp = require( '@/functions/clamp' )
-	const cutIfLimit = require( '@/functions/cutIfLimit' )
-	const transformMessagePayload = require( '@/functions/transformMessagePayload' )
+	const clamp = require( '@/utils/clamp' )
+	const cutIfLimit = require( '@/utils/cutIfLimit' )
+	const transformMessagePayload = require( '@/utils/transformMessagePayload' )
 	const Response = require( '@/libs/message-manager/response' )
 
 	/// Collection ///

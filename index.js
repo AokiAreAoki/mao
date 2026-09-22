@@ -31,9 +31,9 @@ require( './alias' )
 require = global.alias(require)
 require( '@/graceful-shutdown' )
 const services = require( '@/services' )
-const numsplit = require( '@/functions/numsplit' )
-const { includeFiles } = require( '@/functions/includeFiles' )
-const sendAfterRestartMessage = require( '@/functions/sendAfterRestartMessage' )
+const numsplit = require( '@/utils/numsplit' )
+const { includeFiles } = require( '@/utils/includeFiles' )
+const sendAfterRestartMessage = require( '@/utils/sendAfterRestartMessage' )
 
 async function main() {
 	// Including methods //

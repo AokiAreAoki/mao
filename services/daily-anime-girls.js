@@ -10,7 +10,7 @@ module.exports = {
 		const client = require( '@/instances/client' )
 		const bakadb = require( '@/instances/bakadb' )
 		const { Gelbooru, Yandere } = require( '@/instances/booru' )
-		const checkTypes = require( '@/functions/checkTypes' )
+		const checkTypes = require( '@/utils/checkTypes' )
 		const timer = require( '@/libs/timer' )
 
 		bakadb.db.dag ??= {

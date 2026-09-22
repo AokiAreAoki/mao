@@ -2,8 +2,8 @@
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
-		const Embed = require( '@/functions/Embed' )
-		const wait = require( '@/functions/wait' )
+		const Embed = require( '@/utils/Embed' )
+		const wait = require( '@/utils/wait' )
 		const urlBase = 'https://lmgtfy.com/?q='
 
 		addCommand({

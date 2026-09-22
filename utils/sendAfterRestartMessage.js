@@ -16,8 +16,6 @@ module.exports = async function sendAfterRestartMessage() {
 		loggedIn,
 	} = require( '@/index' )
 
-	console.log( require( '@/index' ) )
-
 	const timePassed = Date.now() - restart.timestamp
 	const channel = await client.channels.fetch( restart.channel )
 

@@ -249,5 +249,56 @@ module.exports = {
 					startService( id, session )
 			},
 		})
+
+		cmd.addSubcommand({
+			aliases: 'auto-enable ae',
+			description: {
+				single: 'sets auto-enable state for services',
+				usages: [
+					['<on|off>', '<service_ids...>', 'sets auto-enable ON or OFF for specified service(s)'],
+				],
+			},
+			async callback({ args, session }){
+				const stateArg = args.shift()?.toLowerCase()
+
+				if( stateArg !== 'on' && stateArg !== 'off' )
+					return session.update( `First argument must be \`on\` or \`off\`. Usage: \`service ae <on|off> <service_ids...>\`` )
+
+				if( args.length === 0 )
+					return session.update( this.help )
+
+				const targetState = stateArg === 'on'
+				const updated = []
+				const errors = []
+
+				for( const idArg of args ){
+					const id = idArg.toLowerCase()
+					const service = serviceManager.services.get( id )
+
+					if( !service ){
+						errors.push( `\`${idArg}\` (not found)` )
+						continue
+					}
+
+					if( service.alwaysOn ){
+						errors.push( `\`${service.id}\` (alwaysOn)` )
+						continue
+					}
+
+					serviceManager.setEnabled( service, targetState )
+					updated.push( `\`${service.id}\`` )
+				}
+
+				const response = []
+
+				if( updated.length !== 0 )
+					response.push( `Auto-enable turned **${targetState ? 'ON ✅' : 'OFF ❌'}** for: ${updated.join( ', ' )}` )
+
+				if( errors.length !== 0 )
+					response.push( `Skipped: ${errors.join( ', ' )}` )
+
+				return session.update( response.join( '\n' ) )
+			},
+		})
 	}
 }

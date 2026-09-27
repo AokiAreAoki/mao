@@ -1,14 +1,17 @@
-
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
+
+/** @type {import('@/libs/service-manager').Inclusion} */
 module.exports = {
-	init(){
-		const MM = require( '@/instances/message-manager' )
+	id: "ai",
+	name: "AI",
+	init({ sb }){
 		const client = require( '@/instances/client' )
 		const ollama = require( '@/instances/ollama' )
 		const bakadb = require( '@/instances/bakadb' )
 		const BakaCache = require( '@/libs/bakadb/cache' )
-		const processing = require( '@/functions/processing' )
+		const processing = require( '@/utils/processing' )
+		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
 		const printify = require('../../libs/printify');
 
@@ -40,7 +43,17 @@ Strict Negative Constraints (NEVER DO THIS):
 - NEVER use hashtags (#).
 - NEVER break character, acknowledge you are an AI, or refer to "my training/programming." Stay in the best friend persona 100% of the time.`
 
-		const contextCache = new BakaCache( bakadb, PATH_TO_CONTEXT )
+		/** @type {BakaCache} */
+		let contextCache = null
+
+		sb.onEnabled( () => {
+			contextCache = new BakaCache( bakadb, PATH_TO_CONTEXT )
+		})
+
+		sb.onDisabled( () => {
+			contextCache.destroy()
+			contextCache = null
+		})
 
 		function markAsAIResponse( message ){
 			contextCache.set( message.id, true, CONTEXT_TTL )
@@ -50,7 +63,7 @@ Strict Negative Constraints (NEVER DO THIS):
 			return contextCache.get( message.id )
 		}
 
-		MM.pushHandler( 'ai', false, async msg => {
+		sb.onMessage( MESSAGE_HANDLER_PRIORITIES.AI, async msg => {
 			if( msg.author.id == client.user.id || msg.author.bot )
 				return
 

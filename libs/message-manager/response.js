@@ -1,7 +1,8 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
-const transformMessagePayload = require( "@/functions/transformMessagePayload" )
-const wait = require( "@/functions/wait" )
+
+const transformMessagePayload = require( "@/utils/transformMessagePayload" )
+const wait = require( "@/utils/wait" )
 
 const DISCORD_API_MESSAGE_QUOTA = 5
 const DISCORD_API_MESSAGE_QUOTA_TIME_WINDOW = 5e3

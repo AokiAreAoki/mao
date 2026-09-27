@@ -5,8 +5,8 @@ module.exports = {
 	init({ addCommand }){
 		const ollama = require( '@/instances/ollama' )
 		const bakadb = require( '@/instances/bakadb' )
-		const Embed = require( '@/functions/Embed' )
-		const processing = require( '@/functions/processing' )
+		const Embed = require( '@/utils/Embed' )
+		const processing = require( '@/utils/processing' )
 
 		const RESPONDING_MESSAGE_OPTIONS = {
 			useEvenInterval: true,

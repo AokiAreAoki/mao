@@ -154,7 +154,7 @@ module.exports = {
 				return session.update( `\`${id}\` service ID not found.` )
 
 			if( service.alwaysOn )
-				return session.update( `Service \`${service.name}\` (\`${service.id}\`) is set to alwaysOn and cannot be stopped.` )
+				return session.update( `Service \`${service.name}\` (\`${service.id}\`) is always-on and cannot be stopped.` )
 
 			if( !service.isLaunched )
 				return session.update( `Service \`${service.name}\` (\`${service.id}\`) is not running.` )

@@ -5,6 +5,7 @@ require = global.alias(require)
 module.exports = {
 	id: "command-manager",
 	name: "Command Manager",
+	alwaysOn: true,
 	init({ sb }){
 		const { includeFiles } = require( '@/utils/includeFiles' )
 		const CM = require( '@/instances/command-manager' )

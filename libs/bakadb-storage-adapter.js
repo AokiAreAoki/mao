@@ -20,6 +20,13 @@ module.exports = class BakaDBStorageAdapter extends StorageAdapter {
 		this.location = location
 	}
 
+	getIds(){
+		return Object.keys( this.db.fallback({
+			path: [...this.location, SERVICES_LIST],
+			defaultValue: () => ({}),
+		}) )
+	}
+
 	isEnabled( serviceId ) {
 		return this.db.fallback({
 			path: [...this.location, SERVICES_LIST, serviceId, ENABLED_PROPERTY],

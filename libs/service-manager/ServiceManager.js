@@ -195,4 +195,15 @@ module.exports = class ServiceManager {
 		if( service.messageHandler )
 			this.messageManager.removeHandler( service.name )
 	}
+
+	findDeadStorageEntries(){
+		const deadEntries = []
+
+		for( const id of this.storageAdapter.getIds() ){
+			if( !this.services.has( id ) )
+				deadEntries.push( id )
+		}
+
+		return deadEntries
+	}
 }

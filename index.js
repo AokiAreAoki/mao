@@ -1,6 +1,9 @@
 module.exports = {
 	iom: 'mao',
 	flags: {},
+	verbose: {
+		SM: false, // Service Manager
+	},
 	startedAt: Date.now(),
 	initializedIn: -1,
 	initializedAt: -1,
@@ -25,6 +28,15 @@ args.forEach( flag => {
 
 if( module.exports.flags.dev )
 	module.exports.iom = 'dev'
+
+const toVerbose = ( process.env.VERBOSE || '' )
+	.toUpperCase()
+	.split( ',' )
+
+for( const key in module.exports.verbose ){
+	if( toVerbose.includes( key ) )
+		module.exports.verbose[key] = true
+}
 
 require( './alias' )
 // eslint-disable-next-line no-global-assign

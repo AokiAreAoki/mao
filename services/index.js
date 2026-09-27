@@ -2,14 +2,13 @@
 require = global.alias(require)
 module.exports = {
 	async init(){
-		const { flags } = require( '@/index' );
+		const { verbose: { SM: verboseMode } } = require( '@/index' );
 		const { basename } = require( 'path' );
 		const client = require( '@/instances/client' )
 		const serviceManager = require( '@/instances/service-manager' )
 		const { includeFiles, logPush, logPop, logSingle } = require( '@/utils/includeFiles' )
 
 		const thisFileName = basename( __filename )
-		const verbose = flags.dev
 
 		// Registering services //
 		includeFiles({
@@ -28,7 +27,7 @@ module.exports = {
 
 				serviceManager.register( inclusion )
 
-				if( verbose ){
+				if( verboseMode ){
 					let name = inclusion.name?.trim()
 					name &&= `\`${name}\``
 
@@ -44,10 +43,12 @@ module.exports = {
 
 		// Boot up enabled services after login //
 		client.whenReady.then( async () => {
-			if( verbose )
+			if( verboseMode )
 				console.log()
 
-			await serviceManager.boot( verbose )
+			logPush( `Launching services` )
+				await serviceManager.boot( verboseMode )
+			logPop()
 		})
 	}
 }

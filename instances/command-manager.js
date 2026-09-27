@@ -4,7 +4,7 @@ const { Events } = require( 'discord.js' )
 const { CommandManager } = require( '@/libs/command-manager' )
 const client = require( '@/instances/client' )
 const { flags } = require( '@/index' )
-const { getModuleSettings } = require( '@/functions/getModuleSettings' )
+const { getModuleSettings } = require( '@/utils/getModuleSettings' )
 
 const prefix = flags.dev
 	? /^(--\s*)/i

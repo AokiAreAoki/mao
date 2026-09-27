@@ -3,7 +3,7 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const discord = require( 'discord.js' )
-		const Embed = require( '@/functions/Embed' )
+		const Embed = require( '@/utils/Embed' )
 
 		const size = 2048
 		const extension = 'jpg'

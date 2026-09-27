@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 
-const numsplit = require( '@/functions/numsplit' )
+const numsplit = require( '@/utils/numsplit' )
 const printify = require( '@/libs/printify' )
 
 const isNumberPrimitive = number => /^[+-]?([\w_]+|(\d+)?(\.\d+)?(e\d+)?)$/i.test( number )

@@ -1,12 +1,16 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
-module.exports = {
-	init(){
-		const client = require( '@/instances/client' )
-		const MM = require( '@/instances/message-manager' )
-		const cb = require( '@/functions/cb' )
 
-		MM.pushHandler( 'sed', true, async msg => {
+/** @type {import('@/libs/service-manager').Inclusion} */
+module.exports = {
+	id: "sed",
+	name: "SED",
+	init({ sb }){
+		const client = require( '@/instances/client' )
+		const cb = require( '@/utils/cb' )
+		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
+
+		sb.onMessage( MESSAGE_HANDLER_PRIORITIES.SED, async msg => {
 			if( msg.author.bot || msg.author.id === client.user.id )
 				return
 

@@ -3,8 +3,8 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const bakadb = require( '@/instances/bakadb' )
-		const Embed = require( '@/functions/Embed' )
-		const parsePrettyNumber = require( '@/functions/parsePrettyNumber' )
+		const Embed = require( '@/utils/Embed' )
+		const parsePrettyNumber = require( '@/utils/parsePrettyNumber' )
 
 		const {
 			convert,

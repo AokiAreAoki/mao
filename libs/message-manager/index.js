@@ -1,6 +1,9 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias(require)
 const discord = require( 'discord.js' )
 const { Collection } = discord
 const Response = require( './response' )
+const binarySearch = require( '@/utils/binarySearch' )
 
 function listTypes( types ){
 	types = types.map( type => type?.name ?? String( type ) )
@@ -119,35 +122,23 @@ class MessageManager {
 
 	/**
 	 * @param {string} name
-	 * @param {boolean} markMessagesAsCommand
+	 * @param {boolean} priority
 	 * @param {HandlerCallback} callback
 	 */
-	pushHandler( name, markMessagesAsCommand, callback ){
-		this.handlers.push( new Handler( name, markMessagesAsCommand, callback ) )
+	setHandler( name, priority, callback ){
+		this.removeHandler( name )
+
+		const index = binarySearch( this.handlers, priority, h => h.priority )
+		this.handlers.splice( index, 0, new Handler( name, priority, callback ) )
 	}
 
 	/**
 	 * @param {string} name
-	 * @param {boolean} markMessagesAsCommand
+	 * @param {boolean} priority
 	 * @param {HandlerCallback} callback
 	 */
-	unshiftHandler( name, markMessagesAsCommand, callback ){
-		this.handlers.unshift( new Handler( name, markMessagesAsCommand, callback ) )
-	}
-
-	/**
-	 * @param {string} name
-	 * @param {boolean} markMessagesAsCommand
-	 * @param {HandlerCallback} callback
-	 */
-	replaceHandler( name, markMessagesAsCommand, callback ){
-		const index = this.handlers.findIndex( h => h.name === name )
-
-		if( index === -1 )
-			return false
-
-		this.handlers[index] = new Handler( name, markMessagesAsCommand, callback )
-		return true
+	removeHandler( name ){
+		this.handlers = this.handlers.filter( h => h.name !== name )
 	}
 
 	async handleMessage( message, hasBeenEdited = false ){
@@ -165,12 +156,8 @@ class MessageManager {
 		for( let i = 0; i < this.handlers.length; ++i ){
 			const handler = this.handlers[i]
 
-			if( await handler.callback( message ) ){
-				if( handler.isCommandHandler )
-					message.isCommand = true
-
+			if( await handler.callback( message ) )
 				return true
-			}
 		}
 
 		message.deleteAnswers( true )
@@ -189,15 +176,15 @@ class MessageManager {
 /**
  * @typedef {object} Handler
  * @prop {string} name
- * @prop {boolean} markMessagesAsCommand
+ * @prop {number} priority
  * @prop {HandlerCallback} callback
  */
-function Handler( name, markMessagesAsCommand, callback ){
+function Handler( name, priority, callback ){
 	checkTypes( { name }, 'string' )
 	checkTypes( { callback }, 'function' )
 
 	this.name = name
-	this.markMessagesAsCommand = !!markMessagesAsCommand
+	this.priority = priority
 	this.callback = callback
 }
 

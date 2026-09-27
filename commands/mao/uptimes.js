@@ -4,8 +4,8 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const { db } = require( '@/instances/bakadb' )
-		const Embed = require( '@/functions/Embed' )
-		const numsplit = require( '@/functions/numsplit' )
+		const Embed = require( '@/utils/Embed' )
+		const numsplit = require( '@/utils/numsplit' )
 		const TimeSplitter = require( '@/libs/time-splitter' )
 
 		addCommand({

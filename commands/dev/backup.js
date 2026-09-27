@@ -5,7 +5,7 @@ module.exports = {
 		const fs = require( 'fs' )
 		const { join } = require( 'path' )
 		const bakadb = require( '@/instances/bakadb' )
-		const cb = require( '@/functions/cb' )
+		const cb = require( '@/utils/cb' )
 
 		const NOT_FOUND = -1
 

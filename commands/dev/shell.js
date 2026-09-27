@@ -4,8 +4,8 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const cp = require( 'child_process' )
-		const Embed = require( '@/functions/Embed' )
-		const processing = require( '@/functions/processing' )
+		const Embed = require( '@/utils/Embed' )
+		const processing = require( '@/utils/processing' )
 		const OutputBuffer = require( '@/libs/output-buffer' )
 
 		const EXEC_TIMEOUT = 600e3

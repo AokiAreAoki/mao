@@ -3,8 +3,8 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const sauce = require( '@/instances/sauce' )
-		const Embed = require( '@/functions/Embed' )
-		const processing = require( '@/functions/processing' )
+		const Embed = require( '@/utils/Embed' )
+		const processing = require( '@/utils/processing' )
 
 		function prettify( string ){
 			return string.replace( /_/g, ' ' ).replace( /\b((\w)(\w*))/g, ( match, word, firstLetter, rest ) => {

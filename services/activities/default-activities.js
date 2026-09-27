@@ -2,9 +2,8 @@ const { instance: ActivityManager } = require( '.' )
 
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
-const { Events } = require( 'discord.js' )
-const client = require( '@/instances/client' )
 const TimeSplitter = require( '@/libs/time-splitter' )
+const messageRateService = require( '@/services/message-rate' )
 
 // uptime
 ActivityManager.pushActivity( 'PLAYING', () => {
@@ -19,16 +18,7 @@ ActivityManager.pushActivity( 'PLAYING', () => {
 })
 
 // msg rate
-const messageRate = []
-
-client.on( Events.MessageCreate, msg => {
-	if( msg.member && !msg.author.bot )
-		messageRate.push( Date.now() + 60e3 )
+ActivityManager.pushActivity( 'PLAYING', () => {
+	const rate = messageRateService.getRate()
+	return `${rate} msg${rate === 1 ? '' : 's'}/min`
 })
-
-setInterval( () => {
-	while( messageRate.length !== 0 && messageRate[0] < Date.now() )
-		messageRate.shift()
-}, 1337 )
-
-ActivityManager.pushActivity( 'PLAYING', () => `${messageRate.length} msg${messageRate.length === 1 ? '' : 's'}/min` )

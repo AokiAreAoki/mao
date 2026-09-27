@@ -3,7 +3,7 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const client = require( '@/instances/client' )
-		const Embed = require( '@/functions/Embed' )
+		const Embed = require( '@/utils/Embed' )
 		const PERMS_INT = 3465304
 
 		addCommand({

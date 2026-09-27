@@ -6,9 +6,9 @@ module.exports = {
 		const fs = require( 'fs' )
 		const throttle = require( 'lodash/throttle' )
 
-		const processing = require( '@/functions/processing' )
-		const cb = require( '@/functions/cb' )
-		const Embed = require( '@/functions/Embed' )
+		const processing = require( '@/utils/processing' )
+		const cb = require( '@/utils/cb' )
+		const Embed = require( '@/utils/Embed' )
 
 		const createMediaFetcherCoroutine = require( './media-fetcher' )
 		const createSequentialDownloaderCoroutine = require( './sequential-downloader' )

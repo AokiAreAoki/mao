@@ -3,9 +3,9 @@ require = global.alias(require)
 
 const discord = require( 'discord.js' )
 const Jimp = require( 'jimp' )
-const _cb = require( '@/functions/cb' )
-const Embed = require( '@/functions/Embed' )
-const cutIfLimit = require( '@/functions/cutIfLimit' )
+const _cb = require( '@/utils/cb' )
+const Embed = require( '@/utils/Embed' )
+const cutIfLimit = require( '@/utils/cutIfLimit' )
 
 /**
  * @typedef {Object} CustomMessageOptions

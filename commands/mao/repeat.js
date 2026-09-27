@@ -3,7 +3,7 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const MM = require( '@/instances/message-manager' )
-		const processing = require( '@/functions/processing' )
+		const processing = require( '@/utils/processing' )
 
 		addCommand({
 			aliases: 'repeat r',

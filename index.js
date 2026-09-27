@@ -1,6 +1,9 @@
 module.exports = {
 	iom: 'mao',
 	flags: {},
+	verbose: {
+		SM: false, // Service Manager
+	},
 	startedAt: Date.now(),
 	initializedIn: -1,
 	initializedAt: -1,
@@ -26,65 +29,41 @@ args.forEach( flag => {
 if( module.exports.flags.dev )
 	module.exports.iom = 'dev'
 
+const toVerbose = ( process.env.VERBOSE || '' )
+	.toUpperCase()
+	.split( ',' )
+
+for( const key in module.exports.verbose ){
+	if( toVerbose.includes( key ) )
+		module.exports.verbose[key] = true
+}
+
 require( './alias' )
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 require( '@/graceful-shutdown' )
-const { Events } = require( 'discord.js' )
-const numsplit = require( '@/functions/numsplit' )
-const includeFiles = require( '@/functions/includeFiles' )
-const {
-	dateLocale = 'ru',
-} = require( '@/config.yml' )
-const client = require( '@/instances/client' )
+const services = require( '@/services' )
+const numsplit = require( '@/utils/numsplit' )
+const { includeFiles } = require( '@/utils/includeFiles' )
+const sendAfterRestartMessage = require( '@/utils/sendAfterRestartMessage' )
 
-client.once( Events.ClientReady, () => {
-	module.exports.loggedIn = Date.now() - module.exports.initializedAt
-	module.exports.isLoggedIn = true
+async function main() {
+	// Including methods //
+	includeFiles({
+		text: '[Index] Declaring custom methods',
+		query: 'methods/*.js',
+		callback: method => void method(),
+	})
 
-	console.log( '[Client] Logged in as ' + client.user.tag )
+	// Initializing services //
+	await services.init()
 
-	let online = true
+	// End
+	module.exports.initializedIn = Math.round( Date.now() - module.exports.startedAt )
+	module.exports.initializedAt = Date.now()
+	console.log( `\n[Index] Initialization finished in ${numsplit( module.exports.initializedIn )}ms, logging in...` )
 
-	function reconnecting() {
-		if( online ){
-			online = false
-			console.log( `[Client] [${new Date().toLocaleString( dateLocale )}] Reconnecting to discord...` )
-		}
-	}
+	sendAfterRestartMessage()
+}
 
-	function disconnected() {
-		console.log( `[Client] [${new Date().toLocaleString( dateLocale )}] Shard disconnected` )
-	}
-
-	function resume() {
-		if( !online ){
-			online = true
-			console.log( `[Client] [${new Date().toLocaleString( dateLocale )}] Connection to discord is back` )
-		}
-	}
-
-	client.on( Events.ShardReconnecting, reconnecting )
-	client.on( Events.ShardDisconnect, disconnected )
-	client.on( Events.ShardResume, resume )
-	client.on( Events.ShardReady, resume )
-})
-
-// Including methods //
-includeFiles({
-	text: '[Index] Declaring custom methods',
-	query: 'methods/*.js',
-	callback: method => void method(),
-})
-
-// Initializing services //
-includeFiles({
-	text: '[Index] Initializing services',
-	query: 'services/*(.js)?/index.js',
-	callback: inclusion => inclusion.init({}),
-})
-
-// End
-module.exports.initializedIn = Math.round( Date.now() - module.exports.startedAt )
-module.exports.initializedAt = Date.now()
-console.log( `\n[Index] Initialization finished in ${numsplit( module.exports.initializedIn )}ms, logging in...` )
+main()

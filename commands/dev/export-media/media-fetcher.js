@@ -3,7 +3,7 @@ require = global.alias(require)
 
 const { join } = require( 'path' )
 const getMedia = require( './get-media' )
-const downloadURL = require( '@/functions/download-url' )
+const downloadURL = require( '@/utils/download-url' )
 
 /**
  * @typedef {Object} MediaFetcherCoroutineParams

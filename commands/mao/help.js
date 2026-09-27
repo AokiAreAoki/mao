@@ -4,8 +4,8 @@ module.exports = {
 	init({ addCommand }){
 		const { ArgumentParser } = require( '@/libs/command-manager' )
 		const CM = require( '@/instances/command-manager' )
-		const Embed = require( '@/functions/Embed' )
-		const cb = require( '@/functions/cb' )
+		const Embed = require( '@/utils/Embed' )
+		const cb = require( '@/utils/cb' )
 		const { flags } = require( '@/index' )
 
 		const IS_INACCESSIBLE = "is either disabled in this guild or inaccessible to you."

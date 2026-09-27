@@ -1,3 +1,6 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias(require)
+
 /**
  * @typedef {Object} ErrorEntry
  * @property {number} count
@@ -6,15 +9,16 @@
  * @property {Promise<import('discord.js').Message | null>} [message]
  */
 
-// eslint-disable-next-line no-global-assign
-require = global.alias(require)
+/** @type {import('@/libs/service-manager').Inclusion} */
 module.exports = {
-	init(){
-		const { Events } = require( 'discord.js' )
+	id: "error-catcher",
+	name: "Error Catcher",
+	alwaysOn: true,
+	init({ sb }){
 		const client = require( '@/instances/client' )
 		const config = require( '@/config.yml' )
-		const cb = require( '@/functions/cb' )
-		const Embed = require( '@/functions/Embed' )
+		const cb = require( '@/utils/cb' )
+		const Embed = require( '@/utils/Embed' )
 
 		const ERROR_EVENTS = ['uncaughtException', 'unhandledRejection']
 		const MESSAGE_INTERVAL = 3e3
@@ -43,7 +47,7 @@ module.exports = {
 				.catch( console.error )
 		}
 
-		function onError( prefix ){
+		function makeErrorHandler( prefix ){
 			return async error => {
 				if( error.message?.toLowerCase() === 'unknown message' )
 					return
@@ -79,10 +83,8 @@ module.exports = {
 			}
 		}
 
-		client.once( Events.ClientReady, () => {
-			ERROR_EVENTS.forEach( event => {
-				process.on( event, onError( event ) )
-			})
+		ERROR_EVENTS.forEach( eventName => {
+			sb.on( process, eventName, makeErrorHandler( eventName ) )
 		})
 	}
 }

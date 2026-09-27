@@ -1,59 +1,65 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
+
+/** @type {import('@/libs/service-manager').Inclusion} */
 module.exports = {
-	init(){
-		const includeFiles = require( '@/functions/includeFiles' )
+	id: "command-manager",
+	name: "Command Manager",
+	init({ sb }){
+		const { includeFiles } = require( '@/utils/includeFiles' )
 		const CM = require( '@/instances/command-manager' )
-		const MM = require( '@/instances/message-manager' )
+		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
-		MM.unshiftHandler( 'commands', true, ( ...args ) => CM.handleMessage( ...args ) )
+		sb.onMessage( MESSAGE_HANDLER_PRIORITIES.COMMAND_MANAGER, msg => CM.handleMessage( msg ) )
 
-		/// Modules ///
-		const folderLookup = new Map()
+		sb.onInit(() => {
+			/// Modules ///
+			const folderLookup = new Map()
 
-		includeFiles({
-			text: '[Command Manager] Initializing command modules',
-			query: 'commands/**/index.js',
-			callback: ( settings, [, folder] ) => {
-				const module = CM.addModule( settings )
-				folderLookup.set( folder, module )
-			},
-		})
+			includeFiles({
+				text: '[Command Manager] Initializing command modules',
+				query: 'commands/**/index.js',
+				callback: ( settings, [, folder] ) => {
+					const module = CM.addModule( settings )
+					folderLookup.set( folder, module )
+				},
+			})
 
-		/// Commands ///
-		includeFiles({
-			text: '[Command Manager] Initializing commands',
-			query: 'commands/**/*(.js)?/index.js',
-			callback( inclusion, path ){
-				const [, folder, file] = path
+			/// Commands ///
+			includeFiles({
+				text: '[Command Manager] Initializing commands',
+				query: 'commands/**/*(.js)?/index.js',
+				callback( inclusion, path ){
+					const [, moduleFolder, commandFileOrFolder] = path
 
-				if( file === 'index.js' )
-					return
+					if( commandFileOrFolder === 'index.js' )
+						return
 
-				if( typeof inclusion?.init !== 'function' ){
-					setTimeout( () => {
-						console.warn( `[Warning] "${path.join( '/' )}" command does not have the init function` )
-					}, 1 )
+					if( typeof inclusion?.init !== 'function' ){
+						setTimeout( () => {
+							console.warn( `[Warning] "${path.join( '/' )}" command does not have the init function` )
+						}, 1 )
 
-					return
+						return
+					}
+
+					const module = folderLookup.get( moduleFolder )
+
+					if( !module ){
+						setTimeout( () => {
+							console.warn( `[Warning] "${moduleFolder}" module was not initiated` )
+						}, 1 )
+
+						return
+					}
+
+					inclusion.init({
+						addCommand: options => {
+							return CM.addCommand({ ...options, module })
+						},
+					})
 				}
-
-				const module = folderLookup.get( folder )
-
-				if( !module ){
-					setTimeout( () => {
-						console.warn( `[Warning] "${folder}" module was not initiated` )
-					}, 1 )
-
-					return
-				}
-
-				inclusion.init({
-					addCommand: options => {
-						return CM.addCommand({ ...options, module })
-					},
-				})
-			}
+			})
 		})
 	}
 }

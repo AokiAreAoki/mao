@@ -1,13 +1,16 @@
-module.exports = {
-	init(){
-		const localCommands = require( './commands' )
+// eslint-disable-next-line no-global-assign
+require = global.alias(require)
 
-		// eslint-disable-next-line no-global-assign
-		require = global.alias(require)
+/** @type {import('@/libs/service-manager').Inclusion} */
+module.exports = {
+	id: "slash-commands",
+	name: "Slash Command",
+	init({ sb }){
+		const localCommands = require( './commands' )
 		const discord = require( 'discord.js' )
 		const client = require( '@/instances/client' )
 
-		client.on( discord.Events.InteractionCreate, async i => {
+		sb.on( client, discord.Events.InteractionCreate, async i => {
 			if( !i.isChatInputCommand() )
 				return
 

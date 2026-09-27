@@ -4,8 +4,8 @@ module.exports = {
 	init({ addCommand }){
 		const discord = require( 'discord.js' )
 		const pet = require( 'pet-pet-gif' )
-		const Embed = require( '@/functions/Embed' )
-		const processing = require( '@/functions/processing' )
+		const Embed = require( '@/utils/Embed' )
+		const processing = require( '@/utils/processing' )
 
 		addCommand({
 			aliases: 'pat pet',

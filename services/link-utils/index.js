@@ -1,7 +1,11 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
+
+/** @type {import('@/libs/service-manager').Inclusion} */
 module.exports = {
-	init(){
+	id: "link-utils",
+	name: "Link Utils",
+	init({ sb }){
 		const cp = require( 'child_process' )
 		const fs = require( 'fs' )
 		const { join } = require( 'path' )
@@ -9,12 +13,14 @@ module.exports = {
 
 		const config = require( '@/config.yml' )
 		const TEMP_FOLDER = require( '@/constants/temp-folder' )
-		const processing = require( '@/functions/processing' )
+		const processing = require( '@/utils/processing' )
 		const client = require( '@/instances/client' )
-		const MM = require( '@/instances/message-manager' )
+		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 		const { getSocksProxy } = require( '@/instances/proxy' )
 		const zipline = require( '@/instances/zipline' )
+		const Logger = require( '@/utils/logger' )
 
+		const logger = new Logger( 'Link Utils' )
 		const CACHE_TIMEOUT = 2 * 24 * 3600e3
 		const TempCache = require( "./temp-cache" )
 
@@ -26,9 +32,9 @@ module.exports = {
 			const ytDlpPath = output.split( '\n' )[0].trim()
 
 			ytdl = ytdl.create( ytDlpPath )
-			console.log( `[Link Utils] Found a local installation of 'yt-dlp' at "${ytDlpPath}".` )
+			logger.log( `Found a local installation of 'yt-dlp' at "${ytDlpPath}".` )
 		} catch( err ) {
-			console.warn( `[Link Utils] Failed to resolve the path to a local 'yt-dlp'. Falling back onto 'youtube-dl-exec' included binary.` )
+			logger.warn( `Failed to resolve the path to a local 'yt-dlp'. Falling back onto 'youtube-dl-exec' included binary.` )
 		}
 
 		// function spawnAsync( program, args, options ){
@@ -127,6 +133,7 @@ module.exports = {
 						getFilename: true,
 					})
 						.then( async path => {
+							path = path.trim()
 							await ytdl( url[0], flags )
 
 							if( !fs.existsSync( path ) )
@@ -166,7 +173,7 @@ module.exports = {
 		const caches = {}
 		utils.forEach( ( _, i ) => caches[i] = new TempCache( CACHE_TIMEOUT ) )
 
-		MM.pushHandler( 'link-utils', false, async msg => {
+		sb.onMessage( MESSAGE_HANDLER_PRIORITIES.LINK_UTILS, async msg => {
 			if( msg.author.bot || msg.author.id === client.user.id )
 				return
 

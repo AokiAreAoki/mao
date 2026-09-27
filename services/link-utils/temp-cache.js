@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 
-const binarySearch = require( '@/functions/binarySearch' )
+const binarySearch = require( '@/utils/binarySearch' )
 
 function Entry({
 	value,
@@ -23,7 +23,7 @@ class TempCache extends Map {
 	static globalCache = []
 
 	static sortGlobal(){
-		this.globalCache.sort( ( a, b ) => a.timeout < b.timeout )
+		this.globalCache.sort( ( a, b ) => a.timeout - b.timeout )
 	}
 
 	static insertGlobal( entry ){
@@ -37,8 +37,10 @@ class TempCache extends Map {
 		for( let i = insertableIndex - 1; i >= 0; --i ){
 			const entry = this.globalCache[i]
 
-			if( entry === entryToRemove )
+			if( entry === entryToRemove ){
 				this.globalCache.splice( i, 1 )
+				break
+			}
 
 			if( entry.timeout < entryToRemove.timeout )
 				break
@@ -85,6 +87,17 @@ class TempCache extends Map {
 
 	get( key ){
 		return super.get( key )
+	}
+
+	delete( key ){
+		const entry = super.get( key )
+
+		if( entry ){
+			TempCache.removeGlobal( entry )
+			return super.delete( key )
+		}
+
+		return false
 	}
 }
 

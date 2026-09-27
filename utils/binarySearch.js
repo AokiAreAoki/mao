@@ -5,7 +5,7 @@ module.exports = function binarySearch( array, value, getComparable = rawCompari
 		return 0
 
 	let min = 0
-	let max = array.length - 1
+	let max = array.length
 	let iterationsLeft = 64
 
 	while( min < max ){
@@ -16,7 +16,7 @@ module.exports = function binarySearch( array, value, getComparable = rawCompari
 		let middleValue = array[middleIndex]
 
 		if( value < getComparable( middleValue ) )
-			max = middleIndex - 1
+			max = middleIndex
 		else
 			min = middleIndex + 1
 	}

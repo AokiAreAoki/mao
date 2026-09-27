@@ -3,7 +3,7 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const fs = require( 'fs' )
-		const cb = require( '@/functions/cb' )
+		const cb = require( '@/utils/cb' )
 
 		const ip = `192.168.104.1`
 		const path = `/etc/resolv.conf`

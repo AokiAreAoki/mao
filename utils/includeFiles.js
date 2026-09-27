@@ -26,7 +26,7 @@ function iterate({
 
 	++depth
 
-	children.forEach( e => {
+	for( const e of children ){
 		entities.push( e.entity )
 
 		if( e.isFile ){
@@ -45,7 +45,7 @@ function iterate({
 		}
 
 		entities.pop()
-	})
+	}
 }
 
 const messageStack = []
@@ -73,15 +73,7 @@ function log( message, isError ){
 	process.stdout.write( message )
 }
 
-module.exports = function includeFiles({
-	text,
-	query,
-	callback,
-	cwd = process.cwd(),
-}){
-	const children = []
-	messageStack.push( children )
-
+function extendParent( message ){
 	if( messageStack.length > 1 ){
 		const parent = messageStack.at(-2)
 
@@ -90,10 +82,68 @@ module.exports = function includeFiles({
 			process.stdout.write( '\x1b[3D:  \n' )
 		}
 
-		parent.push( text )
+		parent.push( message )
 	}
+}
 
-	log( text + '...' )
+function logSingle( message ){
+	messageStack.push( [] )
+		extendParent( message )
+		log( message + '\n' )
+	messageStack.pop()
+}
+
+function logPush( message ){
+	const children = []
+	messageStack.push( children )
+
+	extendParent( message )
+
+	log( message + '...' )
+}
+
+function logPop(){
+	const children = messageStack.at(-1)
+
+	if( children.length === 0 )
+		process.stdout.write( 'OK\n' )
+
+	messageStack.pop()
+}
+
+function logFail( message, error = null, doThrow = false ){
+	const children = messageStack.at(-1)
+
+	if( children.length === 0 )
+		process.stdout.write( 'ERROR\n' )
+
+	log( message, true )
+	messageStack.pop()
+
+	if( error ){
+		if( doThrow )
+			throw error
+		else
+			console.warn( error )
+	}
+}
+
+/**
+ * @typedef Params
+ * @property {string} text
+ * @property {string} query
+ * @property {(result: unknown, path: string[]) => void} callback
+ * @property {string} [cwd]
+ *
+ * @param {Params} params
+ */
+async function includeFiles({
+	text,
+	query,
+	callback,
+	cwd = process.cwd(),
+}){
+	logPush( text )
 
 	query = query
 		.split( /[/\\]+/ )
@@ -132,19 +182,19 @@ module.exports = function includeFiles({
 				const mod = require( path )
 				callback( mod, Array.from( entities ) )
 			} catch( error ){
-				if( children.length === 0 )
-					process.stdout.write( 'ERROR\n' )
-
-				log( `callback call failed for "${path}":\n`, true )
-				messageStack.pop()
-				throw error
+				logFail( `callback call failed for "${path}":\n`, error, true )
 			}
 		},
 		path: cwd,
 	})
 
-	if( children.length === 0 )
-		process.stdout.write( 'OK\n' )
+	logPop()
+}
 
-	messageStack.pop()
+module.exports = {
+	includeFiles,
+	logPush,
+	logPop,
+	logFail,
+	logSingle,
 }

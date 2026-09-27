@@ -4,7 +4,7 @@ module.exports = {
 	init({ addCommand }){
 		const discord = require( 'discord.js' )
 		const client = require( '@/instances/client' )
-		const Embed = require( '@/functions/Embed' )
+		const Embed = require( '@/utils/Embed' )
 
 		const Games = {
 			gi: {

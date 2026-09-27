@@ -3,8 +3,9 @@ require = global.alias(require)
 
 const { Events } = require( 'discord.js' )
 const client = require( '@/instances/client' )
-const numsplit = require( '@/functions/numsplit' )
-const prettyRound = require( '@/functions/prettyRound' )
+const numsplit = require( '@/utils/numsplit' )
+const prettyRound = require( '@/utils/prettyRound' );
+const emojiCatalogue = require('../../utils/emojis');
 
 const QUESTIONS = [
 	`Are you silly?`,
@@ -19,7 +20,7 @@ const SAME_CURRENCIES_RESPONSE = [
 ]
 
 client.once( Events.ClientReady, () => {
-	const emoji = client.emojis.resolve( `717358214185746543` )
+	const emoji = emojiCatalogue.get( "suspicious" )
 
 	if( emoji )
 		QUESTIONS.push( emoji )

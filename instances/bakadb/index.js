@@ -2,7 +2,7 @@
 require = global.alias(require)
 
 const { flags } = require( '@/index' )
-const includeFiles = require( '@/functions/includeFiles' )
+const { includeFiles } = require( '@/utils/includeFiles' )
 const BakaDB = require( '@/libs/bakadb' )
 
 const bakadb = new BakaDB({
@@ -12,6 +12,7 @@ const bakadb = new BakaDB({
 			deserialize: str => `require = global.alias(require); ${eval( str )}`,
 		},
 	},
+	debugMode: flags.dev,
 })
 
 includeFiles({

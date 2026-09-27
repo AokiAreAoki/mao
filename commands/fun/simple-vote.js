@@ -2,7 +2,7 @@
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
-		const Embed = require( '@/functions/Embed' )
+		const Embed = require( '@/utils/Embed' )
 
 		const numbers = [
 			'1️⃣',

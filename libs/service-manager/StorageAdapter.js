@@ -8,6 +8,13 @@ module.exports = class StorageAdapter {
 	}
 
 	/**
+	 * @returns {string[]}
+	 */
+	getIds(){
+		return Object.keys( this.state )
+	}
+
+	/**
 	 * @param {string} id
 	 * @returns {boolean}
 	 */

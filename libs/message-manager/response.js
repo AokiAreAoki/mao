@@ -81,9 +81,6 @@ class Response {
 	async update( content, options = {} ){
 		const useEvenInterval = !!options?.useEvenInterval
 
-		if( options )
-			delete options.useEvenInterval
-
 		content = transformMessagePayload( content, options )
 
 		if( this.message instanceof Promise ){
@@ -94,7 +91,7 @@ class Response {
 					if( this.#pendingContent === content ){
 						const pendingContent = this.#pendingContent
 						this.#pendingContent = null
-						return this.update( pendingContent )
+						return this.update( pendingContent, options )
 					}
 
 					return this.message
@@ -107,7 +104,6 @@ class Response {
 
 		if( useEvenInterval ){
 			this.message = this.message.then( async message => {
-				console.log( `awaiting an even interval: ${DISCORD_API_MESSAGE_EVEN_INTERVAL * 1.5}ms` )
 				await wait( DISCORD_API_MESSAGE_EVEN_INTERVAL )
 				return this.message = message
 			})

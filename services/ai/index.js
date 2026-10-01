@@ -13,7 +13,7 @@ module.exports = {
 		const processing = require( '@/utils/processing' )
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 		const {
-			THINKING_MESSAGE_OPTIONS,
+			// THINKING_MESSAGE_OPTIONS,
 			RESPONDING_MESSAGE_OPTIONS,
 		} = require( '@/constants/ai' )
 
@@ -101,7 +101,7 @@ module.exports = {
 				.then( initialMsg => markAsAIResponse( initialMsg ) )
 
 			let responseText = ''
-			let thinkingText = ''
+			// let thinkingText = ''
 			let lastUpdatePromise = null
 
 			for await ( const part of response ){
@@ -110,8 +110,8 @@ module.exports = {
 					process.stdout.write( part.message.content )
 				}
 
-				if( part.message.thinking )
-					thinkingText += part.message.thinking
+				// if( part.message.thinking )
+				// 	thinkingText += part.message.thinking
 
 				if( responseText )
 					lastUpdatePromise = session.update( responseText, RESPONDING_MESSAGE_OPTIONS )

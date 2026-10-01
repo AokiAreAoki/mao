@@ -7,17 +7,11 @@ module.exports = {
 		const bakadb = require( '@/instances/bakadb' )
 		const Embed = require( '@/utils/Embed' )
 		const processing = require( '@/utils/processing' )
-
-		const RESPONDING_MESSAGE_OPTIONS = {
-			useEvenInterval: true,
-			tailMode: true,
-		}
-
-		const THINKING_MESSAGE_OPTIONS = {
-			useEvenInterval: true,
-			tailMode: true,
-			cb: "markdown",
-		}
+		const {
+			THINK_LEVELS,
+			THINKING_MESSAGE_OPTIONS,
+			RESPONDING_MESSAGE_OPTIONS,
+		} = require( '@/constants/ai' )
 
 		function formatBytes( bytes ){
 			if( !bytes || isNaN( bytes ) )
@@ -33,12 +27,9 @@ module.exports = {
 		function getDefaultModel(){
 			return bakadb.fallback({
 				path: ['ai', 'defaultModel'],
-				defaultValue: () => 'qwen3:8b',
+				defaultValue: () => null,
 			})
 		}
-
-		/** @type {('high' | 'medium' | 'low')[]} */
-		const THINK_LEVELS = ['high', 'medium', 'low']
 
 		function parseThink( val ){
 			if( !val )
@@ -208,6 +199,42 @@ module.exports = {
 					)
 				} catch( error ){
 					return session.update( `Failed to list running models: ${error.message || error}` )
+				}
+			},
+		})
+
+		ollamaCmd.addSubcommand({
+			aliases: 'stop unload',
+			description: {
+				single: 'unloads a running Ollama model from memory',
+				usages: [
+					['[<model>]', 'stops/unloads $1 model (unloads all running models if unspecified)'],
+				],
+			},
+			async callback({ args, session }){
+				const targetModel = args[0]
+
+				try {
+					const { models } = await ollama.ps()
+
+					if( !models || models.length === 0 )
+						return session.update( 'No models currently running.' )
+
+					const modelsToStop = targetModel
+						? models.filter( m => m.name === targetModel || m.model === targetModel )
+						: models
+
+					if( modelsToStop.length === 0 )
+						return session.update( `Model \`${targetModel}\` is not currently running.` )
+
+					await Promise.all( modelsToStop.map( m =>
+						ollama.generate({ model: m.name, keep_alive: 0 })
+					) )
+
+					const stoppedNames = modelsToStop.map( m => `\`${m.name}\`` ).join( ', ' )
+					return session.update( `Successfully stopped: ${stoppedNames}` )
+				} catch( error ){
+					return session.update( `Failed to stop model: ${error.message || error}` )
 				}
 			},
 		})

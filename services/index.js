@@ -43,8 +43,7 @@ module.exports = {
 
 		// Boot up enabled services after login //
 		client.whenReady.then( async () => {
-			if( verboseMode )
-				console.log()
+			console.log()
 
 			logPush( `Launching services` )
 				await serviceManager.boot( verboseMode )

@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
-const binarySearch = require( "@/utils/binarySearch" );
+const binarySearch = require("@/utils/binarySearch");
 
 function findIndex(arr, key, targetTime) {
 	let idx = binarySearch(arr, targetTime, undefined, 'right') - 1;
@@ -188,6 +188,7 @@ class BakaCache {
 
 		for (const key in data) {
 			const record = data[key];
+
 			if (record && record.expireAt) {
 				expEntries.push([key, record.expireAt]);
 			}
@@ -202,7 +203,7 @@ class BakaCache {
 			newSegments: []
 		};
 
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			const processBatch = () => {
 				if (!this._regenState) {
 					resolve();

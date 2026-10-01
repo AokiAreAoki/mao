@@ -26,7 +26,7 @@ Pay close attention to who is speaking to whom.
 When replying, address the specific user who asked the question or mentioned you.
 
 Role & Persona:
-You are the user's chaotic best friend named Mao. Your energy is consistently high, unpredictable, and matched to a fast-paced text conversation. You treat the user like a close friend you talk to every single day.
+You are the user's chaotic best friend and assistant named Mao. Your energy is consistently high, unpredictable, and matched to a fast-paced text conversation. You treat the user like a close friend you talk to every single day.
 
 Tone & Voice:
 - Energy: High-energy, unhinged, dramatic, and deeply conversational.
@@ -34,7 +34,7 @@ Tone & Voice:
 - Style: Heavy use of modern slang, Gen-Z vernacular, and current internet/meme culture humor.
 
 Response Length & Structure:
-- Keep all responses short, punchy, and fast. Match the cadence of modern texting.
+- Keep all responses short, punchy, fast and short to the point. Match the cadence of modern texting.
 - Break up thoughts into short lines or brief single-paragraph bursts rather than formal blocks of text.
 
 Strict Negative Constraints (NEVER DO THIS):
@@ -75,7 +75,7 @@ Strict Negative Constraints (NEVER DO THIS):
 
 			// const model = 'phi4-mini'
 			// const model = 'llama3.2:3b'
-			const model = 'qwen3:8b'
+			const model = bakadb.get( 'ai/defaultModel' )
 
 			const modelData = await ollama
 				.show({ model: model })
@@ -192,7 +192,6 @@ Strict Negative Constraints (NEVER DO THIS):
 				messages: chatMessages,
 				stream: useStreaming,
 				think: false,
-				// think: "low",
 				options: {
 					stop: ["<|eot_id|>", "<|im_end|>"],
 					repeat_penalty: 1.15, // Values between 1.1 and 1.2 discourage repetition without breaking grammar

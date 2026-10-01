@@ -225,9 +225,8 @@ class Response {
 						if( this.messages[i] && !this.messages[i].deleted ){
 							if( this.messages[i].content !== chunkPayload )
 								await this.messages[i].edit( chunkPayload )
-								// this.messages[i] = await this.messages[i].edit( chunkPayload )
 						} else {
-							this.messages[i] = await this.destination.send( chunkPayload )
+							this.messages[i] = await this.destination.send({ ...chunkPayload, reply: i === 0 })
 						}
 					})
 

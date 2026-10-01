@@ -2,12 +2,14 @@ module.exports = {
 	RESPONDING_MESSAGE_OPTIONS: {
 		useEvenInterval: true,
 		tailMode: true,
+		multiMessage: true,
+		seamlessSplit: true,
 	},
 
 	THINKING_MESSAGE_OPTIONS: {
 		useEvenInterval: true,
 		tailMode: true,
-		cb: "markdown",
+		cb: 'markdown',
 	},
 
 	/** @type {('high' | 'medium' | 'low')[]} */

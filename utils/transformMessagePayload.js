@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias(require)
+require = global.alias( require )
 
 const discord = require( 'discord.js' )
 const Jimp = require( 'jimp' )
@@ -12,6 +12,9 @@ const cutIfLimit = require( '@/utils/cutIfLimit' )
  * @property {boolean | discord.MessageMentionTypes[]} [mention]
  * @property {boolean} [cb]
  * @property {boolean} [tailMode]
+ * @property {boolean} [multiMessage]
+ * @property {boolean} [splitMarkdown]
+ * @property {boolean} [seamlessSplit]
  *
  * @typedef {discord.MessageEditOptions & CustomMessageOptions} MessageOptions
  */
@@ -22,7 +25,7 @@ const cutIfLimit = require( '@/utils/cutIfLimit' )
  * @returns {discord.MessageEditOptions}
  */
 module.exports = function transformMessagePayload( content, options = {} ){
-	if ( content instanceof discord.MessagePayload ){
+	if( content instanceof discord.MessagePayload ){
 		content.options = transformMessagePayload( content.options )
 		return content
 	}
@@ -70,7 +73,7 @@ module.exports = function transformMessagePayload( content, options = {} ){
 		options.files ??= []
 	}
 
-	const { cb, mention, tailMode } = options
+	const { cb, mention, tailMode, multiMessage, splitMarkdown, seamlessSplit } = options
 	options.allowedMentions ??= {}
 	options.allowedMentions.repliedUser ??= false
 
@@ -88,6 +91,10 @@ module.exports = function transformMessagePayload( content, options = {} ){
 
 	if( tailMode != null ){
 		delete options.tailMode
+	}
+
+	if( multiMessage || splitMarkdown || seamlessSplit ){
+		return options
 	}
 
 	return cutIfLimit( options, null, tailMode )

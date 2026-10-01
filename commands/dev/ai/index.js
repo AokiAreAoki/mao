@@ -1,10 +1,9 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias(require)
+require = global.alias( require )
 
 module.exports = {
 	init({ addCommand }){
-		const ollama = require( '@/instances/ollama' )
-		const bakadb = require( '@/instances/bakadb' )
+		const LLMao = require( '@/libs/llmao' )
 		const Embed = require( '@/utils/Embed' )
 		const processing = require( '@/utils/processing' )
 		const {
@@ -22,13 +21,6 @@ module.exports = {
 			const i = Math.floor( Math.log( bytes ) / Math.log( k ) )
 
 			return `${( bytes / Math.pow( k, i ) ).toFixed( 2 )} ${sizes[i]}`
-		}
-
-		function getDefaultModel(){
-			return bakadb.fallback({
-				path: ['ai', 'defaultModel'],
-				defaultValue: () => null,
-			})
 		}
 
 		function parseThink( val ){
@@ -50,21 +42,26 @@ module.exports = {
 
 		const root = addCommand({
 			aliases: 'ai',
-			description: 'AI helper commands powered by Ollama',
+			description: 'AI helper commands powered by LLMao & Ollama',
 		})
 
+		// --- CHAT COMMAND (NO SYSTEM PROMPT) ---
 		root.addSubcommand({
 			aliases: 'chat',
 			description: {
-				single: 'chats with AI model via Ollama',
+				single: 'chats with AI model with no system prompt and parameter customization',
 				usages: [
-					['<prompt...>', 'sends prompt to AI model'],
+					['<prompt...>', 'sends prompt to AI model without system prompt'],
 				],
 			},
 			flags: [
 				[`model`, `<model_name>`, `model to use for chat`],
 				[`think`, `<level>`, `thinking level ('high', 'medium', 'low', true, false)`],
 				[`temperature`, `<val>`, `temperature parameter for generation`],
+				[`top_p`, `<val>`, `top_p parameter`],
+				[`repeat_penalty`, `<val>`, `repeat penalty parameter`],
+				[`num_predict`, `<val>`, `max tokens to predict`],
+				[`provider`, `<key>`, `ollama provider key to use`],
 			],
 			async callback({ args, session }){
 				const prompt = args.join( ' ' ).trim()
@@ -74,38 +71,53 @@ module.exports = {
 
 				const model = args.flags.model?.specified
 					? args.flags.model[0]
-					: getDefaultModel()
+					: LLMao.getDefaultModel()
+
+				const providerKey = args.flags.provider?.specified
+					? args.flags.provider[0]
+					: undefined
 
 				const think = args.flags.think?.specified
 					? parseThink( args.flags.think[0] )
 					: undefined
 
-				const options = {
-					stop: ["<|eot_id|>", "<|im_end|>"],
-					repeat_penalty: 1.15, // Values between 1.1 and 1.2 discourage repetition without breaking grammar
-					frequency_penalty: 0.5,
-					temperature: 0.7,
-					top_p: 0.9,
-					num_predict: 512,
-					num_ctx: 1024 * 16,
-				}
+				const customOptions = {}
 
 				if( args.flags.temperature?.specified ){
 					const temp = parseFloat( args.flags.temperature[0] )
-
 					if( !isNaN( temp ) )
-						options.temperature = temp
+						customOptions.temperature = temp
+				}
+
+				if( args.flags.top_p?.specified ){
+					const topP = parseFloat( args.flags.top_p[0] )
+					if( !isNaN( topP ) )
+						customOptions.top_p = topP
+				}
+
+				if( args.flags.repeat_penalty?.specified ){
+					const rp = parseFloat( args.flags.repeat_penalty[0] )
+					if( !isNaN( rp ) )
+						customOptions.repeat_penalty = rp
+				}
+
+				if( args.flags.num_predict?.specified ){
+					const np = parseInt( args.flags.num_predict[0] )
+					if( !isNaN( np ) )
+						customOptions.num_predict = np
 				}
 
 				session.update( processing( `-# thinking...` ) )
 
 				try {
-					const response = await ollama.chat({
+					// Notice: Chatting via command uses NO system prompt as requested!
+					const response = await LLMao.chat({
 						model,
 						messages: [{ role: 'user', content: prompt }],
 						stream: true,
 						think,
-						options,
+						options: customOptions,
+						providerKey,
 					})
 
 					let responseText = ''
@@ -113,8 +125,11 @@ module.exports = {
 					let lastUpdatePromise = null
 
 					for await ( const part of response ){
-						responseText += part.message.content
-						thinkingText += part.message.thinking
+						if( part.message.content )
+							responseText += part.message.content
+
+						if( part.message.thinking )
+							thinkingText += part.message.thinking
 
 						if( responseText )
 							lastUpdatePromise = session.update( responseText, RESPONDING_MESSAGE_OPTIONS )
@@ -131,27 +146,241 @@ module.exports = {
 			},
 		})
 
+		// --- OLLAMA PROVIDERS COMMAND ---
+		const providerCmd = root.addSubcommand({
+			aliases: 'provider providers',
+			description: 'manages statically defined Ollama providers from ollama-providers.yml',
+		})
+
+		providerCmd.addSubcommand({
+			aliases: 'list ls',
+			description: {
+				single: 'lists all statically defined Ollama providers',
+				usages: [
+					['lists providers from ollama-providers.yml'],
+				],
+			},
+			async callback({ session }){
+				const providers = LLMao.getProviders()
+				const currentKey = LLMao.getCurrentProviderKey()
+				const keys = Object.keys( providers )
+
+				if( keys.length === 0 )
+					return session.update( 'No providers defined in `ollama-providers.yml`.' )
+
+				const list = keys.map( key => {
+					const p = providers[key]
+					const isCurrent = key === currentKey ? ' ⭐ (current)' : ''
+					return `• \`${key}\` - **${p.name || key}** (${p.host})${isCurrent}`
+				}).join( '\n' )
+
+				return session.update( Embed()
+					.setTitle( 'Ollama Providers' )
+					.setDescription( list )
+				)
+			},
+		})
+
+		providerCmd.addSubcommand({
+			aliases: 'set switch use',
+			description: {
+				single: 'changes current active Ollama provider',
+				usages: [
+					['<key>', 'sets active provider to $1'],
+				],
+			},
+			async callback({ args, session }){
+				const key = args[0]
+
+				if( !key )
+					return session.update( 'Please specify a provider key.' )
+
+				try {
+					const provider = LLMao.setProvider( key )
+					return session.update( `Switched active Ollama provider to: \`${key}\` (${provider.name || key} - ${provider.host})` )
+				} catch( error ){
+					return session.update( `Failed to set provider: ${error.message || error}` )
+				}
+			},
+		})
+
+		providerCmd.addSubcommand({
+			aliases: 'current info',
+			description: {
+				single: 'shows info about current active Ollama provider',
+				usages: [
+					['shows current provider'],
+				],
+			},
+			async callback({ session }){
+				const key = LLMao.getCurrentProviderKey()
+				const provider = LLMao.getCurrentProvider()
+
+				return session.update( Embed()
+					.setTitle( `Current Ollama Provider: ${key}` )
+					.addFields(
+						{ name: 'Name', value: provider.name || key, inline: true },
+						{ name: 'Host', value: provider.host, inline: true },
+					)
+				)
+			},
+		})
+
+		// --- LLMAO SETTINGS COMMAND ---
+		const settingsCmd = root.addSubcommand({
+			aliases: 'settings config cfg',
+			description: 'manages LLMao persisted settings and default model parameters',
+		})
+
+		settingsCmd.addSubcommand({
+			aliases: 'list show info',
+			description: {
+				single: 'shows current LLMao settings',
+				usages: [
+					['displays LLMao settings'],
+				],
+			},
+			async callback({ session }){
+				const providerKey = LLMao.getCurrentProviderKey()
+				const provider = LLMao.getCurrentProvider()
+				const defaultModel = LLMao.getDefaultModel()
+				const options = LLMao.getOptions()
+				const systemPrompt = LLMao.getSystemPrompt()
+
+				const optionsStr = Object.entries( options )
+					.map( ([k, v]) => `• \`${k}\`: ${Array.isArray(v) ? JSON.stringify(v) : v}` )
+					.join( '\n' )
+
+				const promptPreview = systemPrompt.length > 200
+					? systemPrompt.slice( 0, 200 ) + '...'
+					: systemPrompt
+
+				const embed = Embed()
+					.setTitle( 'LLMao Persisted Settings' )
+					.addFields(
+						{ name: 'Active Provider', value: `\`${providerKey}\` (${provider.host})`, inline: true },
+						{ name: 'Default Model', value: `\`${defaultModel}\``, inline: true },
+						{ name: 'Generation Options', value: optionsStr || 'Default' },
+						{ name: 'System Prompt', value: '```\n' + promptPreview + '\n```' },
+					)
+
+				return session.update( embed )
+			},
+		})
+
+		settingsCmd.addSubcommand({
+			aliases: 'model default-model',
+			description: {
+				single: 'gets or sets default model',
+				usages: [
+					['gets default model'],
+					['<model>', 'sets default model to $1'],
+				],
+			},
+			async callback({ args, session }){
+				const model = args[0]
+
+				if( model ){
+					LLMao.setDefaultModel( model )
+					return session.update( `Default model set to: \`${model}\`` )
+				}
+
+				const current = LLMao.getDefaultModel()
+				return session.update( `Current default model: \`${current}\`` )
+			},
+		})
+
+		settingsCmd.addSubcommand({
+			aliases: 'system-prompt system prompt',
+			description: {
+				single: 'gets or sets master system prompt for chat',
+				usages: [
+					['gets master system prompt'],
+					['<prompt...>', 'sets master system prompt to $1'],
+				],
+			},
+			async callback({ args, session }){
+				const prompt = args.join( ' ' ).trim()
+
+				if( prompt ){
+					LLMao.setSystemPrompt( prompt )
+					return session.update( `Master system prompt updated.` )
+				}
+
+				const currentPrompt = LLMao.getSystemPrompt()
+				return session.update( Embed()
+					.setTitle( 'Master System Prompt' )
+					.setDescription( '```\n' + currentPrompt + '\n```' )
+				)
+			},
+		})
+
+		settingsCmd.addSubcommand({
+			aliases: 'option opt',
+			description: {
+				single: 'gets or sets individual generation option in LLMao',
+				usages: [
+					['<key> <val>', 'sets option parameter (e.g. temperature 0.8)'],
+					['<key> reset', 'resets option parameter to default'],
+				],
+			},
+			async callback({ args, session }){
+				const key = args[0]
+				const valRaw = args[1]
+
+				if( !key )
+					return session.update( 'Please specify an option key (e.g. `temperature`, `num_predict`, `repeat_penalty`).' )
+
+				if( valRaw === undefined ){
+					const opts = LLMao.getOptions()
+					return session.update( `Option \`${key}\`: \`${opts[key]}\`` )
+				}
+
+				if( valRaw === 'reset' || valRaw === 'default' ){
+					LLMao.setOption( key, undefined )
+					return session.update( `Reset option \`${key}\` to default.` )
+				}
+
+				let parsedVal = valRaw
+				if( !isNaN( Number( valRaw ) ) )
+					parsedVal = Number( valRaw )
+				else if( valRaw.toLowerCase() === 'true' )
+					parsedVal = true
+				else if( valRaw.toLowerCase() === 'false' )
+					parsedVal = false
+
+				LLMao.setOption( key, parsedVal )
+				return session.update( `Updated option \`${key}\` to \`${parsedVal}\`` )
+			},
+		})
+
+		// --- IN-PROVIDER OLLAMA MANAGEMENT COMMANDS ---
 		const ollamaCmd = root.addSubcommand({
 			aliases: 'ollama',
-			description: 'manages Ollama models and settings',
+			description: 'manages in-provider Ollama models and tasks',
 		})
 
 		ollamaCmd.addSubcommand({
 			aliases: 'list ls',
 			description: {
-				single: 'lists available local Ollama models',
+				single: 'lists available local Ollama models for current provider',
 				usages: [
 					['lists local models'],
 				],
 			},
-			async callback({ session }){
+			flags: [
+				[`provider`, `<key>`, `provider key`],
+			],
+			async callback({ args, session }){
+				const providerKey = args.flags.provider?.specified ? args.flags.provider[0] : undefined
+
 				try {
-					const { models } = await ollama.list()
+					const { models } = await LLMao.list( providerKey )
 
 					if( !models || models.length === 0 )
 						return session.update( 'No local models found.' )
 
-					const defaultModel = getDefaultModel()
+					const defaultModel = LLMao.getDefaultModel()
 
 					const list = models.map( m => {
 						const isDefault = ( m.name === defaultModel || m.model === defaultModel ) ? ' ⭐ (default)' : ''
@@ -161,8 +390,10 @@ module.exports = {
 						return `• \`${m.name}\` - ${size}${details ? ' ' + details : ''}${isDefault}`
 					}).join( '\n' )
 
+					const currentP = providerKey || LLMao.getCurrentProviderKey()
+
 					return session.update( Embed()
-						.setTitle( 'Local Ollama Models' )
+						.setTitle( `Local Ollama Models (${currentP})` )
 						.setDescription( list )
 					)
 				} catch( error ){
@@ -179,9 +410,14 @@ module.exports = {
 					['lists running models'],
 				],
 			},
-			async callback({ session }){
+			flags: [
+				[`provider`, `<key>`, `provider key`],
+			],
+			async callback({ args, session }){
+				const providerKey = args.flags.provider?.specified ? args.flags.provider[0] : undefined
+
 				try {
-					const { models } = await ollama.ps()
+					const { models } = await LLMao.ps( providerKey )
 
 					if( !models || models.length === 0 )
 						return session.update( 'No models currently running.' )
@@ -211,11 +447,15 @@ module.exports = {
 					['[<model>]', 'stops/unloads $1 model (unloads all running models if unspecified)'],
 				],
 			},
+			flags: [
+				[`provider`, `<key>`, `provider key`],
+			],
 			async callback({ args, session }){
 				const targetModel = args[0]
+				const providerKey = args.flags.provider?.specified ? args.flags.provider[0] : undefined
 
 				try {
-					const { models } = await ollama.ps()
+					const { models } = await LLMao.ps( providerKey )
 
 					if( !models || models.length === 0 )
 						return session.update( 'No models currently running.' )
@@ -228,7 +468,7 @@ module.exports = {
 						return session.update( `Model \`${targetModel}\` is not currently running.` )
 
 					await Promise.all( modelsToStop.map( m =>
-						ollama.generate({ model: m.name, keep_alive: 0 })
+						LLMao.generate({ model: m.name, keep_alive: 0, providerKey })
 					) )
 
 					const stoppedNames = modelsToStop.map( m => `\`${m.name}\`` ).join( ', ' )
@@ -247,14 +487,18 @@ module.exports = {
 					['[<model>]', 'shows details for model (defaults to current default model)'],
 				],
 			},
+			flags: [
+				[`provider`, `<key>`, `provider key`],
+			],
 			async callback({ args, session }){
-				const modelName = args[0] || getDefaultModel()
+				const modelName = args[0] || LLMao.getDefaultModel()
+				const providerKey = args.flags.provider?.specified ? args.flags.provider[0] : undefined
 
 				if( !modelName )
 					return session.update( this.help )
 
 				try {
-					const info = await ollama.show({ model: modelName })
+					const info = await LLMao.show({ model: modelName }, providerKey )
 					const embed = Embed().setTitle( `Model Info: ${modelName}` )
 
 					if( info.details ){
@@ -294,8 +538,12 @@ module.exports = {
 					['<model>', 'pulls $1 model from registry'],
 				],
 			},
+			flags: [
+				[`provider`, `<key>`, `provider key`],
+			],
 			async callback({ args, session }){
 				const model = args[0]
+				const providerKey = args.flags.provider?.specified ? args.flags.provider[0] : undefined
 
 				if( !model )
 					return session.update( 'Please specify a model to pull.' )
@@ -303,7 +551,7 @@ module.exports = {
 				await session.update( processing( `Pulling \`${model}\`...` ) )
 
 				try {
-					const stream = await ollama.pull({ model, stream: true })
+					const stream = await LLMao.pull({ model, stream: true }, providerKey )
 					let lastUpdate = 0
 					let lastStatus = ''
 
@@ -339,14 +587,18 @@ module.exports = {
 					['<model>', 'deletes $1 model'],
 				],
 			},
+			flags: [
+				[`provider`, `<key>`, `provider key`],
+			],
 			async callback({ args, session }){
 				const model = args[0]
+				const providerKey = args.flags.provider?.specified ? args.flags.provider[0] : undefined
 
 				if( !model )
 					return session.update( 'Please specify a model to delete.' )
 
 				try {
-					await ollama.delete({ model })
+					await LLMao.delete({ model }, providerKey )
 					return session.update( `Successfully deleted model \`${model}\`` )
 				} catch( error ){
 					return session.update( `Failed to delete model \`${model}\`: ${error.message || error}` )
@@ -367,14 +619,13 @@ module.exports = {
 				const model = args[0]
 
 				if( model ){
-					bakadb.set( 'ai', 'defaultModel', model )
-					bakadb.save()
+					LLMao.setDefaultModel( model )
 					return session.update( `Default model set to: \`${model}\`` )
 				}
 
-				const current = getDefaultModel()
+				const current = LLMao.getDefaultModel()
 				return session.update( `Current default model: \`${current}\`` )
 			},
 		})
-	} // init
+	}, // init
 }

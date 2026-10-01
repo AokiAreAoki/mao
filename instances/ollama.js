@@ -1,5 +1,6 @@
-const { Ollama } = require( "ollama" )
+// eslint-disable-next-line no-global-assign
+require = global.alias( require )
 
-const ollama = new Ollama({ host: "http://localhost:11434" });
+const LLMao = require( '@/libs/llmao' )
 
-module.exports = ollama
+module.exports = LLMao.getClient()

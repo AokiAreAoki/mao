@@ -1,17 +1,6 @@
-// eslint-disable-next-line no-global-assign
-require = global.alias(require)
-const binarySearch = require("@/utils/binarySearch");
+const SegmentedTTLQueue = require('@/libs/SegmentedTTLQueue');
 
-function findIndex(arr, key, targetTime) {
-	let idx = binarySearch(arr, targetTime, undefined, 'right') - 1;
-
-	while (idx >= 0 && arr[idx][1] === targetTime) {
-		if (arr[idx][0] === key) return idx;
-		idx--;
-	}
-
-	return -1;
-}
+const HYDRATION_DELAY = 5 * 60e3
 
 class BakaCache {
 	/**
@@ -19,8 +8,8 @@ class BakaCache {
 	 * @param {BakaDB} bakaDB - An existing BakaDB instance
 	 * @param {string | string[]} path - Path to where the cache data should be stored
 	 * @param {Object} [options={}]
-	 * @param {number} [options.segmentSize=100] - Max entries per segment in the TTL queue
-	 * @param {number} [options.regenerateThrottle=50] - Throttle time (ms) per batch step during queue regeneration
+	 * @param {number} [options.segmentSize=100]
+	 * @param {number} [options.regenerateThrottle=50]
 	 */
 	constructor(bakaDB, path, options = {}) {
 		if (!Array.isArray(path)) {
@@ -30,18 +19,17 @@ class BakaCache {
 		this.db = bakaDB;
 		this.path = path;
 
-		this.segmentSize = Math.max(1, options.segmentSize ?? 100);
-		this.regenerateThrottle = options.regenerateThrottle ?? 50;
+		// Initialize standalone TTL queue
+		this.ttlQueue = new SegmentedTTLQueue({
+			segmentSize: options.segmentSize,
+			regenerateThrottle: options.regenerateThrottle,
+			onExpire: key => this.db.delete(...this.path, key)
+		});
 
-		// 2D Array of Array<[key, expireAt]> (each inner segment is sorted by expireAt asc)
-		this._segments = [];
-
-		// Regeneration state tracking
-		this._regenTimer = null;
-		this._regenState = null;
-
-		// Initialize queue from existing persistence layer
-		this._initQueueFromDB();
+		// Schedule TTL queue hydrating from persistent DB on boot
+		this.scheduledHydration = setTimeout(() => {
+			this._regenerateTTLQueue();
+		}, HYDRATION_DELAY);
 	}
 
 	/**
@@ -51,23 +39,23 @@ class BakaCache {
 	 * @param {number} [ttlMs] - Time to live in milliseconds
 	 */
 	set(key, value, ttlMs) {
-		const record = { value };
+		const newRecord = { value };
 		const now = Date.now();
 		const oldRecord = this._getRawRecord(key);
 
 		if (typeof ttlMs === 'number' && ttlMs > 0) {
-			record.expireAt = now + ttlMs;
+			newRecord.expireAt = now + ttlMs;
 		}
 
-		// Remove old key from queue if expireAt was set previously
+		// Clean up old queue entry if existing record had expiration
 		if (oldRecord && oldRecord.expireAt) {
-			this._removeFromQueue(key, oldRecord.expireAt);
+			this.ttlQueue.remove(key, oldRecord.expireAt);
 		}
 
-		this.db.set(...this.path, key, record);
+		this.db.set(...this.path, key, newRecord);
 
-		if (record.expireAt) {
-			this._insertIntoQueue(key, record.expireAt);
+		if (newRecord.expireAt) {
+			this.ttlQueue.push(key, newRecord.expireAt);
 		}
 
 		this.db.save();
@@ -115,7 +103,7 @@ class BakaCache {
 		if (!record) return false;
 
 		if (record.expireAt) {
-			this._removeFromQueue(key, record.expireAt);
+			this.ttlQueue.remove(key, record.expireAt);
 		}
 
 		this.db.delete(...this.path, key);
@@ -127,8 +115,7 @@ class BakaCache {
 	 * Clear the entire cache
 	 */
 	clear() {
-		this._cancelRegeneration();
-		this._segments = [];
+		this.ttlQueue.clear();
 
 		const data = this.db.get(...this.path) || {};
 		const keys = Object.keys(data);
@@ -139,189 +126,52 @@ class BakaCache {
 	}
 
 	/**
-	 * Synchronously purges expired items starting from the leading segments of the queue.
-	 * @returns {number} Count of evicted keys
+	 * Synchronously purges expired entries from storage via the queue.
+	 * @returns {number} Count of evicted items
 	 */
 	purgeExpired() {
-		const now = Date.now();
-		let evicted = 0;
-
-		while (this._segments.length > 0) {
-			const seg = this._segments[0];
-			let cutIdx = 0;
-
-			while (cutIdx < seg.length && seg[cutIdx][1] <= now) {
-				const [key] = seg[cutIdx];
-				this.db.delete(...this.path, key);
-				evicted++;
-				cutIdx++;
-			}
-
-			if (cutIdx > 0) {
-				seg.splice(0, cutIdx);
-			}
-
-			if (seg.length === 0) {
-				this._segments.shift();
-			} else {
-				break; // Leading non-expired item reached
-			}
-		}
-
-		if (evicted > 0) {
+		const evictedKeys = this.ttlQueue.purgeExpired(Date.now());
+		if (evictedKeys.length > 0) {
 			this.db.save();
 		}
-
-		return evicted;
+		return evictedKeys.length;
 	}
 
 	/**
-	 * Non-blocking incremental regeneration of the queue over time.
-	 * Re-sorts and re-chunks active expireAt entries without blocking execution.
-	 * @returns {Promise<void>}
-	 */
-	regenerate() {
-		this._cancelRegeneration();
-
-		const data = this.db.get(...this.path) || {};
-		const expEntries = [];
-
-		for (const key in data) {
-			const record = data[key];
-
-			if (record && record.expireAt) {
-				expEntries.push([key, record.expireAt]);
-			}
-		}
-
-		expEntries.sort((a, b) => a[1] - b[1]);
-
-		const total = expEntries.length;
-		this._regenState = {
-			entries: expEntries,
-			index: 0,
-			newSegments: []
-		};
-
-		return new Promise(resolve => {
-			const processBatch = () => {
-				if (!this._regenState) {
-					resolve();
-					return;
-				}
-
-				const { entries, index, newSegments } = this._regenState;
-				const limit = Math.min(index + this.segmentSize, total);
-
-				if (index < limit) {
-					const chunk = entries.slice(index, limit);
-					newSegments.push(chunk);
-					this._regenState.index = limit;
-				}
-
-				if (this._regenState.index >= total) {
-					this._segments = newSegments;
-					this._cancelRegeneration();
-					resolve();
-				} else {
-					this._regenTimer = setTimeout(processBatch, this.regenerateThrottle);
-				}
-			};
-
-			processBatch();
-		});
-	}
-
-	/**
-	 * Cleanup active background timers/tasks.
+	 * Cleanup resources and background timers.
 	 */
 	destroy() {
-		this._cancelRegeneration();
+		clearTimeout(this.scheduledHydration);
+		this.ttlQueue.destroy();
 	}
 
-	// --- Internal Queue & Storage Helpers ---
+	// --- Internal Helpers ---
 
 	_getRawRecord(key) {
 		return this.db.get(...this.path, key);
 	}
 
-	_initQueueFromDB() {
+	_collectExpirableEntries() {
 		const data = this.db.get(...this.path) || {};
 		const expEntries = [];
 
 		for (const key in data) {
 			const record = data[key];
+
 			if (record && record.expireAt) {
-				expEntries.push([key, record.expireAt]);
+				expEntries.push({ key, expireAt: record.expireAt });
 			}
 		}
 
-		expEntries.sort((a, b) => a[1] - b[1]);
-
-		this._segments = [];
-		for (let i = 0; i < expEntries.length; i += this.segmentSize) {
-			this._segments.push(expEntries.slice(i, i + this.segmentSize));
-		}
+		return expEntries;
 	}
 
-	_insertIntoQueue(key, expireAt) {
-		const tuple = [key, expireAt];
-
-		if (this._segments.length === 0) {
-			this._segments.push([tuple]);
-			return;
-		}
-
-		for (let i = 0; i < this._segments.length; i++) {
-			const seg = this._segments[i];
-			const maxInSeg = seg[seg.length - 1][1];
-
-			if (expireAt <= maxInSeg || i === this._segments.length - 1) {
-				const insIdx = binarySearch(seg, expireAt, undefined, 'right');
-				seg.splice(insIdx, 0, tuple);
-
-				if (seg.length > this.segmentSize) {
-					this._splitSegment(i);
-				}
-				return;
-			}
-		}
-	}
-
-	_removeFromQueue(key, expireAt) {
-		for (let i = 0; i < this._segments.length; i++) {
-			const seg = this._segments[i];
-			if (seg.length === 0) continue;
-
-			const minInSeg = seg[0][1];
-			const maxInSeg = seg[seg.length - 1][1];
-
-			if (expireAt >= minInSeg && expireAt <= maxInSeg) {
-				const idx = findIndex(seg, key, expireAt);
-				if (idx !== -1) {
-					seg.splice(idx, 1);
-					if (seg.length === 0) {
-						this._segments.splice(i, 1);
-					}
-					return;
-				}
-			}
-		}
-	}
-
-	_splitSegment(index) {
-		const seg = this._segments[index];
-		const mid = Math.floor(seg.length / 2);
-		const rightHalf = seg.splice(mid);
-		this._segments.splice(index + 1, 0, rightHalf);
-	}
-
-	_cancelRegeneration() {
-		if (this._regenTimer !== null) {
-			clearTimeout(this._regenTimer);
-			this._regenTimer = null;
-		}
-		this._regenState = null;
+	/**
+	 * Non-blocking incremental regeneration of the queue.
+	 * @returns {Promise<void>}
+	 */
+	_regenerateTTLQueue() {
+		this.ttlQueue.regenerate(this._collectExpirableEntries());
 	}
 }
 

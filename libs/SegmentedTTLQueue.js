@@ -4,7 +4,7 @@ require = global.alias(require)
 const binarySearch = require("@/utils/binarySearch")
 
 function findIndex(arr, key, targetTime) {
-	let idx = binarySearch(arr, targetTime, item => item.expireAt, 'right') - 1;
+	let idx = binarySearch(arr, targetTime, item => item.expireAt, 'left') - 1;
 
 	while (idx >= 0 && arr[idx].expireAt === targetTime) {
 		if (arr[idx].key === key) return idx;
@@ -134,7 +134,8 @@ class SegmentedTTLQueue {
 	 * @param {number} [now=Date.now()]
 	 * @returns {string[]} Array of evicted keys
 	 */
-	purgeExpired(now = Date.now()) {
+	purgeExpired() {
+		const now = Date.now();
 		const evictedKeys = [];
 
 		while (this.segments.length > 0) {

@@ -213,7 +213,7 @@ class LLMao {
 	formatChatLog( discordMessages ){
 		return discordMessages.map( msg => {
 			const norm = this.normalizeMessage( msg )
-			return `[${norm.name}] said: ${norm.content}`
+			return `[${norm.name}]: ${norm.content}`
 		}).join( '\n\n' )
 	}
 

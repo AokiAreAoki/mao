@@ -9,6 +9,7 @@ module.exports = class Service {
 	hasFailed = false
 	isLaunched = false
 	error = null
+	api = {}
 
 	get isEnabled() {
 		return this.serviceManager.isEnabled( this )
@@ -47,6 +48,15 @@ module.exports = class Service {
 
 			for( const initAction of sb.initActions ){
 				await initAction()
+			}
+
+			for( const [key, callback] of Object.entries( sb.apiEndpoints ) ){
+				this.api[key] = async ( ...args ) => {
+					if( !this.isLaunched )
+						return
+
+					return callback( ...args )
+				}
 			}
 
 			this.hasInitialized = true

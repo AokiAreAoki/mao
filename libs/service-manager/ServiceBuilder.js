@@ -22,6 +22,9 @@ module.exports = class ServiceBuilder {
 	/** @type {Action[]} */
 	onDisableActions = []
 
+	/** @type {Record<string, Action>} */
+	apiEndpoints = {}
+
 	constructor() {}
 
 	/**
@@ -48,7 +51,8 @@ module.exports = class ServiceBuilder {
 	/**
 	 * @typedef {import("events")} EE
 	 *
-	 * @typedef {
+	 * @typedef
+	 	{
 			<EventMap extends Record<string, any[]>, K extends keyof EventMap>(
 				ee: EE<EventMap>,
 				eventName: K,
@@ -75,5 +79,9 @@ module.exports = class ServiceBuilder {
 	 */
 	onMessage( priority, callback ){
 		this.messageHandler = { priority, callback }
+	}
+
+	api( name, callback ){
+		this.apiEndpoints[name] = callback
 	}
 }

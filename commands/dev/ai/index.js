@@ -6,22 +6,12 @@ module.exports = {
 		const LLMao = require( '@/libs/llmao' )
 		const Embed = require( '@/utils/Embed' )
 		const processing = require( '@/utils/processing' )
+		const formatBytes = require( '@/utils/formatBytes' )
 		const {
 			THINK_LEVELS,
 			THINKING_MESSAGE_OPTIONS,
 			RESPONDING_MESSAGE_OPTIONS,
 		} = require( '@/constants/ai' )
-
-		function formatBytes( bytes ){
-			if( !bytes || isNaN( bytes ) )
-				return '0 B'
-
-			const k = 1024
-			const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-			const i = Math.floor( Math.log( bytes ) / Math.log( k ) )
-
-			return `${( bytes / Math.pow( k, i ) ).toFixed( 2 )} ${sizes[i]}`
-		}
 
 		function parseThink( val ){
 			if( !val )

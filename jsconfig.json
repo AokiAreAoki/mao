@@ -1,9 +1,9 @@
 {
 	"compilerOptions": {
-		"baseUrl": "./",
 		"module": "CommonJS",
+		"baseUrl": ".",
 		"paths": {
-			"@/*": ["*"]
+			"@/*": ["./*"]
 		}
 	},
 	"exclude": [

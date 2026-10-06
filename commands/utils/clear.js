@@ -1,11 +1,10 @@
-const printify = require('../../libs/printify')
-
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const { PermissionFlagsBits } = require( 'discord.js' )
 		const client = require( '@/instances/client' )
+		const metaDataStore = require( '@/instances/meta-data-store' )
 
 		const MAX = 50
 		const messageDisplayTime = 3e3
@@ -31,7 +30,7 @@ module.exports = {
 					[`<number>`, `deletes $1 last messages (max. ${MAX})`],
 				],
 			},
-			callback: async ({ msg, args, session }) => {
+			async callback({ msg, args, session }){
 				if( !msg.member.permissions.has( PermissionFlagsBits.ManageMessages, true ) && !msg.author.isMaster() )
 					return session.update( 'You do not have permission to manage messages' )
 
@@ -64,7 +63,7 @@ module.exports = {
 					fetchOptions[flag.class.name] = id
 				}
 
-				msg.isCommand = false
+				metaDataStore.remove( msg, 'is-command' )
 				msg.makeUnpurgable()
 
 				if( args.flags.user.specified && !args.flags.user[0] )

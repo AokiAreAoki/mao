@@ -1,44 +1,26 @@
 // eslint-disable-next-line no-global-assign
-require = global.alias( require )
-
+require = global.alias(require)
 /** @type {import('@/libs/service-manager').Inclusion} */
 module.exports = {
 	id: 'ai',
 	name: 'AI',
 	init({ sb }){
 		const client = require( '@/instances/client' )
-		const bakadb = require( '@/instances/bakadb' )
 		const LLMao = require( '@/libs/llmao' )
-		const BakaCache = require( '@/libs/bakadb/cache' )
 		const processing = require( '@/utils/processing' )
+		const metaDataStore = require( '@/instances/meta-data-store' )
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 		const {
 			// THINKING_MESSAGE_OPTIONS,
 			RESPONDING_MESSAGE_OPTIONS,
 		} = require( '@/constants/ai' )
 
-		const PATH_TO_CONTEXT = 'ai/context'
-		const CONTEXT_TTL = 72 * 3600 * 1000
-
-		/** @type {BakaCache} */
-		let contextCache = null
-
-		sb.onEnabled( () => {
-			contextCache = new BakaCache( bakadb, PATH_TO_CONTEXT )
-		})
-
-		sb.onDisabled( () => {
-			contextCache.destroy()
-			contextCache = null
-		})
-
 		function markAsAIResponse( message ){
-			if( message && message.id && contextCache )
-				contextCache.set( message.id, true, CONTEXT_TTL )
+			metaDataStore.add( message, 'is-ai-message' )
 		}
 
 		function isAIResponse( message ){
-			return contextCache ? contextCache.get( message.id ) : false
+			return metaDataStore.resolve( message, 'is-ai-message' )
 		}
 
 		sb.onMessage( MESSAGE_HANDLER_PRIORITIES.AI, async msg => {

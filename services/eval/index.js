@@ -16,6 +16,7 @@ module.exports = {
 		const { db } = bakadb
 		const { iom, flags } = require( '@/index' )
 		const MM = require( '@/instances/message-manager' )
+		const metaDataStore = require( '@/instances/meta-data-store' )
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
 		const cb = require( '@/utils/cb' )
@@ -247,7 +248,7 @@ module.exports = {
 				}
 
 				if( messageOptions.content || messageOptions.embeds.length !== 0 || messageOptions.files.length !== 0 ){
-					msg.isCommand = true
+					metaDataStore.add( msg, 'is-command' )
 					await session.update( messageOptions )
 
 					return true

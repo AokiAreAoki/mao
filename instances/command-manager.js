@@ -5,12 +5,21 @@ const { CommandManager } = require( '@/libs/command-manager' )
 const client = require( '@/instances/client' )
 const { flags } = require( '@/index' )
 const { getModuleSettings } = require( '@/utils/getModuleSettings' )
+const metaDataStore = require( '@/instances/meta-data-store' )
 
 const prefix = flags.dev
 	? /^(--\s*)/i
 	: /^(-|(mao|мао)\s+)/i
 
-const CM = new CommandManager( client, prefix, true )
+const CM = new CommandManager({
+	client,
+	prefix,
+	considerMentionAsPrefix: true,
+})
+
+CM.on( 'command', ({ msg }) => {
+	metaDataStore.add( msg, 'is-command' )
+})
 
 CM.setModuleAccessor( /**
  * @param {import('discord.js').Message} message

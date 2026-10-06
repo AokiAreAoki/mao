@@ -19,7 +19,7 @@ module.exports = {
 
 				await Promise.all([
 					msg.react( '717396565114880020' ),
-					msg.deleteAnswers( true ),
+					msg.deleteAnswers(),
 				])
 
 				shutdown( parseInt( args[0] ) )

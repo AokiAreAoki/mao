@@ -1,4 +1,5 @@
 const { Collection } = require( 'discord.js' )
+const { EventEmitter } = require( 'events' )
 
 String.prototype.matchFirst = function( re, cb ){
 	let matched = this.match( re )
@@ -16,13 +17,47 @@ const quotes = '```'
 const cb = ( text, lang = '' ) => `${quotes}${lang}\n${text}\n${quotes}`
 
 /**
- * @function ModuleAccessor
- * @param {import('discord.js').Message} message
- * @param {Module} module
- * @returns {boolean}
+ * @typedef {( message: import('discord.js').Message, module: Module ) => void} ModuleAccessor
  */
 
-class CommandManager {
+/**
+ * @typedef {Object} CommandManagerOptions
+ * @property {import('discord.js').Client} client - The Discord.js client instance.
+ * @property {string|RegExp} prefix - The command prefix (string or regex). When a regex is used
+ *   it is matched against the beginning of the message content.
+ * @property {boolean} [considerMentionAsPrefix=false] - Whether a bot mention at the start of
+ *   the message should be accepted as a prefix.
+ */
+
+/**
+ * @typedef {Object} CommandEvent
+ * @property {import('discord.js').Message} msg - The Discord message that triggered the command.
+ * @property {string[]} path - Resolved command / sub-command path segments
+ *   (e.g. `['parent', 'child']`).
+ * @property {Command} command - The resolved {@link Command} instance
+ *   (deepest matched sub-command).
+ * @property {string} stringArgs - The raw argument string remaining after the command path
+ *   has been stripped.
+ */
+
+/**
+ * @typedef {Object} CommandManagerEventMap
+ * @property {[event: CommandEvent]} command - Fired every time a valid command is recognised
+ *   in an incoming message, **before** module-access checks and argument parsing.
+ */
+
+/**
+ * Manages command registration, lookup, and dispatching for incoming
+ * Discord messages.
+ *
+ * @extends {EventEmitter<CommandManagerEventMap>}
+ *
+ * @example
+ * cm.on( 'command', ({ msg, path, command, stringArgs }) => {
+ *     console.log( `${msg.author.tag} invoked "${command.name}" with args: ${stringArgs}` )
+ * })
+ */
+class CommandManager extends EventEmitter {
 	client
 	prefix
 	considerMentionAsPrefix
@@ -37,7 +72,12 @@ class CommandManager {
 	/** @type {ModuleAccessor} */
 	moduleAccessor = () => true
 
-	constructor( client, prefix, considerMentionAsPrefix = false ){
+	constructor({
+		client,
+		prefix,
+		considerMentionAsPrefix = false,
+	}){
+		super()
 		this.client = client
 		this.prefix = prefix
 		this.considerMentionAsPrefix = !!considerMentionAsPrefix
@@ -154,7 +194,12 @@ class CommandManager {
 		] = this.findCommandAndArgs( msg.content.substring( prefix.length ) )
 
 		if( command ){
-			msg.isCommand = true
+			this.emit( 'command', {
+				msg,
+				path,
+				command,
+				stringArgs,
+			})
 
 			if( !this.canAccessModule( msg, command.module ) )
 				return
@@ -574,7 +619,7 @@ class SubcommandsArray extends Array {
 	listCommands( tab = '' ){
 		return this.map( ( command, index ) => {
 			const last = index === this.length - 1
-			let description = `${tab}${index === this.length - 1 ? '└─' : '├─'} ${command.name} :: ${command.description.short}`
+			let description = `${tab}${last ? '└─' : '├─'} ${command.name} :: ${command.description.short}`
 
 			if( command.subcommands.length !== 0 )
 				description += '\n' + command.subcommands.listCommands( tab + ( last ? '   ' : '│  ' ) )

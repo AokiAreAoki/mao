@@ -1,3 +1,6 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias(require)
+
 const SegmentedTTLQueue = require('@/libs/SegmentedTTLQueue');
 
 const HYDRATION_DELAY = 5 * 60e3
@@ -5,7 +8,7 @@ const HYDRATION_DELAY = 5 * 60e3
 class BakaCache {
 	/**
 	 * Creates a BakaCache instance
-	 * @param {BakaDB} bakaDB - An existing BakaDB instance
+	 * @param {import('@/libs/bakadb')} bakaDB - An existing BakaDB instance
 	 * @param {string | string[]} path - Path to where the cache data should be stored
 	 * @param {Object} [options={}]
 	 * @param {number} [options.segmentSize=100]

@@ -1,9 +1,9 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias(require)
 const discord = require( 'discord.js' )
-const { Collection } = discord
 const Response = require( './response' )
-const binarySearch = require( '@/utils/binarySearch' )
+const binarySearch = require( '@/utils/binarySearch' );
+const metaDataStore = require( '@/instances/meta-data-store' );
 
 function listTypes( types ){
 	types = types.map( type => type?.name ?? String( type ) )
@@ -68,30 +68,20 @@ class MessageManager {
 		this.handleEdits = !!handleEdits
 		this.handleDeletion = !!handleDeletion
 
-		discord.Message.prototype.deleteAnswers = async function( includeResponse = false ){
-			if( !( this._answers instanceof Collection ) ){
-				this._answers = new Collection()
-				return
-			}
+		discord.Message.prototype.deleteAnswers = async function(){
+			const md = metaDataStore.resolve( this, 'answers' )
 
-			if( this._answers.size === 0 )
+			if( !md )
 				return
 
-			const messagesToDelete = this._answers.filter( message => {
-				if( message.deleted )
-					return false
+			if( md.answers.length === 0 )
+				return
 
-				if( !includeResponse && this.response.message && message.id === this.response.message.id )
-					return false
-
-				return true
-			})
-
+			const answers = await Promise.all( Object.values( md.answers ).map( m => m.deserialize() ) )
+			const messagesToDelete = answers.filter( m => !m.deleted )
 			const promise = this.channel.bulkDelete( messagesToDelete )
-			this._answers.clear()
 
-			if( !includeResponse && this.response.message )
-				this.addAnswer( this.response.message )
+			md.answers = {}
 
 			return promise
 		}
@@ -109,7 +99,6 @@ class MessageManager {
 				if( oldMsg.content !== newMsg.content ){
 					oldMsg.waiter?.cancel()
 					oldMsg.response?.resetSession()
-					oldMsg.deleteAnswers()
 
 					newMsg.hasBeenEdited = true
 					this.handleMessage( newMsg, true )
@@ -142,11 +131,7 @@ class MessageManager {
 	}
 
 	async handleMessage( message, hasBeenEdited = false ){
-		if( !hasBeenEdited )
-			message._answers = new Collection()
-
 		message.response ??= new Response( message )
-		message.isCommand = false
 
 		const hasBeenHandledByWaiter = ResponseWaiter.handleMessage( message )
 
@@ -160,7 +145,7 @@ class MessageManager {
 				return true
 		}
 
-		message.deleteAnswers( true )
+		message.deleteAnswers()
 
 		return false
 	}
@@ -168,7 +153,7 @@ class MessageManager {
 	async handleMessageDeletion( msg ){
 		msg.waiter?.cancel()
 		msg.response?.resetSession()
-		await msg.deleteAnswers( true )
+		await msg.deleteAnswers()
 		msg.deleted = true
 	}
 }

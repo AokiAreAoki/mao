@@ -8,6 +8,7 @@ module.exports = {
 	init({ sb }){
 		const client = require( '@/instances/client' )
 		const cb = require( '@/utils/cb' )
+		const metaDataStore = require( '@/instances/meta-data-store' )
 		const MESSAGE_HANDLER_PRIORITIES = require( '@/constants/message-handler-priorities' )
 
 		sb.onMessage( MESSAGE_HANDLER_PRIORITIES.SED, async msg => {
@@ -30,7 +31,8 @@ module.exports = {
 			if( !regexp )
 				return
 
-			let replacement = s.substring( regexp.length + 1 )
+			let replacement = s
+				.substring( regexp.length + 1 )
 				.replace( /\\n/g, '\n' )
 				.replace( /\\t/g, '\t' )
 
@@ -54,7 +56,18 @@ module.exports = {
 			await msg.getReferencedMessage()
 				.then( ref => ref && messages.unshift( ref ) )
 
-			const message = messages.find( m => !m.isCommand && !m.sedIgnored && regexp.test( m.content ) )
+			const message = messages.find( m => {
+				if( metaDataStore.resolve( m, 'is-command' ) )
+					return false
+
+				if( metaDataStore.resolve( m, 'is-sed-ignored' ) )
+					return false
+
+				if( !regexp.test( m.content )  )
+					return false
+
+				return true
+			})
 
 			return session
 				.update( message
@@ -62,8 +75,8 @@ module.exports = {
 					: `Could not find any matches`
 				)
 				.then( responseMessage => {
-					msg.sedIgnored = true
-					responseMessage.sedIgnored = true
+					metaDataStore.add( msg, 'is-sed-ignored' )
+					metaDataStore.add( responseMessage, 'is-sed-ignored' )
 					return responseMessage
 				})
 		})

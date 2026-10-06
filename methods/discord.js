@@ -2,12 +2,13 @@
 require = global.alias(require)
 module.exports = function(){
 	const discord = require( 'discord.js' )
-	const { Collection } = discord
 	const client = require( '@/instances/client' )
+	const metaDataStore = require( '@/instances/meta-data-store' )
 	const clamp = require( '@/utils/clamp' )
 	const cutIfLimit = require( '@/utils/cutIfLimit' )
 	const transformMessagePayload = require( '@/utils/transformMessagePayload' )
 	const Response = require( '@/libs/message-manager/response' )
+	const MessageSerializable = require( '@/libs/MessageSerializable' )
 
 	/// Collection ///
 
@@ -109,10 +110,8 @@ module.exports = function(){
 	/// Message ///
 
 	discord.Message.prototype.addAnswer = function( message ){
-		if( !( this._answers instanceof Collection ) )
-			this._answers = new Collection()
-
-		this._answers.set( message.id, message )
+		const md = metaDataStore.add( this, 'answers' )
+		md.answers[message.id] = new MessageSerializable( message )
 	}
 
 	// Message.reply

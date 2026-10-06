@@ -4,12 +4,14 @@ module.exports = {
 	init({ addCommand }){
 		const MM = require( '@/instances/message-manager' )
 		const processing = require( '@/utils/processing' )
+		const metaDataStore = require( '@/instances/meta-data-store' )
 
 		addCommand({
 			aliases: 'repeat r',
 			description: 'repeats last command',
 			async callback({ msg, session }){
-				msg.isCommand = false
+				metaDataStore.remove( msg, 'is-command' )
+
 				let commandMessage = await msg.getReferencedMessage()
 
 				if( commandMessage ){
@@ -23,12 +25,10 @@ module.exports = {
 						})
 						.catch( () => null )
 
-					commandMessage = messages?.find( m => m.author.id === msg.author.id && m.isCommand )
+					commandMessage = messages?.find( m => m.author.id === msg.author.id && metaDataStore.resolve( m, 'is-command' ) )
 				}
 
 				if( commandMessage ){
-					commandMessage.deleteAnswers()
-
 					const processingReaction = processing( '👌' )
 					const doneReaction = '✅'
 

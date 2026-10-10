@@ -7,7 +7,7 @@ module.exports = function(){
 	const clamp = require( '@/utils/clamp' )
 	const cutIfLimit = require( '@/utils/cutIfLimit' )
 	const transformMessagePayload = require( '@/utils/transformMessagePayload' )
-	const Response = require( '@/libs/message-manager/response' )
+	const MM = require( '@/instances/message-manager' )
 	const MessageSerializable = require( '@/libs/MessageSerializable' )
 
 	/// Collection ///
@@ -50,7 +50,7 @@ module.exports = function(){
 
 		for( const msg of messages ){
 			const ref = await msg.getReferencedMessage()
-			msg.response ??= new Response( msg )
+			MM.attachResponseInstance( msg )
 
 			if( !ref )
 				continue

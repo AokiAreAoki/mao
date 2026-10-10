@@ -12,6 +12,8 @@ const BakaCache = require( '@/libs/bakadb/cache' )
  * @typedef {keyof typeof DEFAULT_STATES} Tag
  */
 
+const TRANSIENT_TAGS = [ 'is-command', 'is-ai-message', 'is-sed-ignored' ]
+
 const DEFAULT_STATES = {
 	'answers': {
 		/** @type {Record<string, MessageSerializable>} */
@@ -48,16 +50,15 @@ class MetaDataStore {
 	 */
 	add( message, tag ){
 		/** @type {Meta} */
-		let meta = this.cache.get( message.id )
+		let meta = this._getMeta( message )
 
-		if( !meta || meta.editedTimestamp !== message.editedTimestamp ){
+		if( !meta ){
 			/** @type {Meta} */
-			const newMeta = {
+			meta = {
 				editedTimestamp: message.editedTimestamp,
 				tags: {},
 			}
-			this.cache.set( message.id, newMeta, this.ttl )
-			meta = newMeta
+			this.cache.set( message.id, meta, this.ttl )
 		}
 
 		return meta.tags[tag] ??= structuredClone( DEFAULT_STATES[tag] )
@@ -71,15 +72,10 @@ class MetaDataStore {
 	 */
 	resolve( message, tag ){
 		/** @type {Meta} */
-		const meta = this.cache.get( message.id )
+		const meta = this._getMeta( message )
 
 		if( !meta )
 			return null
-
-		if( meta.editedTimestamp !== message.editedTimestamp ){
-			this.cache.delete( message.id )
-			return null
-		}
 
 		return meta.tags[tag] ?? null
 	}
@@ -89,17 +85,12 @@ class MetaDataStore {
 	 * @param {import('discord.js').Message} message
 	 * @param {Tag} tag
 	 */
-	remove(message, tag) {
+	remove( message, tag ) {
 		/** @type {Meta} */
-		let meta = this.cache.get( message.id )
+		let meta = this._getMeta( message )
 
 		if( !meta )
 			return false
-
-		if( meta.editedTimestamp !== message.editedTimestamp ){
-			this.cache.delete( message.id )
-			return false
-		}
 
 		delete meta.tags[tag]
 		return true
@@ -109,15 +100,46 @@ class MetaDataStore {
 	 * Sets or updates a tag for a given message.
 	 * @param {import('discord.js').Message} message
 	 */
-	removeAll(message) {
+	removeAll( message ) {
 		/** @type {Meta} */
-		let meta = this.cache.get( message.id )
+		let meta = this._getMeta( message )
 
 		if( !meta )
 			return false
 
 		this.cache.delete( message.id )
-		return meta.editedTimestamp === message.editedTimestamp
+		return true
+	}
+
+	/**
+	 * @private
+	 * @param {import('discord.js').Message} message
+	 * @returns {Meta | null}
+	 */
+	_getMeta( message ) {
+		/** @type {Meta} */
+		let meta = this.cache.get( message.id )
+
+		if( !meta )
+			return null
+
+		if( meta.editedTimestamp !== message.editedTimestamp ){
+			const newMeta = {
+				editedTimestamp: message.editedTimestamp,
+				tags: {},
+			}
+
+			for (const [tag, value] of Object.entries( meta.tags )) {
+				if ( !TRANSIENT_TAGS.includes( tag ) ) {
+					newMeta.tags[tag] = value
+				}
+			}
+
+			this.cache.set( message.id, newMeta, this.ttl )
+			return newMeta
+		}
+
+		return meta
 	}
 }
 

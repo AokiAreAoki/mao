@@ -3,7 +3,6 @@ require = global.alias(require)
 const discord = require( 'discord.js' )
 const Response = require( './response' )
 const binarySearch = require( '@/utils/binarySearch' );
-const metaDataStore = require( '@/instances/meta-data-store' );
 
 function listTypes( types ){
 	types = types.map( type => type?.name ?? String( type ) )
@@ -63,10 +62,12 @@ class MessageManager {
 		client,
 		handleEdits = false,
 		handleDeletion = false,
+		metaDataStore,
 	}){
 		this.client = client
 		this.handleEdits = !!handleEdits
 		this.handleDeletion = !!handleDeletion
+		this.metaDataStore = metaDataStore
 
 		discord.Message.prototype.deleteAnswers = async function(){
 			const md = metaDataStore.resolve( this, 'answers' )
@@ -131,7 +132,7 @@ class MessageManager {
 	}
 
 	async handleMessage( message, hasBeenEdited = false ){
-		message.response ??= new Response( message )
+		this.attachResponseInstance( message )
 
 		const hasBeenHandledByWaiter = ResponseWaiter.handleMessage( message )
 
@@ -155,6 +156,10 @@ class MessageManager {
 		msg.response?.resetSession()
 		await msg.deleteAnswers()
 		msg.deleted = true
+	}
+
+	attachResponseInstance( message ){
+		message.response ??= new Response( message, this.metaDataStore )
 	}
 }
 

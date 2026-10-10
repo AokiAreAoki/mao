@@ -1,5 +1,7 @@
+// eslint-disable-next-line no-global-assign
+require = global.alias(require)
 const discord = require( 'discord.js' )
-const Response = require( './message-manager/response' )
+const Response = require( '@/libs/message-manager/response' )
 const clamp = ( num, min, max ) => num < min ? min : num > max ? max : num
 
 class Paginator {

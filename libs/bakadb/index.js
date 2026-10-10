@@ -170,7 +170,7 @@ class BakaDB extends events {
 				cb( object[k], k );
 	}
 
-	_serialize( object, _path='/' ){
+	_serialize( object, _path = '' ){
 		let serialized
 
 		if( object instanceof Array )
@@ -181,13 +181,13 @@ class BakaDB extends events {
 			return this._serializeValue( object, _path )
 
 		this._foreach( object, ( val, k ) => {
-			serialized[k] = this._serializeValue( val, _path )
+			serialized[k] = this._serializeValue( val, `${_path}/${k}` )
 		})
 
 		return serialized
 	}
 
-	_deserialize( object, _path='/' ){
+	_deserialize( object, _path = '' ){
 		let deserialized
 
 		if( object instanceof Array )
@@ -198,13 +198,13 @@ class BakaDB extends events {
 			return this._deserializeValue( object, _path )
 
 		this._foreach( object, ( val, k ) => {
-			deserialized[k] = this._deserializeValue( val, _path )
+			deserialized[k] = this._deserializeValue( val, `${_path}/${k}` )
 		})
 
 		return deserialized
 	}
 
-	_serializeValue( val, _path='/' ){
+	_serializeValue( val, _path = '' ){
 		if( typeof val === 'undefined' || val == null )
 			return
 
@@ -227,7 +227,10 @@ class BakaDB extends events {
 			this.emit( 'missing-serializer', type, _path )
 	}
 
-	_deserializeValue( val, _path='/' ){
+	_deserializeValue( val, _path = '' ){
+		if( typeof val === 'undefined' || val == null )
+			return
+
 		if( typeof val === 'number' || typeof val === 'boolean' )
 			return val
 
@@ -261,8 +264,9 @@ class BakaDB extends events {
 				return coder.deserialize( val, _path )
 
 			this.emit( 'missing-deserializer', type, _path )
-		} else if( typeof val === 'object' )
-			return this._deserialize( val )
+		} else if( typeof val === 'object' ){
+			return this._deserialize( val, _path )
+		}
 	}
 
 	save( force = false ){

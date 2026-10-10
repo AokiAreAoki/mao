@@ -1,8 +1,10 @@
 // eslint-disable-next-line no-global-assign
 require = global.alias( require )
 
+const MetaDataStore = require('@/libs/meta-data-store');
 const transformMessagePayload = require( '@/utils/transformMessagePayload' )
-const wait = require( '@/utils/wait' )
+const wait = require( '@/utils/wait' );
+const { Message, TextChannel } = require( 'discord.js' )
 
 const DISCORD_API_MESSAGE_QUOTA = 5
 const DISCORD_API_MESSAGE_QUOTA_TIME_WINDOW = 5e3
@@ -158,25 +160,29 @@ class ResponseSession {
 }
 
 class Response {
-	destination = null
 	#session = null
-	messages = []
 	#pendingRequest = null
 	#pendingContent = null
 
-	get message(){
-		return this.messages[0] || null
-	}
-
-	set message( val ){
-		this.messages[0] = val
-	}
+		// return this.metaDataStore.resolve( this.destination, 'answers' )?.answers || {}
+		// this.metaDataStore.add( this.destination, 'answers' ).answers = val
 
 	get session(){
 		return this.#session
 	}
 
-	constructor( messageOrChannel ){
+	/**
+	 * @param {Message | TextChannel} messageOrChannel
+	 * @param {MetaDataStore} metaDataStore
+	 */
+	constructor( messageOrChannel, metaDataStore ){
+		if( !( messageOrChannel instanceof Message ) && !( messageOrChannel instanceof TextChannel ) )
+			throw Error( `Response destination must be a Discord Message or TextChannel` )
+
+		if( !( metaDataStore instanceof MetaDataStore ) )
+			throw Error( `Response metaDataStore must be an instance of MetaDataStore` )
+
+		this.metaDataStore = metaDataStore
 		this.destination = messageOrChannel
 		this.resetSession()
 	}
@@ -210,9 +216,16 @@ class Response {
 			const rawContent = typeof content === 'object' && content !== null ? content.content : content
 
 			if( typeof rawContent === 'string' && rawContent.length > ( options.maxLength || DEFAULT_MAX_LENGTH ) ){
-				const chunks = splitMessageMarkdown( rawContent, options.maxLength || DEFAULT_MAX_LENGTH )
-
 				let chain = Promise.resolve()
+				const chunks = splitMessageMarkdown( rawContent, options.maxLength || DEFAULT_MAX_LENGTH )
+				const { answers } = this.metaDataStore.add( this.destination, 'answers' )
+
+				const messagesPromise = Promise
+					.all( Object
+						.values( answers )
+						.map( ms => ms.deserialize() )
+					)
+					.then( mm => mm.sort( ( a, b ) => a.createdTimestamp - b.createdTimestamp ) )
 
 				for( let i = 0; i < chunks.length; i++ ){
 					const chunkPayload = typeof content === 'object' && content !== null
@@ -220,13 +233,13 @@ class Response {
 						: transformMessagePayload( chunks[i], options )
 
 					chain = chain.then( async () => {
-						this.messages[i] = await this.messages[i]
+						const messages = await messagesPromise
 
-						if( this.messages[i] && !this.messages[i].deleted ){
-							if( this.messages[i].content !== chunkPayload )
-								await this.messages[i].edit( chunkPayload )
+						if( messages[i] && !messages[i].deleted ){
+							if( messages[i].content !== chunkPayload )
+								await messages[i].edit( chunkPayload )
 						} else {
-							this.messages[i] = await this.destination.send({ ...chunkPayload, reply: i === 0 })
+							messages[i] = await this.destination.send({ ...chunkPayload, reply: i === 0 })
 						}
 					})
 

@@ -3,7 +3,6 @@ require = global.alias(require)
 module.exports = {
 	init({ addCommand }){
 		const { PermissionFlagsBits } = require( 'discord.js' )
-		const client = require( '@/instances/client' )
 		const metaDataStore = require( '@/instances/meta-data-store' )
 
 		const MAX = 50
@@ -39,7 +38,6 @@ module.exports = {
 				if( isNaN( amount ) || amount <= 0 )
 					return session.update( 'You entered invalid number or number is ≤ 0' )
 
-				const ref = await msg.getReferencedMessage()
 				const fetchOptions = { limit: 100 }
 				let flag = null
 
@@ -54,7 +52,10 @@ module.exports = {
 					fetchOptions.before = msg.id
 				}
 
+				msg.makeUnpurgeable()
+
 				if( flag ){
+					const ref = await msg.getReferencedMessage()
 					const id = resolveID( flag, ref )
 
 					if( !id )
@@ -62,9 +63,6 @@ module.exports = {
 
 					fetchOptions[flag.class.name] = id
 				}
-
-				metaDataStore.remove( msg, 'is-command' )
-				msg.makeUnpurgable()
 
 				if( args.flags.user.specified && !args.flags.user[0] )
 					return session.update( 'You have not specified a user' )
@@ -74,12 +72,14 @@ module.exports = {
 				if( args.flags.user.specified && !user )
 					return session.update( 'User not found' )
 
+				metaDataStore.remove( msg, 'is-command' )
+
 				const messages = await msg.channel.messages.fetch( fetchOptions )
 					.then( messages => Array.from( messages.values() ) )
 					.then( messages => args.flags.after.specified ? messages.reverse() : messages )
 					.then( messages => messages
 						.filter( message => {
-							if( message.unpurgable && message.unpurgable > Date.now() )
+							if( message.unpurgeable && message.unpurgeable > Date.now() )
 								return false
 
 							if( user )
@@ -92,10 +92,7 @@ module.exports = {
 
 				const actualAmount = amount === messages.length ? amount : `${messages.length}/${amount}`
 
-				if( client.user.bot )
-					msg.channel.purge( messages )
-				else
-					messages.forEach( m => m.delete() )
+				msg.channel.purge( messages )
 
 				const reply = await session.update( `${actualAmount} message${amount !== 1 ? 's have' : ' has'} been deleted` )
 				msg.channel.purge( [msg, reply], messageDisplayTime )

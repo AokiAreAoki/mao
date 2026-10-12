@@ -96,9 +96,9 @@ module.exports = function(){
 			: 0
 
 		if( messages instanceof discord.Collection )
-			messages.each( m => m?.makeUnpurgable?.( delay ) )
+			messages.each( m => m?.makeUnpurgeable?.( delay ) )
 		else
-			messages.forEach?.( m => m?.makeUnpurgable?.( delay ) )
+			messages.forEach?.( m => m?.makeUnpurgeable?.( delay ) )
 
 		if( delay )
 			await new Promise( resolve => setTimeout( resolve, delay ) )
@@ -174,9 +174,14 @@ module.exports = function(){
 		return this
 	}
 
-	// Message.makeUnpurgable
-	discord.Message.prototype.makeUnpurgable = function( delay ){
-		this.unpurgable = Date.now() + 1337 + ( delay || 0 )
+	// Message.makeUnpurgeable
+	discord.Message.prototype.makeUnpurgeable = function( delay ){
+		this.unpurgeable = Date.now() + 1337 + ( delay || 0 )
+	}
+
+	// Message.makePurgeable
+	discord.Message.prototype.makePurgeable = function(){
+		delete this.purgeable
 	}
 
 	// Message.purge
@@ -185,7 +190,7 @@ module.exports = function(){
 			? clamp( delay, 0, 300e3 )
 			: 0
 
-		this.makeUnpurgable( delay )
+		this.makeUnpurgeable( delay )
 		return this.delete( delay )
 	}
 

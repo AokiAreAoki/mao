@@ -96,9 +96,9 @@ module.exports = function(){
 			: 0
 
 		if( messages instanceof discord.Collection )
-			messages.each( m => m.makeUnpurgable?.( delay ) )
+			messages.each( m => m?.makeUnpurgable?.( delay ) )
 		else
-			messages.forEach?.( m => m.makeUnpurgable?.( delay ) )
+			messages.forEach?.( m => m?.makeUnpurgable?.( delay ) )
 
 		if( delay )
 			await new Promise( resolve => setTimeout( resolve, delay ) )

@@ -164,9 +164,6 @@ class Response {
 	#pendingRequest = null
 	#pendingContent = null
 
-		// return this.metaDataStore.resolve( this.destination, 'answers' )?.answers || {}
-		// this.metaDataStore.add( this.destination, 'answers' ).answers = val
-
 	get session(){
 		return this.#session
 	}
@@ -212,94 +209,70 @@ class Response {
 				})
 		}
 
+		let chunks
+		let chain = Promise.resolve()
+		const { answers } = this.metaDataStore.add( this.destination, 'answers' )
+
+		const messagesPromise = Promise
+			.all( Object
+				.values( answers )
+				.map( ms => ms.deserialize() )
+			)
+			.then( mm => mm
+				.filter( m => m instanceof Message && !m.deleted )
+				.sort( ( a, b ) => a.createdTimestamp - b.createdTimestamp )
+			)
+
 		if( isMultiMessage ){
-			const rawContent = typeof content === 'object' && content !== null ? content.content : content
+			const rawContent = typeof content === 'object' && content !== null
+				? content.content
+				: content
 
-			if( typeof rawContent === 'string' && rawContent.length > ( options.maxLength || DEFAULT_MAX_LENGTH ) ){
-				let chain = Promise.resolve()
-				const chunks = splitMessageMarkdown( rawContent, options.maxLength || DEFAULT_MAX_LENGTH )
-				const { answers } = this.metaDataStore.add( this.destination, 'answers' )
-
-				const messagesPromise = Promise
-					.all( Object
-						.values( answers )
-						.map( ms => ms.deserialize() )
-					)
-					.then( mm => mm.sort( ( a, b ) => a.createdTimestamp - b.createdTimestamp ) )
-
-				for( let i = 0; i < chunks.length; i++ ){
-					const chunkPayload = typeof content === 'object' && content !== null
-						? transformMessagePayload( { ...content, content: chunks[i] }, options )
-						: transformMessagePayload( chunks[i], options )
-
-					chain = chain.then( async () => {
-						const messages = await messagesPromise
-
-						if( messages[i] && !messages[i].deleted ){
-							if( messages[i].content !== chunkPayload )
-								await messages[i].edit( chunkPayload )
-						} else {
-							messages[i] = await this.destination.send({ ...chunkPayload, reply: i === 0 })
-						}
-					})
-
-					if( useEvenInterval ){
-						chain = chain.then( async () => {
-							await wait( DISCORD_API_MESSAGE_EVEN_INTERVAL )
-						})
-					}
-				}
-
-				if( this.messages.length > chunks.length ){
-					chain = chain.then( async () => {
-						const extraMessages = this.messages.splice( chunks.length )
-
-						await Promise.all( extraMessages.map( async msg => {
-							msg = await msg
-
-							if( msg && !msg.deleted )
-								return msg.delete().catch( () => {} )
-						}) )
-					})
-				}
-
-				return this.#pendingRequest = chain
-					.then( () => {
-						this.#pendingRequest = null
-						return this.messages
-					})
-			}
+			chunks = splitMessageMarkdown( rawContent, options.maxLength || DEFAULT_MAX_LENGTH )
+		} else {
+			chunks = [transformMessagePayload( content, options ).content]
 		}
 
-		// Single message mode: clean up any extra trailing messages if present
-		if( this.messages.length > 1 ){
-			const extraMessages = this.messages.splice( 1 )
+		for( let i = 0; i < chunks.length; i++ ){
+			const chunkPayload = typeof content === 'object' && content !== null
+				? transformMessagePayload( { ...content, content: chunks[i] }, options )
+				: transformMessagePayload( chunks[i], options )
 
-			extraMessages.forEach( msg => {
-				if( msg && !msg.deleted )
-					msg.delete().catch( () => {} )
+			chain = chain.then( async () => {
+				const messages = await messagesPromise
+
+				if( messages[i] && !messages[i].deleted ){
+					if( messages[i].content !== chunkPayload )
+						await messages[i].edit( chunkPayload )
+				} else {
+					messages[i] = await this.destination.send({ ...chunkPayload, reply: i === 0 })
+				}
 			})
 		}
 
-		const payload = transformMessagePayload( content, options )
+		if( this.messages.length > chunks.length ){
+			chain = chain.then( async () => {
+				const extraMessages = this.messages.splice( chunks.length )
 
-		let chain = this.message && !this.message.deleted
-			? this.message.edit( payload )
-			: this.destination.send( payload )
+				await Promise.all( extraMessages.map( async msg => {
+					msg = await msg
+
+					if( msg && !msg.deleted )
+						return msg.delete().catch( () => {} )
+				}) )
+			})
+		}
 
 		if( useEvenInterval ){
-			chain = chain.then( async message => {
+			chain = chain.then( async () => {
 				await wait( DISCORD_API_MESSAGE_EVEN_INTERVAL )
-				return message
 			})
 		}
 
 		return this.#pendingRequest = chain
-			.then( message => {
+			.then( () => {
 				this.#pendingRequest = null
-				this.message = message
-
-				return isMultiMessage ? [message] : message
+				return isMultiMessage ? this.messages : this.messages[0]
 			})
 	}
 }

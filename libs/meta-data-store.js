@@ -123,7 +123,7 @@ class MetaDataStore {
 		if( !meta )
 			return null
 
-		if( meta.editedTimestamp !== message.editedTimestamp ){
+		if( meta.editedTimestamp != message.editedTimestamp ){
 			const newMeta = {
 				editedTimestamp: message.editedTimestamp,
 				tags: {},

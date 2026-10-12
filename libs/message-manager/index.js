@@ -58,6 +58,14 @@ class MessageManager {
 	/** @type {Handler[]} */
 	handlers = []
 
+	/**
+	 *
+	 * @param { Object } params
+	 * @param { import('discord.js').Client } params.client
+	 * @param { boolean } [params.handleEdits]
+	 * @param { boolean } [params.handleDeletion]
+	 * @param { import('@/libs/meta-data-store') } params.metaDataStore
+	 */
 	constructor({
 		client,
 		handleEdits = false,
@@ -78,11 +86,19 @@ class MessageManager {
 			if( md.answers.length === 0 )
 				return
 
-			const answers = await Promise.all( Object.values( md.answers ).map( m => m.deserialize() ) )
-			const messagesToDelete = answers.filter( m => !m.deleted )
+			const answers = await Promise.all( Object
+				.values( md.answers )
+				.map( m => m.deserialize() )
+			)
+			const messagesToDelete = answers.filter( m => m instanceof discord.Message && !m.deleted )
 			const promise = this.channel.bulkDelete( messagesToDelete )
 
-			md.answers = {}
+			promise.then( () => {
+				for( const msg of answers ){
+					if( msg.deleted )
+						delete md.answers[msg.id]
+				}
+			})
 
 			return promise
 		}
